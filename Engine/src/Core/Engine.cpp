@@ -28,9 +28,13 @@ namespace Sphynx {
 		}
 
 		Logging::Shutdown();
+
+		SE_PROFILE_SHUTDOWN();
 	}
 
 	void Engine::Update() {
+		SE_PROFILE_FRAME("MainThread");
+
 		SE_PROFILE_FUNCTION();
 
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();

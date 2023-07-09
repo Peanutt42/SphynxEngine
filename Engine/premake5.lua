@@ -37,19 +37,24 @@ project "Engine"
 		"%{Libaries.glfw}"
 	}
 
+	filter { "configurations:Debug or Release" }
+		includedirs { "%{IncludeDirs.optick}" }
+
+
 	filter { "configurations:Debug" }
-		--buildoptions "/MDd"
+		buildoptions "/MDd"
 		runtime "Debug"
 		optimize "off"
 		symbols "on"
+
 		
 	filter { "configurations:Release" }
-		--buildoptions "/MD"
+		buildoptions "/MD"
 		runtime "Release"
 		optimize "Full"
 	
 	filter { "configurations:Dist" }
-		--buildoptions "/MD"
+		buildoptions "/MD"
 		runtime "Release"
 		optimize "Full"
 

@@ -17,3 +17,8 @@ IncludeDirs["glm"] = "%{wks.location}/vendor/glm/include"
 
 -- stbi
 IncludeDirs["stbi"] = "%{wks.location}/vendor/stb_image/include"
+
+-- Optick
+IncludeDirs["optick"] = "%{wks.location}/vendor/Optick/include"
+LibaryDirs["optick"] = "%{wks.location}/vendor/Optick/lib/%{cfg.buildcfg}"
+Libaries["optick"] = "OptickCore.lib"

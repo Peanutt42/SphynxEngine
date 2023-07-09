@@ -45,8 +45,8 @@ namespace Sphynx {
 	struct ScopedTimer {
 		ScopedTimer(const std::string_view name) : m_Name(name) {}
 		~ScopedTimer() {
-			float time = m_Timer.ElapsedMillis();
-			SE_INFO(Logging::General, "[TIMER] {0:3s} - {1:f}ms, {2:f}fps", m_Name, time, 1.f / time * 1000.f);
+			[[maybe_unused]] float time = m_Timer.ElapsedMillis();
+			SE_INFO(Logging::General, "[TIMER] {} - {}ms, {}fps", m_Name, time, 1.f / time * 1000.f);
 		}
 
 	private:

@@ -32,19 +32,24 @@ project "Editor"
 		"Engine"
 	}
 
+	filter { "configurations:Debug or Release" }
+		includedirs { "%{IncludeDirs.optick}" }
+		libdirs { "%{LibaryDirs.optick}" }
+		links { "%{Libaries.optick}" }
+
 	filter { "configurations:Debug" }
-		--buildoptions "/MDd"
+		buildoptions "/MDd"
 		runtime "Debug"
 		optimize "off"
 		symbols "on"
 		
 	filter { "configurations:Release" }
-		--buildoptions "/MD"
+		buildoptions "/MD"
 		runtime "Release"
 		optimize "Full"
 	
 	filter { "configurations:Dist" }
-		--buildoptions "/MD"
+		buildoptions "/MD"
 		runtime "Release"
 		optimize "Full"
 
