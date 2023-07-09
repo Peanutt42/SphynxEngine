@@ -3,7 +3,14 @@
 #include <filesystem>
 #include <fstream>
 
+#include <iostream>
+
+#include <string>
+#include <string_view>
+#include <format>
+
 #include <atomic>
+#include <mutex>
 
 #include <vector>
 #include <array>
@@ -11,3 +18,5 @@
 #include <map>
 #include <unordered_set>
 #include <set>
+
+#include <cassert>

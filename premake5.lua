@@ -26,6 +26,9 @@ group "Core"
 	include "Editor"
 	include "Engine"
 
+group "Dependencies"
+	include "vendor/yaml"
+
 newaction {
 	trigger = "clean",
 	description = "Remove all binaries and intermediate binaries, and vs files.",

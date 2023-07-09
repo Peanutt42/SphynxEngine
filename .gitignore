@@ -37,4 +37,9 @@
 /.vs
 *.vcxproj
 *.vcxproj.user
+*.vcxproj.filters
 *.sln
+
+# Logging
+*.log
+/Logs

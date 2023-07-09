@@ -21,7 +21,8 @@ project "Editor"
 
 	includedirs {
 		"src",
-		"%{wks.location}/Engine/src"
+		"%{wks.location}/Engine/src",
+		"%{IncludeDirs.yaml}"
 	}
 
 	links {

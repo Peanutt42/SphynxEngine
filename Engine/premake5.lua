@@ -20,7 +20,12 @@ project "Engine"
 	}
 
 	includedirs {
-		"src"
+		"src",
+		"%{IncludeDirs.yaml}"
+	}
+
+	links {
+		"yaml"
 	}
 
 	filter { "configurations:Debug" }
