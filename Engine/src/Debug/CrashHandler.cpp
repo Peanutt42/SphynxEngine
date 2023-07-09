@@ -19,9 +19,9 @@
 
 namespace Sphynx {
 	void CrashHandler::Init() {
-		signal(SIGILL, [](int) { OnProcessCrashed(); });  // illegal instruction
-		signal(SIGSEGV, [](int) { OnProcessCrashed(); }); // segmentation fault
-		signal(SIGABRT, [](int) { OnProcessCrashed(); }); // abort()
+		signal(SIGILL, OnProcessCrashed);  // illegal instruction
+		signal(SIGSEGV, OnProcessCrashed); // segmentation fault
+		signal(SIGABRT, OnProcessCrashed); // abort()
 
 		//if (!IsDebuggerPresent()) {
 		//	Pit::Process::Run( L"Programs\\CrashReporter\\bin\\CrashReporter.exe", 	std::to_wstring(Pit::Process::GetCurrentProcessID()));
@@ -60,10 +60,20 @@ namespace Sphynx {
 			if (SymGetSymFromAddr64(process, address, nullptr, symbol)) {
 				std::string_view symbolName = symbol->Name;
 				if (symbolName == "abort")
-					trace.Entries.emplace_back("Internal function: abort()", false, "unknown", 0);
+					trace.Entries.emplace_back("Internal function: abort()", false, "internal", 0);
 				else if (symbolName == "raise")
-					trace.Entries.emplace_back("Internal function: raise()", false, "unknown", 0);
-				else if (symbolName == "CrashReporter::OnProcessCrashed" || symbolName == "CrashReporter::MakeStackTrace")
+					trace.Entries.emplace_back("Internal function: raise()", false, "internal", 0);
+				else if (symbolName == "Sphynx::CrashHandler::OnProcessCrashed" ||
+						 symbolName == "Sphynx::CrashHandler::MakeStackTrace" ||
+						 symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::operator()" ||
+						 symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::<lambda_invoker_cdecl>" ||
+						 symbolName == "_seh_filter_exe" ||
+						 symbolName == "`__scrt_common_main_seh'::`1'::filt$0" ||
+						 symbolName == "__C_specific_handler" ||
+						 symbolName == "__chkstk" ||
+						 symbolName == "log2f" ||
+						 symbolName == "RtlFindCharInUnicodeString" ||
+						 symbolName == "KiUserExceptionDispatcher")
 					continue;
 				else {
 					auto& entry = trace.Entries.emplace_back();
@@ -92,8 +102,16 @@ namespace Sphynx {
 		return trace;
 	}
 
-	void CrashHandler::OnProcessCrashed() {
+	void CrashHandler::OnProcessCrashed(int signal) {
 		std::cout << "A crash occurred.\n";
+
+		switch (signal) {
+		default: std::cout << "unkown signal: " << signal << '\n'; break;
+		case -1: break;
+		case SIGILL: std::cout << "Illegal instruction!\n"; break;
+		case SIGSEGV: std::cout << "Segmentation fault!\n"; break;
+		case SIGABRT: std::cout << "abort() was called!\n"; break;
+		}
 
 		StackTrace stackTrace = MakeStackTrace(true);
 		for (size_t i = 0; i < stackTrace.Entries.size(); i++) {

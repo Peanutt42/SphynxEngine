@@ -3,6 +3,8 @@
 
 namespace Sphynx {
 	void Engine::Init(const EngineInitInfo& info) {
+		CrashHandler::Init();
+		
 		s_Settings.ParseConsoleArguments(info.Arguments);
 
 		Logging::Init();

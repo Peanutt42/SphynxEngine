@@ -12,6 +12,7 @@ namespace Sphynx {
 		// 'cutSetup' cuts everything until the main function
 		static StackTrace MakeStackTrace(bool cutSetup);
 
-		static void OnProcessCrashed();
+		// signal = -1 -> singal gets ignored
+		static void OnProcessCrashed(int signal = -1);
 	};
 }
