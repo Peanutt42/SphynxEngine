@@ -1,0 +1,4 @@
+IncludeDirs = {}
+LibaryDirs = {}
+Libaries = {}
+CopyBinaryCmds = {}
