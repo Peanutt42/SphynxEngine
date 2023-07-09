@@ -28,6 +28,7 @@ group "Core"
 
 group "Dependencies"
 	include "vendor/yaml"
+	include "vendor/stb_image"
 
 newaction {
 	trigger = "clean",

@@ -22,7 +22,10 @@ project "Editor"
 	includedirs {
 		"src",
 		"%{wks.location}/Engine/src",
-		"%{IncludeDirs.yaml}"
+		"%{IncludeDirs.yaml}",
+		"%{IncludeDirs.stbi}",
+		"%{IncludeDirs.glm}",
+		"%{IncludeDirs.glfw}"
 	}
 
 	links {

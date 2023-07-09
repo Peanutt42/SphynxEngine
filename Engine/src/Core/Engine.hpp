@@ -5,9 +5,9 @@
 #include "EngineSettings.hpp"
 
 namespace Sphynx {
-	struct EngineInitInfo {
-		ConsoleArguments Arguments;
-	};
+	namespace Rendering {
+		class Window;
+	}
 
 	class Engine {
 	public:
@@ -18,11 +18,18 @@ namespace Sphynx {
 
 		static void CloseNextFrame() { s_Quit.store(true); }
 
-		static bool ShouldClose() { return s_Quit.load(); }
+		static bool ShouldClose();
+
+		static float DeltaTime() { return s_DeltaTime; }
 
 	private:
 		inline static std::atomic_bool s_Quit = false;
 
 		inline static EngineSettings s_Settings;
+
+		inline static float s_DeltaTime = 0.f;
+		inline static Timer s_UpdateTimer;
+
+		inline static Rendering::Window* s_Window = nullptr;
 	};
 }

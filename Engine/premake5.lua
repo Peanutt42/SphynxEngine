@@ -21,11 +21,20 @@ project "Engine"
 
 	includedirs {
 		"src",
-		"%{IncludeDirs.yaml}"
+		"%{IncludeDirs.yaml}",
+		"%{IncludeDirs.glm}",
+		"%{IncludeDirs.stbi}",
+		"%{IncludeDirs.glfw}"
+	}
+
+	libdirs {
+		"%{LibaryDirs.glfw}"
 	}
 
 	links {
-		"yaml"
+		"yaml",
+		"stb_image",
+		"%{Libaries.glfw}"
 	}
 
 	filter { "configurations:Debug" }

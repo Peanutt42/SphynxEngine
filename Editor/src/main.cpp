@@ -6,7 +6,9 @@ int main(int argc, const char** argv) {
 	// get project dir
 
 	Sphynx::EngineInitInfo initInfo {
-		arguments
+		.Arguments = arguments,
+		.WindowName = "Sphynx Engine Editor",
+		.Fullscreen = false
 	};
 	Sphynx::Engine::Init(initInfo);
 	
