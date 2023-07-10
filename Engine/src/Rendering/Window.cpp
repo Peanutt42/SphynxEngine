@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Window.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -7,7 +8,7 @@
 
 namespace Sphynx::Rendering {
 	void GLFWErrorCallback([[maybe_unused]] int error, [[maybe_unused]] const char* description) {
-		SE_ERR(Logging::Rendering, "[GLFW]: ({0}): {1}", error, description);
+		SE_ERR(Logging::Rendering, "[GLFW]: ({}): {}", error, description);
 	}
 
 	Window::Window(const std::string_view title, uint32_t width, uint32_t height, bool fullscreen)

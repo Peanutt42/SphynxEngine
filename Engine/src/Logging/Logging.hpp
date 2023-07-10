@@ -50,8 +50,20 @@ namespace Sphynx {
 			RawLog(verbosity, Category::General, formatted);
 		}
 
-		static void Log(Verbosity verbosity) {
-			RawLog(verbosity, Category::General, "Empty log function (probably a SE_ASSERT(false);)");
+		template<typename... Args>
+		static void AssertLog(const char* expression, Verbosity verbosity, Category category, std::format_string<Args...> msg, Args&&... args) {
+			std::string formatted = std::format(msg, std::forward<Args>(args)...);
+			RawLog(verbosity, category, "Assertion failed: " + std::string(expression) + "\n" + formatted);
+		}
+
+		template<typename... Args>
+		static void AssertLog(const char* expression, Verbosity verbosity, std::format_string<Args...> msg, Args&&... args) {
+			std::string formatted = std::format(msg, std::forward<Args>(args)...);
+			RawLog(verbosity, Category::General, "Assertion failed: " + std::string(expression) + "\n" + formatted);
+		}
+
+		static void AssertLog(const char* expression, Verbosity verbosity, const char* assertMsg) {
+			RawLog(verbosity, Category::General, "Assertion failed: " + std::string(expression) + "\n" + std::string(assertMsg));
 		}
 
 		static const std::vector<std::string>& GetErrorList() { return s_ErrorMessageStack; }
@@ -76,13 +88,21 @@ namespace Sphynx {
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
 #define SE_FATAL(...) \
 {																																		\
-	Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);												\
+	Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);															\
 	if (Sphynx::Platform::IsDebuggerAttached())																							\
 		__debugbreak();																													\
 	else																																\
 		Sphynx::CrashHandler::OnProcessCrashed();																						\
 }
-#define SE_ASSERT(result, ...) { if (!(result)) SE_FATAL(__VA_ARGS__) }
+#define SE_ASSERT(result, ...) {	\
+	if (!(result)) {																													\
+		Sphynx::Logging::AssertLog(#result, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);											\
+		if (Sphynx::Platform::IsDebuggerAttached())																						\
+			__debugbreak();																												\
+		else																															\
+			Sphynx::CrashHandler::OnProcessCrashed();																					\
+	}																																	\
+}
 
 #else
 
@@ -91,7 +111,7 @@ namespace Sphynx {
 #define SE_WARN(...)			{}
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
 #define SE_FATAL(...)			{ Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnProcessCrashed(); }
-#define SE_ASSERT(result, ...)	{ if (!(result)) SE_FATAL(__VA_ARGS__); }
+#define SE_ASSERT(result, ...)	{ if (!(result)) { Sphynx::Logging::AssertLog(#result, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnProcessCrashed(); } }
 
 #endif
 }
