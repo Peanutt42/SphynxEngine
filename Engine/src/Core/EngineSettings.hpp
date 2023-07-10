@@ -2,26 +2,31 @@
 
 #include "CoreInclude.hpp"
 #include "ConsoleArguments.hpp"
+#include "ProjectSystem/Project.hpp"
+#include "Serialization/YAMLSerializer.hpp"
 
 namespace Sphynx {
-	struct EngineInitInfo {
-		ConsoleArguments Arguments;
-		std::string WindowName;
-		bool Fullscreen = false;
-	};
-
 	struct EngineSettings {
 		bool Headless = false;
 		std::string WindowName;
 		bool Fullscreen = false;
 		float MaxFPS = -1.f;
 
-		void FromInitInfo(const EngineInitInfo& initInfo) {
-			if (initInfo.Arguments.HasArgument("-headless"))
+		void ParseArguments(const ConsoleArguments& arguments) {
+			if (arguments.HasArgument("-headless"))
 				Headless = true;
+		}
 
-			WindowName = initInfo.WindowName;
-			Fullscreen = initInfo.Fullscreen;
+		void ParseConfigFile(const std::filesystem::path& filepath) {
+			std::string filepathStr = filepath.string();
+
+			YAML::Node data = YAML::LoadFile(filepathStr);
+			MaxFPS = data["MaxFPS"].as<float>();
 		}
 	};
+
+	struct EngineInitInfo {
+		EngineSettings Settings;
+		std::shared_ptr<Project> Project;
+	};	
 }

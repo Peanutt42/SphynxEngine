@@ -3,6 +3,7 @@
 #include "CoreInclude.hpp"
 #include "ConsoleArguments.hpp"
 #include "EngineSettings.hpp"
+#include "ProjectSystem/Project.hpp"
 
 namespace Sphynx {
 	namespace Rendering {
@@ -11,7 +12,7 @@ namespace Sphynx {
 
 	class Engine {
 	public:
-		static void Init(const EngineInitInfo& info);
+		static void Init(const EngineInitInfo& initInfo);
 		static void Shutdown();
 
 		static void Update();
@@ -22,6 +23,10 @@ namespace Sphynx {
 
 		static float DeltaTime() { return s_DeltaTime; }
 
+		static std::shared_ptr<Project> GetProject() { return s_Project; }
+
+		constexpr static Version Version { 0, 0, 1 };
+
 	private:
 		inline static std::atomic_bool s_Quit = false;
 
@@ -29,6 +34,8 @@ namespace Sphynx {
 
 		inline static float s_DeltaTime = 0.f;
 		inline static Timer s_UpdateTimer;
+
+		inline static std::shared_ptr<Project> s_Project;
 
 		inline static Rendering::Window* s_Window = nullptr;
 	};

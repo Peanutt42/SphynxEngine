@@ -29,7 +29,9 @@ project "Editor"
 	}
 
 	links {
-		"Engine"
+		"Engine",
+		"yaml",
+		"stb_image"
 	}
 
 	filter { "configurations:Debug or Release" }

@@ -3,16 +3,44 @@
 #include "Core/CoreInclude.hpp"
 #include <yaml-cpp/yaml.h>
 
-namespace Sphynx::Serialization {
-	const bool SaveYamlToFile(const std::filesystem::path& filepath, const YAML::Emitter& emitter) {
-		std::ofstream fout(filepath);
-		if (!fout) {
-			//PE_ERR(Logging::General, "Failed to save file '{}'", filepath.string());
-			return false;
+namespace YAML {
+	template<>
+	struct convert<Sphynx::Version>	{
+		static Node encode(const Sphynx::Version& version) {
+			Node node;
+			node.push_back(version.Major);
+			node.push_back(version.Minor);
+			node.push_back(version.Patch);
+			node.SetStyle(EmitterStyle::Flow);
+			return node;
 		}
 
-		fout << emitter.c_str();
-		fout.close();
-		return true;
-	}
+		static bool decode(const Node& node, Sphynx::Version& version) {
+			if (!node.IsSequence() || node.size() != 3)
+				return false;
+
+			version.Major = node[0].as<int>();
+			version.Minor = node[1].as<int>();
+			version.Patch = node[2].as<int>();
+
+			return true;
+		}
+	};
+}
+
+namespace Sphynx {
+	class Serialization {
+	public:
+		static bool SaveYamlToFile(const std::filesystem::path& filepath, const YAML::Emitter& emitter) {
+			std::ofstream fout(filepath);
+			if (!fout) {
+				SE_ERR(Logging::General, "Failed to save file '{}'", filepath.string());
+				return false;
+			}
+
+			fout << emitter.c_str();
+			fout.close();
+			return true;
+		}
+	};
 }

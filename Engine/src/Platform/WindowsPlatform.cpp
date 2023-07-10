@@ -27,7 +27,11 @@ namespace Sphynx {
 	}
 
 
-	std::filesystem::path Platform::FileDialogs::OpenFile(const wchar_t* filter) {
+	std::filesystem::path Platform::FileDialogs::OpenFile(const std::string& filterName, const std::string& filter) {
+		// filter: "name (filter)\0filter\0"
+		std::wstring wfilter = std::wstring(filter.begin(), filter.end());
+		std::wstring finalFilter = std::wstring(filterName.begin(), filterName.end()) + L" (" + wfilter + L")\0" + wfilter + L'\0';
+
 		OPENFILENAMEW ofn;
 		ZeroMemory(&ofn, sizeof(OPENFILENAME));
 		ofn.lStructSize = sizeof(OPENFILENAME);
@@ -35,7 +39,7 @@ namespace Sphynx {
 		wchar_t szFile[260] = { 0 };
 		ofn.lpstrFile = szFile;
 		ofn.nMaxFile = sizeof(szFile);
-		ofn.lpstrFilter = filter;
+		ofn.lpstrFilter = finalFilter.c_str();
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST |
 			OFN_FILEMUSTEXIST |
@@ -47,7 +51,11 @@ namespace Sphynx {
 		return {};
 	}
 
-	std::filesystem::path Platform::FileDialogs::SaveFile(const wchar_t* filter) {
+	std::filesystem::path Platform::FileDialogs::SaveFile(const std::string& filterName, const std::string& filter) {
+		// filter: "name (filter)\0filter\0"
+		std::wstring wfilter = std::wstring(filter.begin(), filter.end());
+		std::wstring finalFilter = std::wstring(filterName.begin(), filterName.end()) + L" (" + wfilter + L")\0" + wfilter + L'\0';
+
 		OPENFILENAMEW ofn;
 		wchar_t szFile[260] = { 0 };
 		wchar_t currentDir[256] = { 0 };
@@ -58,12 +66,12 @@ namespace Sphynx {
 		ofn.nMaxFile = sizeof(szFile);
 		if (GetCurrentDirectoryW(256, currentDir))
 			ofn.lpstrInitialDir = currentDir;
-		ofn.lpstrFilter = filter;
+		ofn.lpstrFilter = finalFilter.c_str();
 		ofn.nFilterIndex = 1;
 		ofn.Flags = OFN_PATHMUSTEXIST | OFN_OVERWRITEPROMPT | OFN_NOCHANGEDIR;
 
 		// Sets the default extension by extracting it from the filter
-		ofn.lpstrDefExt = std::wcschr(filter, '\0') + 1;
+		ofn.lpstrDefExt = std::wcschr(finalFilter.c_str(), '\0') + 1;
 
 		if (GetSaveFileNameW(&ofn))
 			return ofn.lpstrFile;

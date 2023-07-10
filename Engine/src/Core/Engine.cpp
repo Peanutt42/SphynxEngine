@@ -4,14 +4,16 @@
 #include "Rendering/Window.hpp"
 
 namespace Sphynx {
-	void Engine::Init(const EngineInitInfo& info) {
+	void Engine::Init(const EngineInitInfo& initInfo) {
 		CrashHandler::Init();
-		
-		s_Settings.FromInitInfo(info);
+
+		s_Settings = initInfo.Settings;
 
 		Logging::Init();
 
 		SE_INFO(Logging::General, "=== SPHYNX ENGINE INIT ===");
+
+		s_Project = initInfo.Project;
 
 		if (!s_Settings.Headless) {
 			s_Window = new Rendering::Window(s_Settings.WindowName, 1920, 1080, s_Settings.Fullscreen);
@@ -22,6 +24,8 @@ namespace Sphynx {
 
 	void Engine::Shutdown() {
 		SE_INFO(Logging::General, "=== SPHYNX ENGINE SHUTDOWN ===");
+
+		s_Project.reset();
 
 		if (!s_Settings.Headless) {
 			delete s_Window;

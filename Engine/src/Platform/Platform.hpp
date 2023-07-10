@@ -16,8 +16,8 @@ namespace Sphynx {
 
 		class FileDialogs {
 		public:
-			static std::filesystem::path OpenFile(const wchar_t* filter);
-			static std::filesystem::path SaveFile(const wchar_t* filter);
+			static std::filesystem::path OpenFile(const std::string& filterName, const std::string& filter);
+			static std::filesystem::path SaveFile(const std::string& filterName, const std::string& filter);
 
 			static std::filesystem::path OpenFolder();
 		};
