@@ -71,8 +71,8 @@ namespace Sphynx {
 #if defined(DEBUG) || defined(RELEASE)
 
 #define SE_TRACE(...)			Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Trace, __VA_ARGS__)
-#define SE_INFO(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Info, __VA_ARGS__)
-#define SE_WARN(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Warning, __VA_ARGS__)
+#define SE_INFO(...)			Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Info, __VA_ARGS__)
+#define SE_WARN(...)			Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Warning, __VA_ARGS__)
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
 #define SE_FATAL(...) \
 {																																		\
@@ -86,12 +86,12 @@ namespace Sphynx {
 
 #else
 
-#define SE_TRACE(category, msg, ...)			{}
-#define SE_INFO(category, msg, ...)				{}
-#define SE_WARN(category, msg, ...)				{}
-#define SE_ERR(category, msg, ...)				{}
-#define SE_FATAL(category, msg, ...)			Sphynx::CrashHandler::OnProcessCrashed()
-#define SE_ASSERT(result, category, msg, ...)	{ if (!(result)) SE_FATAL(category, msg, __VA_ARGS__); }
+#define SE_TRACE(...)			{}
+#define SE_INFO(...)			{}
+#define SE_WARN(...)			{}
+#define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
+#define SE_FATAL(...)			{ Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnProcessCrashed(); }
+#define SE_ASSERT(result, ...)	{ if (!(result)) SE_FATAL(__VA_ARGS__); }
 
 #endif
 }
