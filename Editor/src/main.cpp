@@ -2,7 +2,7 @@
 #include "Core/Engine.hpp"
 
 int main(int argc, const char** argv) {
-	SE_ASSERT(argc >= 1, Sphynx::Logging::General, "There should be at least 1 argument being the .exe filepath");
+	SE_ASSERT(argc >= 1, "There should be at least 1 argument being the .exe filepath");
 
 	// Set working directory to the rootDir
 	std::filesystem::path exeFilepath = argv[0];
@@ -17,11 +17,11 @@ int main(int argc, const char** argv) {
 	if (!std::filesystem::exists(projectFilepath))
 		projectFilepath = Sphynx::Platform::FileDialogs::OpenFile("Sphynx Engine Project", "*.seproj");
 	
-	SE_ASSERT(std::filesystem::exists(projectFilepath), Sphynx::Logging::General, "Provided project file '{}' doesn't exist", projectFilepath.string());
+	SE_ASSERT(std::filesystem::exists(projectFilepath), "Provided project file '{}' doesn't exist", projectFilepath.string());
 	
 	// Load project
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
-	SE_ASSERT(project->EngineVersion == Sphynx::Engine::Version, Sphynx::Logging::General, "The project's version ({}) is a diffrent version that this Engine version ({})", project->EngineVersion.to_string(), Sphynx::Engine::Version.to_string());
+	SE_ASSERT(project->EngineVersion == Sphynx::Engine::Version, "The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version);
 
 	Sphynx::ConsoleArguments arguments(argc, argv);
 

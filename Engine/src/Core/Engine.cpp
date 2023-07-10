@@ -11,7 +11,7 @@ namespace Sphynx {
 
 		Logging::Init();
 
-		SE_INFO(Logging::General, "=== SPHYNX ENGINE INIT ===");
+		SE_INFO("=== SPHYNX ENGINE INIT ===");
 
 		s_Project = initInfo.Project;
 
@@ -23,7 +23,7 @@ namespace Sphynx {
 	}
 
 	void Engine::Shutdown() {
-		SE_INFO(Logging::General, "=== SPHYNX ENGINE SHUTDOWN ===");
+		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
 
 		s_Project.reset();
 

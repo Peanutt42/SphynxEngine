@@ -12,9 +12,16 @@ namespace Sphynx {
 		constexpr Version(int major, int minor, int patch) : Major(major), Minor(minor), Patch(patch) {}
 
 		bool operator==(const Version&) const = default;
+	};
+}
 
-		std::string to_string() const {
-			return std::to_string(Major) + ", " + std::to_string(Minor) + ", " + std::to_string(Patch);
+namespace std {
+	template<class CharT>
+	struct std::formatter<Sphynx::Version, CharT> : std::formatter<std::basic_string<CharT>, CharT> {
+		template <typename FormatContext>
+		auto format(const Sphynx::Version& version, FormatContext& ctx) {
+			return std::formatter<std::basic_string<CharT>, CharT>::format(
+				std::format("{}.{}.{}", version.Major, version.Minor, version.Patch), ctx);
 		}
 	};
 }

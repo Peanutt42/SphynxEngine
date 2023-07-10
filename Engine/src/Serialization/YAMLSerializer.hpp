@@ -34,7 +34,7 @@ namespace Sphynx {
 		static bool SaveYamlToFile(const std::filesystem::path& filepath, const YAML::Emitter& emitter) {
 			std::ofstream fout(filepath);
 			if (!fout) {
-				SE_ERR(Logging::General, "Failed to save file '{}'", filepath.string());
+				SE_ERR("Failed to save file '{}'", filepath.string());
 				return false;
 			}
 

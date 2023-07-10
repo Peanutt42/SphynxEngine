@@ -1,5 +1,7 @@
 #include "pch.hpp"
 #include "Logging.hpp"
+#include "Platform/Platform.hpp"
+#include "Profiling/Profiling.hpp"
 
 namespace Sphynx {
 	constexpr const char* CategoryToString(Logging::Category category) {
@@ -35,6 +37,8 @@ namespace Sphynx {
 
 
 	void Logging::Init() {
+		SE_PROFILE_FUNCTION();
+
 		if (s_Initialized)
 			return;
 
@@ -50,6 +54,8 @@ namespace Sphynx {
 	}
 
 	void Logging::Shutdown() {
+		SE_PROFILE_FUNCTION();
+
 		if (!s_Initialized)
 			return;
 
@@ -61,14 +67,18 @@ namespace Sphynx {
 	}
 
 	void Logging::RawLog(Verbosity verbosity, Category category, const std::string& msg) {
-		if (!s_Initialized)
-			return;
-
-		if (s_Verbosity > verbosity)
-			return;
-
-		std::scoped_lock lock(s_Mutex);
 		std::cout << '\033' << GetColorForVerbosity(verbosity) << CategoryToString(category) << msg << "\033[0m\n";
+
+		if (verbosity >= Verbosity::Critical)
+			Platform::MessagePrompts::Error("Sphynx Engine Error", msg);
+
+		if (!s_Initialized)
+			Init();
+
+		if (verbosity < s_Verbosity)
+			return;
+		
+		std::scoped_lock lock(s_Mutex);
 		s_LogFile << msg << '\n';
 
 		if (verbosity >= Verbosity::Error)
