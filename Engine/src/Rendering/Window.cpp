@@ -2,6 +2,7 @@
 #include "Window.hpp"
 #include "Profiling/Profiling.hpp"
 
+#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 #include <stb_image.h>
@@ -26,6 +27,7 @@ namespace Sphynx::Rendering {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_MAXIMIZED, m_Maximized);
 		glfwWindowHint(GLFW_SAMPLES, 0);
+		/*TODO:*/ glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {
@@ -122,6 +124,19 @@ namespace Sphynx::Rendering {
 		GLFWimage image{ w, h, pixels };
 		glfwSetWindowIcon(m_Window, 1, &image);
 		stbi_image_free(pixels);
+	}
+
+	VkSurfaceKHR Window::GetSurface(VkInstance instance) {
+#ifdef WINDOWS
+		VkWin32SurfaceCreateInfoKHR createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
+		createInfo.hwnd = glfwGetWin32Window(m_Window);
+		createInfo.hinstance = GetModuleHandle(nullptr);
+		VkSurfaceKHR surface = VK_NULL_HANDLE;
+		VkResult result = vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface);
+		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create window surface");
+		return surface;
+#endif
 	}
 
 	void Window::_FramebufferResizedCallback(GLFWwindow* window, int width, int height) {

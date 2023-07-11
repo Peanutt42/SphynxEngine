@@ -25,7 +25,8 @@ project "Editor"
 		"%{IncludeDirs.yaml}",
 		"%{IncludeDirs.stbi}",
 		"%{IncludeDirs.glm}",
-		"%{IncludeDirs.glfw}"
+		"%{IncludeDirs.glfw}",
+		"%{IncludeDirs.Vulkan}"
 	}
 
 	links {

@@ -8,6 +8,7 @@
 namespace Sphynx {
 	namespace Rendering {
 		class Window;
+		class Renderer;
 	}
 
 	class Engine {
@@ -38,5 +39,6 @@ namespace Sphynx {
 		inline static std::shared_ptr<Project> s_Project;
 
 		inline static Rendering::Window* s_Window = nullptr;
+		inline static Rendering::Renderer* s_Renderer = nullptr;
 	};
 }

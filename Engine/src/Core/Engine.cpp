@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Engine.hpp"
 
+#include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
 
 namespace Sphynx {
@@ -17,6 +18,8 @@ namespace Sphynx {
 
 		if (!s_Settings.Headless) {
 			s_Window = new Rendering::Window(s_Settings.WindowName, 1920, 1080, s_Settings.Fullscreen);
+
+			s_Renderer = new Rendering::Renderer(*s_Window, &Update);
 		}
 
 		s_UpdateTimer.Reset();
@@ -28,6 +31,7 @@ namespace Sphynx {
 		s_Project.reset();
 
 		if (!s_Settings.Headless) {
+			delete s_Renderer;
 			delete s_Window;
 		}
 

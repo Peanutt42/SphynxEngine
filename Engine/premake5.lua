@@ -24,17 +24,20 @@ project "Engine"
 		"%{IncludeDirs.yaml}",
 		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.stbi}",
-		"%{IncludeDirs.glfw}"
+		"%{IncludeDirs.glfw}",
+		"%{IncludeDirs.Vulkan}"
 	}
 
 	libdirs {
-		"%{LibaryDirs.glfw}"
+		"%{LibaryDirs.glfw}",
+		"%{LibaryDirs.Vulkan}"
 	}
 
 	links {
 		"yaml",
 		"stb_image",
-		"%{Libaries.glfw}"
+		"%{Libaries.glfw}",
+		"%{Libaries.Vulkan}"
 	}
 
 	filter { "configurations:Debug or Release" }
