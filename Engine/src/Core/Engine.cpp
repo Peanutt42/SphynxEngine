@@ -36,13 +36,9 @@ namespace Sphynx {
 		}
 
 		Logging::Shutdown();
-
-		SE_PROFILE_SHUTDOWN();
 	}
 
 	void Engine::Update() {
-		SE_PROFILE_FRAME("MainThread");
-
 		SE_PROFILE_FUNCTION();
 
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
@@ -61,6 +57,8 @@ namespace Sphynx {
 				Time::MicroSleep((uint64_t)(floor(timeLeft * 1000 * 1000))); // Wait for microseconds
 			}
 		}
+
+		SE_PROFILE_FRAME_END("Main Thread");
 	}
 
 	bool Engine::ShouldClose() {

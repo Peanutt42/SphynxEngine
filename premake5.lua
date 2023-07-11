@@ -29,7 +29,8 @@ group "Core"
 group "Dependencies"
 	include "vendor/yaml"
 	include "vendor/stb_image"
-
+	include "vendor/Tracy"
+	
 newaction {
 	trigger = "clean",
 	description = "Remove all binaries and intermediate binaries, and vs files.",

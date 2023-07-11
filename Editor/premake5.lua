@@ -26,19 +26,16 @@ project "Editor"
 		"%{IncludeDirs.stbi}",
 		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.glfw}",
-		"%{IncludeDirs.Vulkan}"
+		"%{IncludeDirs.Vulkan}",
+		"%{IncludeDirs.Tracy}"
 	}
 
 	links {
 		"Engine",
 		"yaml",
-		"stb_image"
+		"stb_image",
+		"tracy"
 	}
-
-	filter { "configurations:Debug or Release" }
-		includedirs { "%{IncludeDirs.optick}" }
-		libdirs { "%{LibaryDirs.optick}" }
-		links { "%{Libaries.optick}" }
 
 	filter { "configurations:Debug" }
 		buildoptions "/MDd"

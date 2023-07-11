@@ -25,7 +25,8 @@ project "Engine"
 		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.stbi}",
 		"%{IncludeDirs.glfw}",
-		"%{IncludeDirs.Vulkan}"
+		"%{IncludeDirs.Vulkan}",
+		"%{IncludeDirs.Tracy}"
 	}
 
 	libdirs {
@@ -36,12 +37,10 @@ project "Engine"
 	links {
 		"yaml",
 		"stb_image",
+		"Tracy",
 		"%{Libaries.glfw}",
 		"%{Libaries.Vulkan}"
 	}
-
-	filter { "configurations:Debug or Release" }
-		includedirs { "%{IncludeDirs.optick}" }
 
 
 	filter { "configurations:Debug" }
