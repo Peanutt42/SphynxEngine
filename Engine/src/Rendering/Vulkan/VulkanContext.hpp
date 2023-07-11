@@ -3,6 +3,7 @@
 #include "Core/CoreInclude.hpp"
 #include "Rendering/Window.hpp"
 #include "VulkanInstance.hpp"
+#include "VulkanSwapChain.hpp"
 
 namespace Sphynx::Rendering {
 	class VulkanContext {
@@ -19,5 +20,6 @@ namespace Sphynx::Rendering {
 		VkDevice m_LogicalDevice = VK_NULL_HANDLE;
 		VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
 		VkQueue m_PresentQueue = VK_NULL_HANDLE;
+		std::unique_ptr<VulkanSwapChain> m_SwapChain;
 	};
 }

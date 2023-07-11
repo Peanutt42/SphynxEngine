@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "VulkanDevice.hpp"
+#include "VulkanSwapChain.hpp"
 
 namespace Sphynx::Rendering {
 	bool VulkanPhysicalDevice::IsDeviceSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface, std::vector<const char*>& outUnsupportedExtensions) {
@@ -30,11 +31,15 @@ namespace Sphynx::Rendering {
 					break;
 				}
 			}
-			if (!foundExtension) {
+			if (!foundExtension)
 				outUnsupportedExtensions.push_back(extension);
-				return false;
-			}
 		}
+		if (!outUnsupportedExtensions.empty())
+			return false;
+
+		VulkanSwapChain::SupportDetails swapChainSupport = VulkanSwapChain::GetSupport(device, surface);
+		if (swapChainSupport.Formats.empty() || swapChainSupport.PresentModes.empty())
+			return false;
 
 		VulkanQueueFamilyIndices indices(device, surface);
 		return indices.IsComplete();
@@ -51,9 +56,9 @@ namespace Sphynx::Rendering {
 		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
 
 		std::multimap<int, VkPhysicalDevice> gpuChoices;
-		std::vector<const char*> unsupportedExtensions;
+		std::unordered_map<VkPhysicalDevice, std::vector<const char*>> unsupportedExtensionsMap;
 		for (const auto& device : devices) {
-			if (!IsDeviceSupported(device, deviceExtensions, surface, unsupportedExtensions))
+			if (!IsDeviceSupported(device, deviceExtensions, surface, unsupportedExtensionsMap[device]))
 				continue;
 
 			// give each GPU a score
@@ -68,12 +73,16 @@ namespace Sphynx::Rendering {
 			
 			gpuChoices.insert(std::make_pair(score, device));
 		}
-		if (!unsupportedExtensions.empty()) {
-			SE_ERR(Logging::Rendering, "All unsupported extensions:");
+		for (const auto&[device, unsupportedExtensions] : unsupportedExtensionsMap) {
+			if (unsupportedExtensions.empty())
+				continue;
+
+			SE_ERR(Logging::Rendering, "Unsupported extensions for {}:", VulkanPhysicalDevice::GetName(device));
 			for (const char* extension : unsupportedExtensions)
 				SE_ERR(Logging::Rendering, "\t{}", extension);
 		}
-		SE_ASSERT(gpuChoices.size() != 0, Logging::Rendering, "Couldn't find a suitable GPU, total unsupported extensions: {}", unsupportedExtensions.size());
+		
+		SE_ASSERT(gpuChoices.size() != 0, Logging::Rendering, "Couldn't find a suitable GPU");
 
 		if (gpuChoices.rbegin()->first > 0)
 			physicalDevice = gpuChoices.rbegin()->second;
@@ -81,6 +90,12 @@ namespace Sphynx::Rendering {
 			SE_FATAL(Logging::Rendering, "Couldn't find a single suitable GPU!");
 
 		return physicalDevice;
+	}
+
+	std::string VulkanPhysicalDevice::GetName(VkPhysicalDevice device) {
+		VkPhysicalDeviceProperties deviceProperties{};
+		vkGetPhysicalDeviceProperties(device, &deviceProperties);
+		return deviceProperties.deviceName;
 	}
 
 
@@ -106,7 +121,7 @@ namespace Sphynx::Rendering {
 	}
 
 
-	VulkanLogicalDevice::CreateResult VulkanLogicalDevice::Create(VkPhysicalDevice physicalDevice, const std::vector<const char*>& validationLayers, VkSurfaceKHR surface) {
+	VulkanLogicalDevice::CreateResult VulkanLogicalDevice::Create(VkPhysicalDevice physicalDevice, const std::vector<const char*>& validationLayers, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface) {
 		VulkanQueueFamilyIndices indices(physicalDevice, surface);
 
 		VkDeviceQueueCreateInfo queueCreateInfo{};
@@ -125,12 +140,11 @@ namespace Sphynx::Rendering {
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = 0;
 
-		if (validationLayers.empty())
-			createInfo.enabledLayerCount = 0;
-		else {
-			createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
-			createInfo.ppEnabledLayerNames = validationLayers.data();
-		}
+		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.ppEnabledLayerNames = validationLayers.data();
+		
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
 		std::set<uint32_t> uniqueQueueFamilies = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
 

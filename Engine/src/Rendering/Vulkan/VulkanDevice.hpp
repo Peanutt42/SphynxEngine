@@ -21,6 +21,8 @@ namespace Sphynx::Rendering {
 		static bool IsDeviceSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface, std::vector<const char*>& outUnsupportedExtensions);
 
 		static VkPhysicalDevice Pick(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions);
+
+		static std::string GetName(VkPhysicalDevice device);
 	};
 
 	class VulkanLogicalDevice {
@@ -31,6 +33,6 @@ namespace Sphynx::Rendering {
 			VkQueue PresentQueue = VK_NULL_HANDLE;
 		};
 
-		static CreateResult Create(VkPhysicalDevice physicalDevice, const std::vector<const char*>& validationLayers, VkSurfaceKHR surface);
+		static CreateResult Create(VkPhysicalDevice physicalDevice, const std::vector<const char*>& validationLayers, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface);
 	};
 }
