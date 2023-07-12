@@ -4,12 +4,22 @@
 #include "Rendering/Window.hpp"
 #include "VulkanInstance.hpp"
 #include "VulkanSwapChain.hpp"
+#include "VulkanShader.hpp"
+#include "VulkanRenderpass.hpp"
+#include "VulkanCommandPool.hpp"
 
 namespace Sphynx::Rendering {
 	class VulkanContext {
 	public:
 		VulkanContext(Window& window);
 		~VulkanContext();
+
+		void Update();
+
+		void WaitBeforeClose();
+
+	private:
+		void _CreateSyncObjects(), _DestroySyncObjects();
 
 	private:
 		Window& m_Window;
@@ -21,5 +31,16 @@ namespace Sphynx::Rendering {
 		VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
 		VkQueue m_PresentQueue = VK_NULL_HANDLE;
 		std::unique_ptr<VulkanSwapChain> m_SwapChain;
+		std::unique_ptr<VulkanRenderpass> m_Renderpass;
+		std::unique_ptr<VulkanCommandPool> m_CommandPool;
+
+		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
+		std::vector<VkSemaphore> m_RenderFinishedSemaphores;
+		std::vector<VkFence> m_InFlightFences;
+
+		uint32_t m_MaxFramesInFlight = 2;
+		uint32_t m_CurrentFrame = 0;
+
+		std::unique_ptr<VulkanShader> m_TriangleShader;
 	};
 }

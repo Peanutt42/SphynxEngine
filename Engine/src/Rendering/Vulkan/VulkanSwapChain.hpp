@@ -1,8 +1,7 @@
 #pragma once
 
 #include "Core/CoreInclude.hpp"
-
-#include <GLFW/glfw3.h>
+#include "Rendering/Window.hpp"
 
 #include <vulkan/vulkan.h>
 
@@ -20,6 +19,12 @@ namespace Sphynx::Rendering {
 		VulkanSwapChain(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, GLFWwindow* window);
 		~VulkanSwapChain();
 
+		void CreateFramebuffers(VkRenderPass renderpass);
+
+		const VkExtent2D& GetExtent() const { return m_Extent; }
+		VkFormat GetFormat() const { return m_Format; }
+		VkFramebuffer GetFramebuffer(uint32_t index);
+		VkSwapchainKHR GetHandle() { return m_SwapChain; }
 
 	private:
 		static std::optional<VkSurfaceFormatKHR> ChooseFormat(const std::vector<VkSurfaceFormatKHR>& formats);
@@ -34,6 +39,7 @@ namespace Sphynx::Rendering {
 
 		std::vector<VkImage> m_Images;
 		std::vector<VkImageView> m_ImageViews;
+		std::vector<VkFramebuffer> m_Framebuffers;
 		VkFormat m_Format;
 		VkExtent2D m_Extent;
 	};

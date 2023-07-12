@@ -2,7 +2,6 @@
 #include "Window.hpp"
 #include "Profiling/Profiling.hpp"
 
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
 #include <stb_image.h>
@@ -124,19 +123,6 @@ namespace Sphynx::Rendering {
 		GLFWimage image{ w, h, pixels };
 		glfwSetWindowIcon(m_Window, 1, &image);
 		stbi_image_free(pixels);
-	}
-
-	VkSurfaceKHR Window::GetSurface(VkInstance instance) {
-#ifdef WINDOWS
-		VkWin32SurfaceCreateInfoKHR createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_WIN32_SURFACE_CREATE_INFO_KHR;
-		createInfo.hwnd = glfwGetWin32Window(m_Window);
-		createInfo.hinstance = GetModuleHandle(nullptr);
-		VkSurfaceKHR surface = VK_NULL_HANDLE;
-		VkResult result = vkCreateWin32SurfaceKHR(instance, &createInfo, nullptr, &surface);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create window surface");
-		return surface;
-#endif
 	}
 
 	void Window::_FramebufferResizedCallback(GLFWwindow* window, int width, int height) {

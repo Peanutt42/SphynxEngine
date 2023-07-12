@@ -28,3 +28,6 @@
 # Logging
 *.log
 /Logs
+
+# generated cached files
+*.cached_shader

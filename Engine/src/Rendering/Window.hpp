@@ -2,13 +2,7 @@
 
 #include "Core/CoreInclude.hpp"
 
-#define VK_USE_PLATFORM_WIN32_KHR
-#define GLFW_INCLUDE_VULKAN
-#include <GLFW/glfw3.h>
-#ifdef WINDOWS
-#define GLFW_EXPOSE_NATIVE_WIN32
-#endif
-#include <GLFW/glfw3native.h>
+struct GLFWwindow;
 
 namespace Sphynx::Rendering {
 	class Window {
@@ -44,7 +38,6 @@ namespace Sphynx::Rendering {
 		void SetIcon(const std::filesystem::path& filepath);
 
 		GLFWwindow* GetGLFWHandle() { return m_Window; }
-		VkSurfaceKHR GetSurface(VkInstance instance);
 
 		void SetResizeCallback(const std::function<void(Window*)>& callback) { m_ResizeCallback = callback; }
 

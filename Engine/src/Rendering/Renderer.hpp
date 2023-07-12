@@ -11,6 +11,10 @@ namespace Sphynx::Rendering {
 		Renderer(Window& window, const std::function<void()>& resizeCallback);
 		~Renderer();
 
+		void Update();
+
+		void WaitBeforeClose();
+
 	private:
 		Window& m_Window;
 		std::function<void()> m_ResizeCallback;

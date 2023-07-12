@@ -28,6 +28,9 @@ namespace Sphynx {
 	void Engine::Shutdown() {
 		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
 
+		if (!s_Settings.Headless)
+			s_Renderer->WaitBeforeClose();
+		
 		s_Project.reset();
 
 		if (!s_Settings.Headless) {
@@ -47,6 +50,8 @@ namespace Sphynx {
 
 		if (!s_Settings.Headless) {
 			s_Window->Update();
+
+			s_Renderer->Update();
 		}
 
 		if (s_Settings.MaxFPS > 0.f) {

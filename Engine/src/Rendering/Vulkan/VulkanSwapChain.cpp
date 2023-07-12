@@ -2,6 +2,8 @@
 #include "VulkanSwapChain.hpp"
 #include "VulkanDevice.hpp"
 
+#include <GLFW/glfw3.h>
+
 namespace Sphynx::Rendering {
 	VulkanSwapChain::VulkanSwapChain(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, GLFWwindow* window)
 		: m_Device(device)
@@ -75,10 +77,39 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanSwapChain::~VulkanSwapChain() {
-		for (VkImageView imageView : m_ImageViews)
+		for (VkFramebuffer& framebuffer : m_Framebuffers) {
+			vkDestroyFramebuffer(m_Device, framebuffer, nullptr);
+			framebuffer = VK_NULL_HANDLE;
+		}
+
+		for (VkImageView& imageView : m_ImageViews) {
 			vkDestroyImageView(m_Device, imageView, nullptr);
+			imageView = VK_NULL_HANDLE;
+		}
 		
 		vkDestroySwapchainKHR(m_Device, m_SwapChain, nullptr);
+		m_SwapChain = VK_NULL_HANDLE;
+	}
+
+	void VulkanSwapChain::CreateFramebuffers(VkRenderPass renderpass) {
+		m_Framebuffers.resize(m_ImageViews.size());
+		for (size_t i = 0; i < m_ImageViews.size(); i++) {
+			VkImageView attachments[] = {
+				m_ImageViews[i]
+			};
+
+			VkFramebufferCreateInfo framebufferInfo{};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = renderpass;
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = attachments;
+			framebufferInfo.width = m_Extent.width;
+			framebufferInfo.height = m_Extent.height;
+			framebufferInfo.layers = 1;
+
+			VkResult result = vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr, &m_Framebuffers[i]);
+			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create framebuffer");
+		}
 	}
 
 	VulkanSwapChain::SupportDetails VulkanSwapChain::GetSupport(VkPhysicalDevice device, VkSurfaceKHR surface) {
@@ -103,6 +134,12 @@ namespace Sphynx::Rendering {
 		}
 
 		return details;
+	}
+
+	VkFramebuffer VulkanSwapChain::GetFramebuffer(uint32_t index) {
+		if (index >= m_Framebuffers.size())
+			return VK_NULL_HANDLE;
+		return m_Framebuffers[index];
 	}
 
 	std::optional<VkSurfaceFormatKHR> VulkanSwapChain::ChooseFormat(const std::vector<VkSurfaceFormatKHR>& formats) {

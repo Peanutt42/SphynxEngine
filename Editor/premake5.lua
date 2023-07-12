@@ -36,6 +36,15 @@ project "Editor"
 		"stb_image",
 		"tracy"
 	}
+	
+	-- Config dependent links
+	filter { "configurations:Debug" }
+		links { "%{Libaries.shaderc_Debug}", "%{Libaries.spirv_cross_Debug}" }
+	filter { "configurations:Release" }
+		links { "%{Libaries.shaderc_Release}", "%{Libaries.spirv_cross_Release}" }
+	filter { "configurations:Dist" }
+		links { "%{Libaries.shaderc_Dist}", "%{Libaries.spirv_cross_Dist}" }
+
 
 	filter { "configurations:Debug" }
 		buildoptions "/MDd"
