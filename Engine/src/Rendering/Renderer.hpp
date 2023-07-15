@@ -11,9 +11,12 @@ namespace Sphynx::Rendering {
 		Renderer(Window& window, const std::function<void()>& resizeCallback);
 		~Renderer();
 
-		void Update();
+		void Begin();
+		void End();
 
 		void WaitBeforeClose();
+
+		VulkanContext& GetVulkanContext() { return *m_Context; }
 
 	private:
 		Window& m_Window;

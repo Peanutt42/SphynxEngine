@@ -2,12 +2,14 @@
 
 #include "CoreInclude.hpp"
 #include "ConsoleArguments.hpp"
+#include "Application.hpp"
 #include "ProjectSystem/Project.hpp"
 #include "Serialization/YAMLSerializer.hpp"
 
 namespace Sphynx {
 	struct EngineSettings {
 		bool Headless = false;
+		bool ImGuiEnabled = false;
 		std::string WindowName;
 		bool Fullscreen = false;
 		float MaxFPS = -1.f;
@@ -28,5 +30,6 @@ namespace Sphynx {
 	struct EngineInitInfo {
 		EngineSettings Settings;
 		std::shared_ptr<Project> Project;
+		std::shared_ptr<Application> Application;
 	};	
 }

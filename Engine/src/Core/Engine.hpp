@@ -15,6 +15,10 @@ namespace Sphynx {
 		class ScriptingEngine;
 	}
 
+	namespace UI {
+		class VulkanImGuiHelper;
+	}
+
 	class Engine {
 	public:
 		static void Init(const EngineInitInfo& initInfo);
@@ -28,9 +32,13 @@ namespace Sphynx {
 
 		static float DeltaTime() { return s_DeltaTime; }
 
+		static EngineSettings& GetSettings() { return s_Settings; }
+
 		static std::shared_ptr<Project> GetProject() { return s_Project; }
 
 		static Scripting::ScriptingEngine& Scripting() { return *s_ScriptingEngine; }
+
+		static UI::VulkanImGuiHelper& ImGuiHelper() { return *s_ImGuiHelper; }
 
 		constexpr static Version Version { 0, 0, 1 };
 
@@ -44,8 +52,11 @@ namespace Sphynx {
 
 		inline static std::shared_ptr<Project> s_Project;
 
+		inline static std::shared_ptr<Application> s_Application;
+
 		inline static Rendering::Window* s_Window = nullptr;
 		inline static Rendering::Renderer* s_Renderer = nullptr;
 		inline static Scripting::ScriptingEngine* s_ScriptingEngine = nullptr;
+		inline static UI::VulkanImGuiHelper* s_ImGuiHelper = nullptr;
 	};
 }

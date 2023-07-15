@@ -14,11 +14,25 @@ namespace Sphynx::Rendering {
 		VulkanContext(Window& window);
 		~VulkanContext();
 
-		void Update();
+		void Begin();
+		void End();
 
 		void WaitBeforeClose();
 
 		void SetFramebufferResized() { m_FramebufferResized = true; }
+
+		GLFWwindow* GetWindowHandle() { return m_Window.GetGLFWHandle(); }
+
+		VkInstance GetVkInstance() { return m_Instance->Instance; }
+		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
+		VkDevice GetDevice() { return m_LogicalDevice; }
+		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
+		uint32_t GetMaxFramesInFlight() { return m_MaxFramesInFlight; }
+		VulkanCommandPool& GetCommandPool() { return *m_CommandPool; }
+		VulkanRenderpass& GetRenderpass() { return *m_Renderpass; }
+		VkCommandBuffer GetCurrentCommandBuffer() { return m_CommandBuffer; }
+
+		VkDescriptorPool GetImGuiDescriptorPool();
 
 	private:
 		void _CreateSyncObjects(), _DestroySyncObjects();
@@ -40,9 +54,14 @@ namespace Sphynx::Rendering {
 		std::vector<VkSemaphore> m_RenderFinishedSemaphores;
 		std::vector<VkFence> m_InFlightFences;
 
+		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
+
 		uint32_t m_MaxFramesInFlight = 2;
 		uint32_t m_CurrentFrame = 0;
+		uint32_t m_CurrentImage = 0;
 		bool m_FramebufferResized = false;
+
+		VkDescriptorPool m_ImGuiDescriptorPool = VK_NULL_HANDLE;
 
 		std::unique_ptr<VulkanShader> m_TriangleShader;
 	};

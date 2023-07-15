@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "VulkanCommandPool.hpp"
 #include "VulkanDevice.hpp"
+#include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
 	VulkanCommandPool::VulkanCommandPool(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, uint32_t maxFramesInFlight)
@@ -55,5 +56,38 @@ namespace Sphynx::Rendering {
 
 		VkResult result = vkEndCommandBuffer(m_CommandBuffers[frameIndex]);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to end recording commandBuffer");
+	}
+
+	VkCommandBuffer VulkanCommandPool::BeginSingleUseCommandbuffer() {
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandPool = m_Pool;
+		allocInfo.commandBufferCount = 1;
+
+		VkCommandBuffer commandBuffer;
+		vkAllocateCommandBuffers(m_Device, &allocInfo, &commandBuffer);
+
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+		return commandBuffer;
+	}
+
+	void VulkanCommandPool::EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer, VulkanContext& context) {
+		vkEndCommandBuffer(commandbuffer);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandbuffer;
+
+		vkQueueSubmit(context.GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(context.GetGraphicsQueue());
+
+		vkFreeCommandBuffers(m_Device, m_Pool, 1, &commandbuffer);
 	}
 }

@@ -26,7 +26,8 @@ project "Engine"
 		"%{IncludeDirs.stbi}",
 		"%{IncludeDirs.glfw}",
 		"%{IncludeDirs.Vulkan}",
-		"%{IncludeDirs.Tracy}"
+		"%{IncludeDirs.Tracy}",
+		"%{IncludeDirs.imgui}"
 	}
 
 	libdirs {
@@ -38,6 +39,7 @@ project "Engine"
 		"yaml",
 		"stb_image",
 		"Tracy",
+		"imgui",
 		"%{Libaries.glfw}",
 		"%{Libaries.Vulkan}"
 	}

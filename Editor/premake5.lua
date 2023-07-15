@@ -27,7 +27,8 @@ project "Editor"
 		"%{IncludeDirs.glm}",
 		"%{IncludeDirs.glfw}",
 		"%{IncludeDirs.Vulkan}",
-		"%{IncludeDirs.Tracy}"
+		"%{IncludeDirs.Tracy}",
+		"%{IncludeDirs.imgui}"
 	}
 
 	links {

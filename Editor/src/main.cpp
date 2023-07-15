@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Core/Engine.hpp"
+#include "EditorApplication.hpp"
 
 int main(int argc, const char** argv) {
 	SE_ASSERT(argc >= 1, "There should be at least 1 argument being the .exe filepath");
@@ -23,6 +24,9 @@ int main(int argc, const char** argv) {
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
 	SE_ASSERT(project->EngineVersion == Sphynx::Engine::Version, "The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version);
 
+	// Create application
+	std::shared_ptr<Sphynx::Editor::EditorApplication> application = std::make_unique<Sphynx::Editor::EditorApplication>();
+
 	Sphynx::ConsoleArguments arguments(argc, argv);
 
 	Sphynx::EngineSettings engineSettings;
@@ -31,10 +35,12 @@ int main(int argc, const char** argv) {
 	engineSettings.Headless = false; // forced
 	engineSettings.WindowName = "Sphynx Engine Editor";
 	engineSettings.Fullscreen = false;
+	engineSettings.ImGuiEnabled = true;
 
 	Sphynx::EngineInitInfo initInfo {
 		.Settings = engineSettings,
-		.Project = project
+		.Project = project,
+		.Application = application
 	};
 
 	Sphynx::Engine::Init(initInfo);

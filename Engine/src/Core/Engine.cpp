@@ -4,6 +4,7 @@
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
 #include "Scripting/ScriptingEngine.hpp"
+#include "UI/VulkanImGuiHelper.hpp"
 
 namespace Sphynx {
 	void Engine::Init(const EngineInitInfo& initInfo) {
@@ -17,19 +18,29 @@ namespace Sphynx {
 
 		s_Project = initInfo.Project;
 
+		s_Application = initInfo.Application;
+
 		s_ScriptingEngine = new Scripting::ScriptingEngine();
 
 		if (!s_Settings.Headless) {
 			s_Window = new Rendering::Window(s_Settings.WindowName, 1920, 1080, s_Settings.Fullscreen);
 
 			s_Renderer = new Rendering::Renderer(*s_Window, &Update);
+
+			if (s_Settings.ImGuiEnabled)
+				s_ImGuiHelper = new UI::VulkanImGuiHelper(s_Renderer->GetVulkanContext());
 		}
 
 		s_UpdateTimer.Reset();
+
+
+		s_Application->OnCreate();
 	}
 
 	void Engine::Shutdown() {
 		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
+
+		s_Application->OnDestroy();
 
 		if (!s_Settings.Headless)
 			s_Renderer->WaitBeforeClose();
@@ -39,6 +50,9 @@ namespace Sphynx {
 		delete s_ScriptingEngine;
 
 		if (!s_Settings.Headless) {
+			if (s_Settings.ImGuiEnabled)
+				delete s_ImGuiHelper;
+
 			delete s_Renderer;
 			delete s_Window;
 		}
@@ -52,11 +66,20 @@ namespace Sphynx {
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
 		s_UpdateTimer.Reset();
 
+		s_Application->Update();
 
 		if (!s_Settings.Headless) {
-			s_Window->Update();
+			if (s_Settings.ImGuiEnabled) {
+				s_ImGuiHelper->Begin();
+				s_Application->DrawUI();
+				s_ImGuiHelper->End();
+			}
+			
+			s_Renderer->Begin();
+			s_ImGuiHelper->Render(s_Renderer->GetVulkanContext().GetCurrentCommandBuffer());
+			s_Renderer->End();
 
-			s_Renderer->Update();
+			s_Window->Update();
 		}
 
 		if (s_Settings.MaxFPS > 0.f) {

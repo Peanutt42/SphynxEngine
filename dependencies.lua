@@ -36,3 +36,6 @@ Libaries["spirv_cross_Dist"] = "%{LibaryDirs.Vulkan}/spirv-cross-core.lib"
 
 -- Tracy
 IncludeDirs["Tracy"] = EngineDir .. "vendor/Tracy"
+
+-- imgui
+IncludeDirs["imgui"] = EngineDir .. "vendor/imgui/include"

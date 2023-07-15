@@ -35,6 +35,7 @@ group "Dependencies"
 	include "vendor/yaml"
 	include "vendor/stb_image"
 	include "vendor/Tracy"
+	include "vendor/imgui"
 	
 newaction {
 	trigger = "clean",

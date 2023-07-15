@@ -22,8 +22,12 @@ namespace Sphynx::Rendering {
 		m_Context.reset();
 	}
 
-	void Renderer::Update() {
-		m_Context->Update();
+	void Renderer::Begin() {
+		m_Context->Begin();
+	}
+
+	void Renderer::End() {
+		m_Context->End();
 	}
 
 	void Renderer::WaitBeforeClose() {

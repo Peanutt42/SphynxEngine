@@ -55,6 +55,9 @@ namespace Sphynx::Rendering {
 
 		m_SwapChain.reset();
 
+		if (m_ImGuiDescriptorPool != VK_NULL_HANDLE)
+			vkDestroyDescriptorPool(m_LogicalDevice, m_ImGuiDescriptorPool, nullptr);
+
 		vkDestroyDevice(m_LogicalDevice, nullptr);
 		m_LogicalDevice = VK_NULL_HANDLE;
 
@@ -64,11 +67,10 @@ namespace Sphynx::Rendering {
 		m_Instance.reset();
 	}
 
-	void VulkanContext::Update() {
+	void VulkanContext::Begin() {
 		vkWaitForFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
 
-		uint32_t imageIndex;
-		VkResult result =  vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain->GetHandle(), UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result = vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain->GetHandle(), UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &m_CurrentImage);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			m_SwapChain->Recreate(m_Renderpass->GetHandle());
@@ -80,14 +82,13 @@ namespace Sphynx::Rendering {
 		// only reset if we are submitting work
 		vkResetFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame]);
 
-		VkCommandBuffer cmd = m_CommandPool->BeginRecording(m_CurrentFrame);
+		m_CommandBuffer = m_CommandPool->BeginRecording(m_CurrentFrame);
 
-		m_Renderpass->Begin(cmd, imageIndex);
+		m_Renderpass->Begin(m_CommandBuffer, m_CurrentImage);
+	}
 
-		m_TriangleShader->Bind(cmd);
-		vkCmdDraw(cmd, 3, 1, 0, 0);
-
-		m_Renderpass->End(cmd);
+	void VulkanContext::End() {
+		m_Renderpass->End(m_CommandBuffer);
 
 		m_CommandPool->EndRecording(m_CurrentFrame);
 
@@ -95,23 +96,24 @@ namespace Sphynx::Rendering {
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-		std::array<VkSemaphore, 1> waitSemaphores = { m_ImageAvailableSemaphores[m_CurrentFrame]};
+		std::array<VkSemaphore, 1> waitSemaphores = { m_ImageAvailableSemaphores[m_CurrentFrame] };
 		submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
 		submitInfo.pWaitSemaphores = waitSemaphores.data();
-		
+
 		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
 		submitInfo.pWaitDstStageMask = waitStages;
-		
+
 		std::array<VkSemaphore, 1> signalSemaphores = { m_RenderFinishedSemaphores[m_CurrentFrame] };
 		submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
 		submitInfo.pSignalSemaphores = signalSemaphores.data();
-		
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &cmd;
 
-		result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]);
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffer;
+
+		VkResult result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to submit commandBuffer");
 
+		m_CommandBuffer = VK_NULL_HANDLE;
 
 		// Present
 		VkPresentInfoKHR presentInfo{};
@@ -119,10 +121,10 @@ namespace Sphynx::Rendering {
 		presentInfo.waitSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
 		presentInfo.pWaitSemaphores = signalSemaphores.data();
 
-		VkSwapchainKHR swapChains[] = { m_SwapChain->GetHandle()};
+		VkSwapchainKHR swapChains[] = { m_SwapChain->GetHandle() };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
-		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pImageIndices = &m_CurrentImage;
 		presentInfo.pResults = nullptr; // Optional
 
 		result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
@@ -138,6 +140,34 @@ namespace Sphynx::Rendering {
 
 	void VulkanContext::WaitBeforeClose() {
 		vkDeviceWaitIdle(m_LogicalDevice);
+	}
+
+	VkDescriptorPool VulkanContext::GetImGuiDescriptorPool() {
+		if (m_ImGuiDescriptorPool == VK_NULL_HANDLE) {
+			std::array<VkDescriptorPoolSize, 11> poolSizes = {
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+			};
+
+			VkDescriptorPoolCreateInfo pool_info{};
+			pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+			pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+			pool_info.maxSets = 1000;
+			pool_info.poolSizeCount = (uint32_t)poolSizes.size();
+			pool_info.pPoolSizes = poolSizes.data();
+
+			vkCreateDescriptorPool(m_LogicalDevice, &pool_info, nullptr, &m_ImGuiDescriptorPool);
+		}
+		return m_ImGuiDescriptorPool;
 	}
 
 	void VulkanContext::_CreateSyncObjects() {

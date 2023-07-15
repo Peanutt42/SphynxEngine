@@ -23,6 +23,7 @@ namespace Sphynx {
 			UI,
 			Building
 		};
+		constexpr static const char* CategoryToString(Logging::Category category);
 
 		enum class Verbosity {
 			Trace,
@@ -34,6 +35,10 @@ namespace Sphynx {
 
 		static void Init();
 		static void Shutdown();
+
+		static void RegisterOnLogCallback(const std::function<void(Verbosity, Category, const std::string&)>& callback) {
+			s_LogCallbacks.push_back(callback);
+		}
 
 
 		static void RawLog(Verbosity verbosity, Category category, const std::string& msg);
@@ -75,6 +80,8 @@ namespace Sphynx {
 		inline static std::vector<std::string> s_ErrorMessageStack;
 	
 		inline static Verbosity s_Verbosity = Verbosity::Info;
+
+		inline static std::vector<std::function<void(Verbosity, Category, const std::string&)>> s_LogCallbacks;
 
 		inline static std::ofstream s_LogFile;
 	};

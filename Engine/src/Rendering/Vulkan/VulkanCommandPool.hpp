@@ -5,6 +5,8 @@
 #include <vulkan/vulkan.h>
 
 namespace Sphynx::Rendering {
+	class VulkanContext;
+
 	class VulkanCommandPool {
 	public:
 		VulkanCommandPool(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, uint32_t maxFramesInFlight);
@@ -12,6 +14,9 @@ namespace Sphynx::Rendering {
 
 		VkCommandBuffer BeginRecording(uint32_t frameIndex);
 		void EndRecording(uint32_t frameIndex);
+
+		VkCommandBuffer BeginSingleUseCommandbuffer();
+		void EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer, VulkanContext& context);
 
 	private:
 		VkDevice m_Device = VK_NULL_HANDLE;

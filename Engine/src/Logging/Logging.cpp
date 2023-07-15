@@ -4,7 +4,7 @@
 #include "Profiling/Profiling.hpp"
 
 namespace Sphynx {
-	constexpr const char* CategoryToString(Logging::Category category) {
+	constexpr const char* Logging::CategoryToString(Logging::Category category) {
 		switch (category) {
 		default:
 		case Logging::Category::General:		return "[General]        ";
@@ -68,6 +68,9 @@ namespace Sphynx {
 
 	void Logging::RawLog(Verbosity verbosity, Category category, const std::string& msg) {
 		std::cout << '\033' << GetColorForVerbosity(verbosity) << CategoryToString(category) << msg << "\033[0m\n";
+
+		for (const auto& callback : s_LogCallbacks)
+			callback(verbosity, category, msg);
 
 		if (verbosity >= Verbosity::Critical)
 			Platform::MessagePrompts::Error("Sphynx Engine Error", msg);
