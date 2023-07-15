@@ -3,6 +3,7 @@
 
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
+#include "Scripting/ScriptingEngine.hpp"
 
 namespace Sphynx {
 	void Engine::Init(const EngineInitInfo& initInfo) {
@@ -15,6 +16,8 @@ namespace Sphynx {
 		SE_INFO("=== SPHYNX ENGINE INIT ===");
 
 		s_Project = initInfo.Project;
+
+		s_ScriptingEngine = new Scripting::ScriptingEngine();
 
 		if (!s_Settings.Headless) {
 			s_Window = new Rendering::Window(s_Settings.WindowName, 1920, 1080, s_Settings.Fullscreen);
@@ -32,6 +35,8 @@ namespace Sphynx {
 			s_Renderer->WaitBeforeClose();
 		
 		s_Project.reset();
+
+		delete s_ScriptingEngine;
 
 		if (!s_Settings.Headless) {
 			delete s_Renderer;

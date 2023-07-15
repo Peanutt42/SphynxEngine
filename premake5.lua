@@ -1,3 +1,5 @@
+EngineDir = "%{wks.location}/"
+
 include "dependencies.lua"
 
 workspace "SphynxEngine"
@@ -25,6 +27,9 @@ workspace "SphynxEngine"
 group "Core"
 	include "Editor"
 	include "Engine"
+
+group "Programs"
+	include "Programs/ReflectionGenerator"
 
 group "Dependencies"
 	include "vendor/yaml"

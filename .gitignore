@@ -6,7 +6,9 @@
 *.lo
 *.o
 *.obj
-/bin-int
+**/bin-int
+**/int
+**/Intermediates
 
 # Precompiled Headers
 *.gch
@@ -19,7 +21,7 @@
 /bin
 
 # Visual Studio
-/.vs
+**/.vs
 *.vcxproj
 *.vcxproj.user
 *.vcxproj.filters

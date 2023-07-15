@@ -6,18 +6,18 @@ CopyBinaryCmds = {}
 VulkanSDK = os.getenv("VULKAN_SDK")
 
 -- yaml
-IncludeDirs["yaml"] = "%{wks.location}/vendor/yaml/include"
+IncludeDirs["yaml"] = EngineDir .. "vendor/yaml/include"
 
 -- glfw
-IncludeDirs["glfw"] = "%{wks.location}/vendor/glfw/include"
-LibaryDirs["glfw"] = "%{wks.location}/vendor/glfw/lib"
+IncludeDirs["glfw"] = EngineDir .. "vendor/glfw/include"
+LibaryDirs["glfw"] = EngineDir .. "vendor/glfw/lib"
 Libaries["glfw"] = "glfw3.lib"
 
 -- glm
-IncludeDirs["glm"] = "%{wks.location}/vendor/glm/include"
+IncludeDirs["glm"] = EngineDir .. "vendor/glm/include"
 
 -- stbi
-IncludeDirs["stbi"] = "%{wks.location}/vendor/stb_image/include"
+IncludeDirs["stbi"] = EngineDir .. "vendor/stb_image/include"
 
 -- Vulkan
 IncludeDirs["Vulkan"] = "%{VulkanSDK}/Include"
@@ -35,4 +35,4 @@ Libaries["spirv_cross_Release"] = "%{LibaryDirs.Vulkan}/spirv-cross-core.lib"
 Libaries["spirv_cross_Dist"] = "%{LibaryDirs.Vulkan}/spirv-cross-core.lib"
 
 -- Tracy
-IncludeDirs["Tracy"] = "%{wks.location}/vendor/Tracy"
+IncludeDirs["Tracy"] = EngineDir .. "vendor/Tracy"

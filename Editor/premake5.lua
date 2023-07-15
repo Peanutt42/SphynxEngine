@@ -6,8 +6,8 @@ project "Editor"
 	
 	debugdir "$(SolutionDir)"
 
-	targetdir("%{wks.location}/bin/" .. outputdir .. "/%{prj.name}")
-	objdir("%{wks.location}/bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir(EngineDir .. "bin/" .. outputdir .. "/%{prj.name}")
+	objdir(EngineDir .. "bin-int/" .. outputdir .. "/%{prj.name}")
 
 	pchheader "pch.hpp"
     pchsource "src/pch.cpp"
@@ -21,7 +21,7 @@ project "Editor"
 
 	includedirs {
 		"src",
-		"%{wks.location}/Engine/src",
+		EngineDir .. "Engine/src",
 		"%{IncludeDirs.yaml}",
 		"%{IncludeDirs.stbi}",
 		"%{IncludeDirs.glm}",

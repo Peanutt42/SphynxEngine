@@ -11,6 +11,10 @@ namespace Sphynx {
 		class Renderer;
 	}
 
+	namespace Scripting {
+		class ScriptingEngine;
+	}
+
 	class Engine {
 	public:
 		static void Init(const EngineInitInfo& initInfo);
@@ -26,6 +30,8 @@ namespace Sphynx {
 
 		static std::shared_ptr<Project> GetProject() { return s_Project; }
 
+		static Scripting::ScriptingEngine& Scripting() { return *s_ScriptingEngine; }
+
 		constexpr static Version Version { 0, 0, 1 };
 
 	private:
@@ -40,5 +46,6 @@ namespace Sphynx {
 
 		inline static Rendering::Window* s_Window = nullptr;
 		inline static Rendering::Renderer* s_Renderer = nullptr;
+		inline static Scripting::ScriptingEngine* s_ScriptingEngine = nullptr;
 	};
 }

@@ -1,0 +1,1 @@
+..\..\Programs\ReflectionGenerator\bin\ReflectionGenerator.exe ../..

@@ -1,54 +1,32 @@
-project "Engine"
-    kind "StaticLib"
+project "ReflectionGenerator"
+	kind "ConsoleApp"
 	language "C++"
 	cppdialect "C++20"
 	staticruntime "off"
-	
+
 	debugdir "$(SolutionDir)"
 
-	targetdir(EngineDir .. "bin/" .. outputdir .. "/%{prj.name}")
-	objdir(EngineDir .. "bin-int/" .. outputdir .. "/%{prj.name}")
-
-	pchheader "pch.hpp"
-    pchsource "src/pch.cpp"
+	targetdir("bin")
+	objdir("bin/int")
 
 	files {
-		"src/**.h",
-		"src/**.c",
-		"src/**.cpp",
-		"src/**.hpp"
+		"src/**.hpp",
+		"src/**.cpp"
 	}
 
 	includedirs {
-		"src",
-		"%{IncludeDirs.yaml}",
-		"%{IncludeDirs.glm}",
-		"%{IncludeDirs.stbi}",
-		"%{IncludeDirs.glfw}",
-		"%{IncludeDirs.Vulkan}",
-		"%{IncludeDirs.Tracy}"
+		"src"
 	}
 
-	libdirs {
-		"%{LibaryDirs.glfw}",
-		"%{LibaryDirs.Vulkan}"
-	}
+	defines {
 
-	links {
-		"yaml",
-		"stb_image",
-		"Tracy",
-		"%{Libaries.glfw}",
-		"%{Libaries.Vulkan}"
 	}
-
 
 	filter { "configurations:Debug" }
 		buildoptions "/MDd"
 		runtime "Debug"
 		optimize "off"
 		symbols "on"
-
 		
 	filter { "configurations:Release" }
 		buildoptions "/MD"
@@ -60,6 +38,7 @@ project "Engine"
 		runtime "Release"
 		optimize "Full"
 
+	
 	filter { "system:windows" }
 		defines { "WINDOWS" }
 	filter { "system:linux" }
