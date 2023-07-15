@@ -18,6 +18,8 @@ namespace Sphynx::Rendering {
 
 		void WaitBeforeClose();
 
+		void SetFramebufferResized() { m_FramebufferResized = true; }
+
 	private:
 		void _CreateSyncObjects(), _DestroySyncObjects();
 
@@ -40,6 +42,7 @@ namespace Sphynx::Rendering {
 
 		uint32_t m_MaxFramesInFlight = 2;
 		uint32_t m_CurrentFrame = 0;
+		bool m_FramebufferResized = false;
 
 		std::unique_ptr<VulkanShader> m_TriangleShader;
 	};

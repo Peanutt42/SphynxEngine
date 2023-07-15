@@ -19,6 +19,8 @@ namespace Sphynx::Rendering {
 		VulkanSwapChain(VkPhysicalDevice physicalDevice, VkDevice device, VkSurfaceKHR surface, GLFWwindow* window);
 		~VulkanSwapChain();
 
+		void Recreate(VkRenderPass renderpass);
+
 		void CreateFramebuffers(VkRenderPass renderpass);
 
 		const VkExtent2D& GetExtent() const { return m_Extent; }
@@ -27,6 +29,10 @@ namespace Sphynx::Rendering {
 		VkSwapchainKHR GetHandle() { return m_SwapChain; }
 
 	private:
+		void Create();
+		void Cleanup();
+
+
 		static std::optional<VkSurfaceFormatKHR> ChooseFormat(const std::vector<VkSurfaceFormatKHR>& formats);
 	
 		static VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes);
@@ -35,7 +41,10 @@ namespace Sphynx::Rendering {
 	
 	private:
 		VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
+		VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
 		VkDevice m_Device = VK_NULL_HANDLE;
+		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
+		GLFWwindow* m_Window = nullptr;
 
 		std::vector<VkImage> m_Images;
 		std::vector<VkImageView> m_ImageViews;

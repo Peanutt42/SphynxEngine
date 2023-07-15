@@ -8,7 +8,7 @@ namespace Sphynx::Rendering {
 		SE_PROFILE_FUNCTION();
 
 		m_Window.SetResizeCallback([this](Window*) {
-			//m_Instance->FramebufferResized = true;
+			m_Context->SetFramebufferResized();
 			if (m_ResizeCallback)
 				m_ResizeCallback();
 		});

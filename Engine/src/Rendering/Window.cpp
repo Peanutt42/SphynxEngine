@@ -26,7 +26,7 @@ namespace Sphynx::Rendering {
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_MAXIMIZED, m_Maximized);
 		glfwWindowHint(GLFW_SAMPLES, 0);
-		/*TODO:*/ glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
+		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {

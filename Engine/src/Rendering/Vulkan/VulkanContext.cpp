@@ -66,10 +66,19 @@ namespace Sphynx::Rendering {
 
 	void VulkanContext::Update() {
 		vkWaitForFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
-		vkResetFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame]);
 
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain->GetHandle(), UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+		VkResult result =  vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain->GetHandle(), UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &imageIndex);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			m_SwapChain->Recreate(m_Renderpass->GetHandle());
+			return;
+		}
+		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+			SE_FATAL(Logging::Rendering, "Failed to acquire swapchain image!");
+
+		// only reset if we are submitting work
+		vkResetFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame]);
 
 		VkCommandBuffer cmd = m_CommandPool->BeginRecording(m_CurrentFrame);
 
@@ -100,7 +109,7 @@ namespace Sphynx::Rendering {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &cmd;
 
-		VkResult result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]);
+		result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to submit commandBuffer");
 
 
@@ -117,8 +126,12 @@ namespace Sphynx::Rendering {
 		presentInfo.pResults = nullptr; // Optional
 
 		result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to present");
-
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FramebufferResized) {
+			m_FramebufferResized = false;
+			m_SwapChain->Recreate(m_Renderpass->GetHandle());
+		}
+		else if (result != VK_SUCCESS)
+			SE_FATAL(Logging::Rendering, "Failed to present swapchain image!");
 
 		m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
 	}
