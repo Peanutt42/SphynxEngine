@@ -6,7 +6,7 @@
 #include "Vulkan/VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	class Renderer {
+	class SE_API Renderer {
 	public:
 		Renderer(Window& window, const std::function<void()>& resizeCallback);
 		~Renderer();

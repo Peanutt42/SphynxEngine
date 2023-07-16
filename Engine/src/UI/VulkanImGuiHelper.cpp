@@ -117,4 +117,8 @@ namespace Sphynx::UI {
 	void VulkanImGuiHelper::DisableSaveFile() {
 		ImGui::GetIO().IniFilename = nullptr;
 	}
+
+	ImGuiContext* VulkanImGuiHelper::GetContext() {
+		return ImGui::GetCurrentContext();
+	}
 }

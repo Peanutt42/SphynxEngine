@@ -4,7 +4,7 @@
 #include "Serialization/YAMLSerializer.hpp"
 
 namespace Sphynx {
-	class Project {
+	class SE_API Project {
 	public:
 		std::string Name;
 		Version EngineVersion;

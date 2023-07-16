@@ -3,6 +3,9 @@ LibaryDirs = {}
 Libaries = {}
 CopyBinaryCmds = {}
 
+copydll_cmd_begin = "xcopy \""
+copydll_cmd_end = "\"  \"%{cfg.targetdir}\\\" /Y"
+
 VulkanSDK = os.getenv("VULKAN_SDK")
 
 -- yaml

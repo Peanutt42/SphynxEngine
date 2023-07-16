@@ -9,7 +9,7 @@ namespace Sphynx::Editor {
 			Name = "Logging Output";
 			Logging::RegisterOnLogCallback([this](Logging::Verbosity verbosity, Logging::Category category, const std::string& msg) {
 				if (this)
-					m_Logs.emplace_back(msg, verbosity);
+					m_Logs.emplace_back(msg, verbosity, category);
 			});
 			m_Logs.reserve(1024);
 			SE_INFO(Logging::Editor, "This is a test");

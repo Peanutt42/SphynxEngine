@@ -4,7 +4,7 @@
 #include <imgui/imgui.h>
 
 namespace Sphynx::UI {
-	class Fonts {
+	class SE_API Fonts {
 	public:
 		enum class Type {
 			Regular = 0,

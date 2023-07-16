@@ -2,10 +2,11 @@
 
 #include <string>
 #include <vector>
+#include "Core/EngineApi.hpp"
 #include "StackTrace.hpp"
 
 namespace Sphynx {
-	class CrashHandler {
+	class SE_API CrashHandler {
 	public:
 		static void Init();
 

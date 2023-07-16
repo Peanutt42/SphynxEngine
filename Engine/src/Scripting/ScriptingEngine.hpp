@@ -5,10 +5,12 @@
 #include "../../Programs/ReflectionGenerator/src/ReflectionInfo.hpp"
 
 namespace Sphynx::Scripting {
-	class ScriptingEngine {
+	class SE_API ScriptingEngine {
 	public:
 		ScriptingEngine();
 		~ScriptingEngine();
+
+		void Update();
 
 		const std::vector<ComponentReflectionInfo>& GetComponents() const { return *m_Components; }
 		const std::vector<ConfigReflectionInfo>& GetConfigs() const { return *m_Configs; }

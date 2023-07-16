@@ -3,7 +3,7 @@
 #include "CoreInclude.hpp"
 
 namespace Sphynx {
-	class Application {
+	class SE_API Application {
 	public:
 		virtual void OnCreate() = 0;
 		virtual void OnDestroy() = 0;

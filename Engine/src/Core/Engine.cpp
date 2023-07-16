@@ -66,6 +66,8 @@ namespace Sphynx {
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
 		s_UpdateTimer.Reset();
 
+		s_ScriptingEngine->Update();
+
 		s_Application->Update();
 
 		if (!s_Settings.Headless) {

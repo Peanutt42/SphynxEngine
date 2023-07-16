@@ -2,9 +2,10 @@
 
 #include "Core/CoreInclude.hpp"
 #include "Rendering/Vulkan/VulkanContext.hpp"
+#include <imgui/imgui.h>
 
 namespace Sphynx::UI {
-	class VulkanImGuiHelper {
+	class SE_API VulkanImGuiHelper {
 	public:
 		VulkanImGuiHelper(Rendering::VulkanContext& context);
 		~VulkanImGuiHelper();
@@ -20,5 +21,12 @@ namespace Sphynx::UI {
 
 		void SetSaveFilepath(const std::filesystem::path& filepath);
 		void DisableSaveFile();
+
+		ImGuiContext* GetContext();
+
+
+		__forceinline void SetContextOnDiffrentDll() {
+			ImGui::SetCurrentContext(this->GetContext());
+		}
 	};
 }

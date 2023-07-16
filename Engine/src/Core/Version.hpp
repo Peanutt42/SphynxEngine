@@ -1,9 +1,10 @@
 #pragma once
 
 #include "std.hpp"
+#include "EngineApi.hpp"
 
 namespace Sphynx {
-	struct Version {
+	struct SE_API Version {
 		int Major = 0;
 		int Minor = 0;
 		int Patch = 0;

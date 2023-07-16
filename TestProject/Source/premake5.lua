@@ -1,3 +1,4 @@
+outputdir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 EngineDir = "../../"
 
 include "../../dependencies.lua"
@@ -50,6 +51,16 @@ project "TestProject"
 		"%{IncludeDirs.Tracy}"
 	}
 
+	libdirs {
+		EngineDir .. "bin/" .. outputdir .. "/Engine",
+		EngineDir .. "bin/" .. outputdir .. "/vendor"
+	}
+
+	links {
+		"Engine.lib",
+		"Tracy.lib"
+	}
+
 	defines {
 		"SE_GAME_MODULE"
 	}
@@ -73,3 +84,18 @@ project "TestProject"
 		buildoptions "/MD"
 		runtime "Release"
 		optimize "Full"
+
+
+	filter { "system:windows" }
+		defines { "WINDOWS" }
+	filter { "system:linux" }
+		defines { "LINUX" }
+	filter { "system:macosx" }
+		defines { "MACOS" }
+
+	filter { "configurations:Debug" }
+		defines { "DEBUG" }
+	filter { "configurations:Release" }
+		defines { "RELEASE" }
+	filter { "configurations:Dist" }
+		defines { "DIST" }

@@ -5,6 +5,8 @@
 
 namespace Sphynx::Editor {
 	void EditorApplication::OnCreate() {
+		Engine::ImGuiHelper().SetContextOnDiffrentDll();
+
 		Engine::ImGuiHelper().EnableDocking();
 		Engine::ImGuiHelper().SetSaveFilepath("Engine/imgui.ini");
 

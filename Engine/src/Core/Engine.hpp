@@ -19,7 +19,7 @@ namespace Sphynx {
 		class VulkanImGuiHelper;
 	}
 
-	class Engine {
+	class SE_API Engine {
 	public:
 		static void Init(const EngineInitInfo& initInfo);
 		static void Shutdown();

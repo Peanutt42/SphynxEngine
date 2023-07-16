@@ -7,7 +7,7 @@
 #include "Serialization/YAMLSerializer.hpp"
 
 namespace Sphynx {
-	struct EngineSettings {
+	struct SE_API EngineSettings {
 		bool Headless = false;
 		bool ImGuiEnabled = false;
 		std::string WindowName;

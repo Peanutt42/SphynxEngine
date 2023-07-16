@@ -4,7 +4,7 @@
 #include "Logging/Logging.hpp"
 
 namespace Sphynx {
-	class Time {
+	class SE_API Time {
 	public:
 		static void Sleep(uint64_t milliseconds) {
 			auto start = std::chrono::high_resolution_clock::now();
@@ -17,7 +17,7 @@ namespace Sphynx {
 		}
 	};
 
-	struct Timer {
+	struct SE_API Timer {
 		Timer() {
 			Reset();
 		}
@@ -42,7 +42,7 @@ namespace Sphynx {
 		std::chrono::time_point<std::chrono::high_resolution_clock> m_Start;
 	};
 
-	struct ScopedTimer {
+	struct SE_API ScopedTimer {
 		ScopedTimer(const std::string_view name) : m_Name(name) {}
 		~ScopedTimer() {
 			[[maybe_unused]] float time = m_Timer.ElapsedMillis();

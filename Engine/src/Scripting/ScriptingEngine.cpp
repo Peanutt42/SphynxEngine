@@ -18,4 +18,8 @@ namespace Sphynx::Scripting {
 	ScriptingEngine::~ScriptingEngine() {
 		m_Module.reset();
 	}
+	
+	void ScriptingEngine::Update() {
+		m_Module->LoadFunction<void(*)()>("TestInput")();
+	}
 }

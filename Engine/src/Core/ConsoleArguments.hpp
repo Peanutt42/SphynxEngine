@@ -3,7 +3,7 @@
 #include "CoreInclude.hpp"
 
 namespace Sphynx {
-	struct ConsoleArguments {
+	struct SE_API ConsoleArguments {
 		ConsoleArguments() = default;
 
 		ConsoleArguments(const int argc, const char** argv) : m_Argc(argc), m_Argv(argv) {

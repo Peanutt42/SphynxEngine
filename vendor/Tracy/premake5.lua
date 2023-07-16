@@ -1,5 +1,5 @@
 project "Tracy"
-	kind "StaticLib"
+	kind "SharedLib"
 	language "C++"
 	cppdialect "C++17"
 	staticruntime "off"
@@ -18,7 +18,8 @@ project "Tracy"
 	}
 
 	defines {
-        "TRACY_ENABLE"
+        "TRACY_ENABLE",
+		"TRACY_EXPORTS"
 	}
 
 	filter { "configurations:Debug" }

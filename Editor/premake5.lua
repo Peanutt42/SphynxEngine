@@ -35,7 +35,8 @@ project "Editor"
 		"Engine",
 		"yaml",
 		"stb_image",
-		"tracy"
+		"tracy",
+		"imgui"
 	}
 	
 	-- Config dependent links

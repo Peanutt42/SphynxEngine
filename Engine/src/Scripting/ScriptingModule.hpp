@@ -6,7 +6,7 @@ namespace Sphynx::Scripting {
 	// Platformdependent data
 	struct ModuleData;
 
-	class Module {
+	class SE_API Module {
 	public:
 		Module(const std::filesystem::path& filepath);
 		~Module();

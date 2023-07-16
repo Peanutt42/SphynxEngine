@@ -4,26 +4,6 @@
 #include "Profiling/Profiling.hpp"
 
 namespace Sphynx {
-	constexpr const char* Logging::CategoryToString(Logging::Category category) {
-		switch (category) {
-		default:
-		case Logging::Category::General:		return "[General]        ";
-		case Logging::Category::Game:			return "[Game]           ";
-		case Logging::Category::Editor:			return "[Editor]         ";
-		case Logging::Category::Runtime:		return "[Runtime]        ";
-		case Logging::Category::Audio:			return "[Audio]          ";
-		case Logging::Category::AssetManagment:	return "[Assets]         ";
-		case Logging::Category::Serialization:	return "[Serialization]  ";
-		case Logging::Category::Memory:			return "[Memory]         ";
-		case Logging::Category::Networking:		return "[Networking]     ";
-		case Logging::Category::Scripting:		return "[Scripting]      ";
-		case Logging::Category::ECS:			return "[ECS]            ";
-		case Logging::Category::Physics:		return "[Physics]        ";
-		case Logging::Category::Rendering:		return "[Rendering]      ";
-		case Logging::Category::UI:				return "[UI]             ";
-		case Logging::Category::Building:		return "[Building]       ";
-		}
-	}
 	constexpr const char* GetColorForVerbosity(Logging::Verbosity verbosity) {
 		switch (verbosity) {
 		default: return "";
