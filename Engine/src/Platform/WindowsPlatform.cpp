@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Platform.hpp"
+#include "Logging/Logging.hpp"
 
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN
@@ -7,6 +8,7 @@
 #include <debugapi.h>
 #include <commdlg.h>
 #include <shlobj.h>
+#include <Psapi.h>
 
 namespace Sphynx {
 	bool Platform::IsDebuggerAttached() {
@@ -110,6 +112,47 @@ namespace Sphynx {
 		CoUninitialize();
 
 		return {};
+	}
+
+
+
+	void Platform::Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
+		if (!std::filesystem::exists(filepath)) {
+			SE_FATAL(Logging::General, "Can't find process to start in {}", filepath.string());
+			return;
+		}
+
+		STARTUPINFO si;
+		ZeroMemory(&si, sizeof(si));
+		si.cb = sizeof(si);
+
+		PROCESS_INFORMATION pi;
+
+		ZeroMemory(&pi, sizeof(pi));
+
+		std::wstring _args = filepath.native() + L" " + args;
+		if (CreateProcessW(nullptr, _args.data(), nullptr, nullptr, false, DETACHED_PROCESS, nullptr, nullptr, &si, &pi)) {
+			CloseHandle(pi.hProcess);
+			CloseHandle(pi.hThread);
+			return;
+		}
+		else
+			SE_FATAL(Logging::General, "Failed to start process {}", filepath.string());
+	}
+
+	unsigned long Platform::Process::GetCurrentProcessId() {
+		return ::GetCurrentProcessId();
+	}
+
+	std::string Platform::Process::GetCurrentName() {
+		char buffer[MAX_PATH];
+		GetModuleBaseNameA(GetCurrentProcess(), GetModuleHandleA(nullptr), buffer, MAX_PATH);
+		return buffer;
+	}
+
+
+	unsigned int Platform::Thread::GetCurrentId() {
+		return ::GetCurrentThreadId();
 	}
 }
 

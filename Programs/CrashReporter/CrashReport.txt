@@ -1,0 +1,22 @@
+OS: Windows
+Archetecture: 64 bit
+Crash:
+  Process: Editor.exe
+  Thread: 25104
+  LastErrorMessages:
+    - This is a test
+    - THisis a test
+  Signal: Explicit decision!
+Stacktrace:
+  - FunctionName: Sphynx::Editor::EditorApplication::DrawUI()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Editor\src\EditorApplication.cpp
+    SourceLine: 43
+  - FunctionName: Sphynx::Engine::Update()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\Core\Engine.cpp
+    SourceLine: 82
+  - FunctionName: main()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Editor\src\main.cpp
+    SourceLine: 48

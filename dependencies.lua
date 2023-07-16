@@ -39,6 +39,10 @@ Libaries["spirv_cross_Dist"] = "%{LibaryDirs.Vulkan}/spirv-cross-core.lib"
 
 -- Tracy
 IncludeDirs["Tracy"] = EngineDir .. "vendor/Tracy"
+CopyBinaryCmds["Tracy"] = copydll_cmd_begin .. EngineDir .. "bin\\" .. outputdir .. "\\vendor\\Tracy.dll" .. copydll_cmd_end
 
 -- imgui
 IncludeDirs["imgui"] = EngineDir .. "vendor/imgui/include"
+
+-- glad
+IncludeDirs["glad"] = "%{wks.location}/vendor/glad/include"

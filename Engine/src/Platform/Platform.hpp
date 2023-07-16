@@ -22,5 +22,21 @@ namespace Sphynx {
 
 			static std::filesystem::path OpenFolder();
 		};
+
+
+		class SE_API Process {
+		public:
+			static void Run(const std::filesystem::path& filepath, const std::wstring& args);
+
+			static unsigned long GetCurrentProcessId();
+
+			static std::string GetCurrentName();
+		};
+
+
+		class SE_API Thread {
+		public:
+			static unsigned int GetCurrentId();
+		};
 	};
 }

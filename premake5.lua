@@ -1,3 +1,4 @@
+outputdir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 EngineDir = "%{wks.location}/"
 
 include "dependencies.lua"
@@ -22,20 +23,20 @@ workspace "SphynxEngine"
 
     startproject "Editor"
 
-	outputdir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
-
 group "Core"
 	include "Editor"
 	include "Engine"
 
 group "Programs"
 	include "Programs/ReflectionGenerator"
+	include "Programs/CrashReporter"
 
 group "Dependencies"
 	include "vendor/yaml"
 	include "vendor/stb_image"
 	include "vendor/Tracy"
 	include "vendor/imgui"
+	include "vendor/glad"
 	
 newaction {
 	trigger = "clean",

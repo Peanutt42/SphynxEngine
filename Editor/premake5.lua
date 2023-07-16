@@ -38,6 +38,10 @@ project "Editor"
 		"tracy",
 		"imgui"
 	}
+
+	postbuildcommands {
+		"%{CopyBinaryCmds.Tracy}"
+	}
 	
 	-- Config dependent links
 	filter { "configurations:Debug" }

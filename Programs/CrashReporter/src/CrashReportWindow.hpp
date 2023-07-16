@@ -1,0 +1,132 @@
+#pragma once
+
+#include <yaml-cpp/yaml.h>
+#include "../../../Engine/src/Debug/StackTrace.hpp"
+#include <filesystem>
+#include <iostream>
+#include <imgui/imgui.h>
+
+namespace Sphynx {
+	struct CrashData {
+		struct SystemInfo {
+			std::string OS;
+			std::string Architecture;
+		} SystemInfo;
+		
+		struct CrashInfo {
+			std::string Process;
+			std::string Thread;
+			std::string Signal;
+			std::vector<std::string> LastErrorMessages;
+		} CrashInfo;
+		
+		StackTrace StackTrace;
+	};
+	
+	class CrashReporterWindow {
+	public:
+		CrashReporterWindow() {
+			if (!std::filesystem::exists("CrashReport.txt")) {
+				std::cout << "Couldn't find CrashReport.txt!\n";
+				return;
+			}
+			
+			YAML::Node data = YAML::LoadFile("CrashReport.txt");
+			m_CrashData.SystemInfo.OS = data["OS"].as<std::string>();
+			m_CrashData.SystemInfo.Architecture = data["Archetecture"].as<std::string>();
+			auto crashNode = data["Crash"];
+			if (crashNode) {
+				m_CrashData.CrashInfo.Process = crashNode["Process"].as<std::string>();
+				m_CrashData.CrashInfo.Thread = crashNode["Thread"].as<std::string>();
+				m_CrashData.CrashInfo.Signal = crashNode["Signal"].as<std::string>();
+				auto lastErrorMsgsNode = crashNode["LastErrorMessages"];
+				if (lastErrorMsgsNode) {
+					for (const YAML::Node& msg : lastErrorMsgsNode) {
+						m_CrashData.CrashInfo.LastErrorMessages.push_back(msg.as<std::string>());
+					}
+				}
+			}
+			auto stackTraceNode = data["Stacktrace"];
+			for (auto stackTraceEntryNode : stackTraceNode) {
+				m_CrashData.StackTrace.Entries.emplace_back();
+				auto& entry = m_CrashData.StackTrace.Entries.back();
+				entry.FunctionName = stackTraceEntryNode["FunctionName"].as<std::string>();
+				entry.HasSource = stackTraceEntryNode["HasSource"].as<bool>();
+				if (entry.HasSource) {
+					entry.SourceFile = stackTraceEntryNode["SourceFile"].as<std::string>();
+					entry.SourceLine = stackTraceEntryNode["SourceLine"].as<size_t>();
+				}
+			}
+		}
+		~CrashReporterWindow() {
+			
+		}
+		
+		void Draw() {
+			ImGui::Begin("Crash Report");
+			
+			ImGui::Text("System");
+			ImGui::BulletText("OS: %s", m_CrashData.SystemInfo.OS.c_str());
+			ImGui::BulletText("Architecture: %s", m_CrashData.SystemInfo.Architecture.c_str());
+			
+			ImGui::Text("Crash");
+			ImGui::BulletText("Process: %s", m_CrashData.CrashInfo.Process.c_str());
+			ImGui::BulletText("Thread: %s", m_CrashData.CrashInfo.Thread.c_str());
+			ImGui::BulletText("Signal: %s", m_CrashData.CrashInfo.Signal.c_str());
+			ImGui::BulletText("Last Error messages:");
+			for (const std::string& msg : m_CrashData.CrashInfo.LastErrorMessages)
+				ImGui::BulletText("\t%s", msg.c_str());
+			
+			ImGui::Text("StackTrace");
+			static ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable | ImGuiTableFlags_NoSavedSettings;
+			if (ImGui::BeginTable("StackTrace", 3, flags, { 0.f, ImGui::GetContentRegionAvail().y / 1.5f })) {
+				ImGui::TableSetupColumn("Index");
+				ImGui::TableSetupColumn("Function");
+				ImGui::TableSetupColumn("Source");
+				ImGui::TableHeadersRow();
+				for (size_t i = 0; i < m_CrashData.StackTrace.Entries.size(); i++) {
+					auto& entry = m_CrashData.StackTrace.Entries[i];
+					static ImGuiSelectableFlags selectable_flags = ImGuiSelectableFlags_SpanAllColumns | ImGuiSelectableFlags_AllowItemOverlap;
+					int id = ImGui::GetID(("##" + std::to_string(i)).c_str());
+					ImGui::PushID(id);
+					ImGui::TableNextRow();
+					ImGui::TableSetColumnIndex(0);
+					ImGui::Text("%d", i + 1);
+					ImGui::TableSetColumnIndex(1);
+					static size_t s_Selection;
+					if (ImGui::Selectable(entry.FunctionName.c_str(), s_Selection == i, selectable_flags))
+						s_Selection = i;
+					
+					if (ImGui::IsItemHovered() && ImGui::IsMouseDown(ImGuiMouseButton_Right))
+						ImGui::OpenPopup("StackTraceEntry Menu");
+					
+					ImGui::TableSetColumnIndex(2);
+					ImGui::Text("%s", entry.HasSource ? (entry.SourceFile + ":" + std::to_string(entry.SourceLine)).c_str() : "???");
+					
+					if (ImGui::BeginPopup("StackTraceEntry Menu", ImGuiWindowFlags_NoMove)) {
+						if (m_CrashData.StackTrace.Entries[i].HasSource && ImGui::MenuItem("Show Source code")) {
+							system(("code -r -g " + m_CrashData.StackTrace.Entries[i].SourceFile + ":" + std::to_string(m_CrashData.StackTrace.Entries[i].SourceLine)).c_str());
+						}
+						//if (ImGui::MenuItem("Open"))
+						//	_OpenProjectInEditor(m_RecentlyOpenedProjectsSetting.ProjectPaths[i]);
+						//if (ImGui::MenuItem("Show Folder", nullptr, false, projectExists))
+						//	system(("explorer " + path.parent_path().std::string()).c_str());
+						//
+						//if (ImGui::MenuItem("Remove")) {
+						//	m_RecentlyOpenedProjectsSetting.ProjectPaths.erase(m_RecentlyOpenedProjectsSetting.ProjectPaths.begin() + i);
+						//	m_RecentlyOpenedProjectsSetting.ProjectSettings.erase(m_RecentlyOpenedProjectsSetting.ProjectSettings.begin() + i);
+						//}
+						ImGui::EndPopup();
+					}
+					ImGui::PopID();
+				}
+				ImGui::EndTable();
+			}
+			
+			ImGui::End();
+		}
+		
+	private:
+		CrashData m_CrashData;
+	};
+}
