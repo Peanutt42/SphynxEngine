@@ -1,7 +1,10 @@
 #include "Core/CoreInclude.hpp"
 
+using namespace Sphynx;
+
 extern "C" {
 	__declspec(dllexport) void TestInput() {
-		SE_INFO(Sphynx::Logging::Game, "Enter pressed");
+		if (Input::IsKeyPressed(KeyCode::Enter))
+			SE_INFO(Logging::Game, "Enter pressed");
 	}
 }

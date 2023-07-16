@@ -23,9 +23,7 @@ namespace Sphynx {
 		signal(SIGSEGV, OnProcessCrashed); // segmentation fault
 		signal(SIGABRT, OnProcessCrashed); // abort()
 
-		//if (!IsDebuggerPresent()) {
-		//	Pit::Process::Run( L"Programs\\CrashReporter\\bin\\CrashReporter.exe", 	std::to_wstring(Pit::Process::GetCurrentProcessID()));
-		//}
+		// TODO: seperate Crash Handler process
 	}
 
 	StackTrace CrashHandler::MakeStackTrace(bool cutSetup) {
@@ -120,45 +118,6 @@ namespace Sphynx {
 			std::cout << (entry.HasSource ? entry.SourceFile + ":" + std::to_string(entry.SourceLine) : "???");
 			std::cout << std::endl;
 		}
-
-		//YAML::Emitter out;
-		//out << YAML::BeginMap;
-		//
-		//out << YAML::Key << "System" << YAML::Value;
-		//out << YAML::BeginMap;
-		//out << YAML::Key << "Platform" << YAML::Value << "PC";
-		//out << YAML::Key << "OS" << YAML::Value << "Win64";
-		//out << YAML::Key << "Architecture" << YAML::Value << "x64";
-		//out << YAML::EndMap;
-		//
-		//out << YAML::Key << "Crash" << YAML::Value;
-		//out << YAML::BeginMap;
-		////out << YAML::Key << "Date" << YAML::Value << Pit::CurrentTimeToStringPretty();
-		////out << YAML::Key << "Process" << YAML::Value << Pit::StringFromWString(Pit::Process::GetName(Pit::Process::GetCurrentProcessID()));
-		//out << YAML::Key << "Thread" << YAML::Value << (Sphynx::Thread::IsMainThread() ? "Main Thread" : "Additional Thread");
-		//std::stringstream ss;
-		//ss << std::this_thread::get_id();
-		//out << YAML::Key << "ThreadId" << YAML::Value << (unsigned int)std::atoi(ss.str().c_str());
-		//out << YAML::Key << "ErrorMessages" << YAML::Value << Sphynx::Logging::GetErrorList();
-		//out << YAML::EndMap;
-		//
-		//out << YAML::Key << "StackTrace" << YAML::Value;
-		//out << YAML::BeginSeq;
-		//for (size_t i = 0; i < stackTrace.Entries.size(); i++) {
-		//	auto& entry = stackTrace.Entries[i];
-		//	out << YAML::BeginMap;
-		//	out << YAML::Key << "FunctionName" << YAML::Value << entry.FunctionName;
-		//	out << YAML::Key << "HasSource" << YAML::Value << entry.HasSource;
-		//	if (entry.HasSource) {
-		//		out << YAML::Key << "SourceFile" << YAML::Value << entry.SourceFile;
-		//		out << YAML::Key << "SourceLine" << YAML::Value << entry.SourceLine;
-		//	}
-		//	out << YAML::EndMap;
-		//}
-		//out << YAML::EndSeq;	
-		//
-		//out << YAML::EndMap;
-		//Sphynx::Serialization::SaveYamlToFile("Programs/CrashReporter/LastCrash.ini", out);
 
 		std::cin.get();
 

@@ -11,7 +11,7 @@
 #include "Logging/Logging.hpp"
 #include "Platform/Platform.hpp"
 #include "Profiling/Profiling.hpp"
-
+#include "Input/Input.hpp"
 
 #ifdef SE_GAME_MODULE
 #include "Scripting/ScriptingModuleIncludes.hpp"

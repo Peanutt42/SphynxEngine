@@ -25,6 +25,8 @@ namespace Sphynx {
 		if (!s_Settings.Headless) {
 			s_Window = new Rendering::Window(s_Settings.WindowName, 1920, 1080, s_Settings.Fullscreen);
 
+			Input::Init(s_Window->GetGLFWHandle());
+
 			s_Renderer = new Rendering::Renderer(*s_Window, &Update);
 
 			if (s_Settings.ImGuiEnabled)
@@ -66,6 +68,9 @@ namespace Sphynx {
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
 		s_UpdateTimer.Reset();
 
+		if (!s_Settings.Headless)
+			Input::Update();
+
 		s_ScriptingEngine->Update();
 
 		s_Application->Update();
@@ -88,7 +93,7 @@ namespace Sphynx {
 			float updateTime = s_UpdateTimer.ElapsedSeconds();
 			float timeLeft = (1.f / s_Settings.MaxFPS) - updateTime;
 			if (timeLeft > 0.f) {
-				SE_PROFILE_SCOPE("Pit::Engine::MaxFpsLimitWait");
+				SE_PROFILE_SCOPE("Sphynx::Engine::MaxFpsCap");
 				Time::MicroSleep((uint64_t)(floor(timeLeft * 1000 * 1000))); // Wait for microseconds
 			}
 		}
