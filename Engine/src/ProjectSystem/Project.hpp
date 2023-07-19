@@ -10,6 +10,7 @@ namespace Sphynx {
 		Version EngineVersion;
 		std::filesystem::path Filepath;
 		std::filesystem::path Folderpath;
+		std::filesystem::path StartSceneFilepath;
 
 		std::filesystem::path EngineConfigFilepath;
 
@@ -21,6 +22,7 @@ namespace Sphynx {
 			YAML::Node data = YAML::LoadFile(filepathStr);
 			Name = data["Name"].as<std::string>();
 			EngineVersion = data["EngineVersion"].as<Version>();
+			StartSceneFilepath = Folderpath / "Assets" / data["StartScene"].as<std::string>();
 		}
 	};
 }

@@ -19,6 +19,9 @@
 #include <unordered_set>
 #include <set>
 
+#include <xhash>
+#include <random>
+
 #include <cassert>
 
 #include <functional>

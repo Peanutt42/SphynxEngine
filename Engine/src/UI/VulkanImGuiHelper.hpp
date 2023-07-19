@@ -23,10 +23,5 @@ namespace Sphynx::UI {
 		void DisableSaveFile();
 
 		ImGuiContext* GetContext();
-
-
-		__forceinline void SetContextOnDiffrentDll() {
-			ImGui::SetCurrentContext(this->GetContext());
-		}
 	};
 }

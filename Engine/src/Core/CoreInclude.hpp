@@ -7,6 +7,7 @@
 #include "Time.hpp"
 #include "Version.hpp"
 #include "EngineApi.hpp"
+#include "UUID.hpp"
 
 #include "Logging/Logging.hpp"
 #include "Platform/Platform.hpp"

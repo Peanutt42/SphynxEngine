@@ -26,6 +26,23 @@ namespace YAML {
 			return true;
 		}
 	};
+
+	template<>
+	struct convert<Sphynx::UUID> {
+		static Node encode(const Sphynx::UUID& uuid) {
+			Node node;
+			node.push_back((Sphynx::UUID::type)uuid);
+			return node;
+		}
+
+		static bool decode(const Node& node, Sphynx::UUID& uuid) {
+			if (node.size() != 1)
+				return false;
+
+			uuid = node.as<Sphynx::UUID::type>();
+			return true;
+		}
+	};
 }
 
 namespace Sphynx {
