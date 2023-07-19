@@ -3,6 +3,7 @@
 #include "Scene/SceneSerializer.hpp"
 
 #include "Windows/LoggingOutputWindow.hpp"
+#include "Windows/HierarchyWindow.hpp"
 
 namespace Sphynx::Editor {
 	EditorApplication::EditorApplication() {
@@ -19,6 +20,7 @@ namespace Sphynx::Editor {
 		Engine::ImGuiHelper().SetSaveFilepath("Engine/imgui.ini");
 
 		m_Windows.push_back(std::make_unique<LoggingOutputWindow>());
+		m_Windows.push_back(std::make_unique<HierarchyWindow>());
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
 		SceneSerializer::Deserialize(Engine::GetProject()->StartSceneFilepath, *m_EditingScene);

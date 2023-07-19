@@ -37,6 +37,10 @@ namespace Sphynx {
 		auto View() {
 			return m_Registry.View<T...>();
 		}
+		template<typename Callback>
+		void ForEach(const Callback& callback) {
+			m_Registry.ForEach(callback);
+		}
 
 	private:
 		std::string m_Name;

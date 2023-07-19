@@ -26,6 +26,7 @@ namespace Sphynx::Editor {
 		static Scene& GetEditingScene() { return *s_Instance->m_EditingScene; }
 		static Scene& GetGameScene() { return *s_Instance->m_GameScene; }
 		static Scene& GetCurrentScene() { return s_Instance->m_State == EditorState::Editing ? GetEditingScene() : GetGameScene(); }
+		static void SetSceneDirty(bool dirty) { s_Instance->m_SceneDirty = dirty; }
 
 		void CreateNewScene();
 		void OpenScene();

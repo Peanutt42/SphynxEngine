@@ -9,18 +9,22 @@ namespace Sphynx::ECS {
 	using ComponentIndex = uint32_t;
 	constexpr ComponentIndex InvalidComponentIndex = (ComponentIndex)-1;
 
+	using CopyFunc = void(*)(const void* src, void* dst);
+	using DestroyFunc = void(*)(void* ptr);
+
 	class Storage {
 	public:
 		Storage() = default;
 
-		Storage(size_t elementSize) : m_ElementSize(elementSize) {}
+		Storage(size_t elementSize, CopyFunc copyFunc, DestroyFunc destroyFunc)
+			: m_ElementSize(elementSize), m_CopyFunc(copyFunc), m_DestroyFunc(destroyFunc) {}
 
 		template<typename T>
-		T& Add(const EntityId entity) {
-			return *static_cast<T*>(Add(entity));
+		T& Add(const EntityId entity, const T& srcComponent) {
+			return *static_cast<T*>(AddRaw(entity, &srcComponent));
 		}
 
-		void* Add(const EntityId entity) {
+		void* AddRaw(const EntityId entity, const void* srcComponent) {
 			if (Has(entity))
 				return Get(entity);
 
@@ -33,7 +37,9 @@ namespace Sphynx::ECS {
 				m_Data.resize(m_NextComponentIndex, 0);
 
 			m_ComponentIndexes[entity] = index;
-			return &m_Data[index];
+			void* componentPtr = &m_Data[index];
+			m_CopyFunc(srcComponent, componentPtr);
+			return componentPtr;
 		}
 
 		bool Has(const EntityId entity) const {
@@ -73,7 +79,9 @@ namespace Sphynx::ECS {
 
 			const ComponentIndex oldIndex = m_ComponentIndexes[entity];
 			m_ComponentIndexes[entity] = InvalidComponentIndex;
-			std::memset(&m_Data[oldIndex], 0, m_ElementSize);
+			void* componentPtr = &m_Data[oldIndex];
+			m_DestroyFunc(componentPtr);
+			std::memset(componentPtr, 0, m_ElementSize);
 			return true;
 		}
 
@@ -119,6 +127,9 @@ namespace Sphynx::ECS {
 
 	private:
 		size_t m_ElementSize = 0;
+		CopyFunc m_CopyFunc = nullptr;
+		DestroyFunc m_DestroyFunc = nullptr;
+
 		ComponentIndex m_NextComponentIndex = 0;
 		std::vector<uint8_t> m_Data; // Dense
 		std::vector<ComponentIndex> m_ComponentIndexes; // Sparse

@@ -10,7 +10,7 @@ namespace Sphynx {
 	public:
 		static void SerializeEntity(Scene& scene, ECS::EntityId entity, YAML::Emitter& out) {
 			out << YAML::BeginMap;
-			out << YAML::Key << "Entity" << YAML::Value << scene.GetComponent<ECS::UUIDComponent>(entity).UUID;
+			out << YAML::Key << "Entity" << YAML::Value << scene.GetComponent<ECS::UUIDComponent>(entity).uuid;
 			out << YAML::Key << "Name" << YAML::Value << scene.GetComponent<ECS::NameComponent>(entity).Name;
 
 			out << YAML::EndMap;

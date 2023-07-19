@@ -8,6 +8,6 @@ namespace Sphynx::ECS {
 	};
 
 	struct UUIDComponent {
-		UUID UUID = 0;
+		UUID uuid = 0;
 	};
 }

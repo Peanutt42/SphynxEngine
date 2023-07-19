@@ -32,6 +32,9 @@ namespace Sphynx::ECS {
 
 		EntityId Create() {
 			const EntityId entity = m_NextEntityId++;
+			if (m_AliveMap.size() <= m_NextEntityId)
+				m_AliveMap.resize(m_NextEntityId * 2);
+			m_AliveMap[entity] = true;
 			return entity;
 		}
 
@@ -44,14 +47,16 @@ namespace Sphynx::ECS {
 				if (!storage.Remove(entity))
 					removeSuccessful = false;
 			}
+			m_AliveMap[entity] = false;
 			return removeSuccessful;
 		}
 
 		EntityId Dublicate(const EntityId entity) {
 			const EntityId dublicate = Create();
 			for (auto& [componentId, storage] : m_Storages) {
-				if (storage.Has(entity))
-					storage.Add(dublicate);
+				void* srcComponent = nullptr;
+				if (storage.TryGet(entity, &srcComponent))
+					storage.AddRaw(dublicate, srcComponent);
 			}
 			return dublicate;
 		}
@@ -62,9 +67,7 @@ namespace Sphynx::ECS {
 				return *(T*)nullptr;
 
 			Storage& storage = CreateStorage<T>();
-			T& componentPtr = storage.Add<T>(entity);
-			componentPtr = std::move(component);
-			return componentPtr;
+			return storage.Add<T>(entity, component);
 		}
 
 		template<typename T>
@@ -94,7 +97,6 @@ namespace Sphynx::ECS {
 				return false;
 
 			Storage& storage = CreateStorage<T>();
-			std::destroy_at(&storage.Get<T>(entity));
 			return storage.Remove(entity);
 		}
 
@@ -111,7 +113,7 @@ namespace Sphynx::ECS {
 		}
 
 		bool IsValid(const EntityId entity) const {
-			return entity < m_NextEntityId;
+			return entity < m_NextEntityId && m_AliveMap[entity];
 		}
 
 		template<typename Callback>
@@ -243,12 +245,19 @@ namespace Sphynx::ECS {
 			if (storage)
 				return *storage;
 
-			m_Storages[id] = Storage(sizeof(T));
+			CopyFunc copyFunc = [](const void* src, void* dst) { std::construct_at(static_cast<T*>(dst), *static_cast<const T*>(src)); };
+			DestroyFunc destroyFunc = [](void* ptr) { std::destroy_at(static_cast<T*>(ptr)); };
+			m_Storages[id] = Storage(
+				sizeof(T),
+				copyFunc,
+				destroyFunc
+			);
 			return m_Storages.at(id);
 		}
 
 	private:
 		EntityId m_NextEntityId = 0;
+		std::vector<bool> m_AliveMap;
 		std::unordered_map<ComponentId, Storage> m_Storages;
 	};
 }
