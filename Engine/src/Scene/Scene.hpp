@@ -14,6 +14,7 @@ namespace Sphynx {
 		ECS::EntityId CreateEntity(UUID uuid = UUID{});
 		ECS::EntityId DublicateEntity(ECS::EntityId entity);
 		void DestroyEntity(ECS::EntityId entity);
+		bool IsValid(ECS::EntityId entity) { return m_Registry.IsValid(entity); }
 
 
 		template<typename T>

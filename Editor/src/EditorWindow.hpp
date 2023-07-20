@@ -2,6 +2,7 @@
 
 #include "Core/CoreInclude.hpp"
 #include <imgui/imgui.h>
+#include <imgui/imgui_stdlib.h>
 
 namespace Sphynx::Editor {
 	class EditorWindow {
