@@ -14,8 +14,9 @@ namespace Sphynx::Editor {
 		virtual void Draw() override {
 			Scene& scene = EditorApplication::GetCurrentScene();
 			scene.ForEach([&](ECS::EntityId entity) {
-				ImGuiTreeNodeFlags flags = (s_SelectedEntity == entity ? ImGuiTreeNodeFlags_Selected : 0) | ImGuiTreeNodeFlags_OpenOnArrow;
-				flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
+				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+				if (s_SelectedEntity == entity)
+					flags |= ImGuiTreeNodeFlags_Selected;
 
 				const std::string& name = scene.GetComponent<ECS::NameComponent>(entity).Name;
 				bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)entity, flags, name.c_str());

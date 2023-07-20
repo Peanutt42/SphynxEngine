@@ -14,6 +14,7 @@ namespace Sphynx {
 
 		UUID& operator=(const UUID&) = default;
 		UUID& operator=(UUID&&) = default;
+		UUID& operator=(type uuid) { m_UUID = uuid; return *this; }
 
 		operator type() const { return m_UUID; }
 

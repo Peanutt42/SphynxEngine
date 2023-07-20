@@ -34,11 +34,7 @@ namespace YAML {
 			node.push_back((Sphynx::UUID::type)uuid);
 			return node;
 		}
-
 		static bool decode(const Node& node, Sphynx::UUID& uuid) {
-			if (node.size() != 1)
-				return false;
-
 			uuid = node.as<Sphynx::UUID::type>();
 			return true;
 		}

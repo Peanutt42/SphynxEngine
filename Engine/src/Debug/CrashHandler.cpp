@@ -23,7 +23,8 @@ namespace Sphynx {
 		signal(SIGSEGV, OnProcessCrashed); // segmentation fault
 		signal(SIGABRT, OnProcessCrashed); // abort()
 
-		Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
+		if (!Platform::IsDebuggerAttached())
+			Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
 	}
 
 	StackTrace CrashHandler::MakeStackTrace(bool cutSetup) {

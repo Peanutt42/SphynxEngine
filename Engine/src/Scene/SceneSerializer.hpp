@@ -36,7 +36,7 @@ namespace Sphynx {
 
 
 		static void DeserializeEntity(Scene& scene, const YAML::Node& entityNode) {
-			UUID uuid = entityNode.as<UUID>();
+			UUID uuid = entityNode["Entity"].as<UUID>();
 			ECS::EntityId entity = scene.CreateEntity(uuid);
 			scene.GetComponent<ECS::NameComponent>(entity).Name = entityNode["Name"].as<std::string>();
 		}
