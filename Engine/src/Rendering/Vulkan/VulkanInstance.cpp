@@ -21,7 +21,6 @@ namespace Sphynx::Rendering {
 		createInfo.pApplicationInfo = &appInfo;
 
 
-		m_RequiredExtensions.emplace_back(VK_KHR_PORTABILITY_ENUMERATION_EXTENSION_NAME);
 		m_RequiredExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		_ConfigureExtensions(createInfo);
 
@@ -89,8 +88,6 @@ namespace Sphynx::Rendering {
 
 		createInfo.enabledExtensionCount = (uint32_t)m_RequiredExtensions.size();
 		createInfo.ppEnabledExtensionNames = m_RequiredExtensions.data();
-
-		createInfo.flags |= VK_INSTANCE_CREATE_ENUMERATE_PORTABILITY_BIT_KHR;
 	}
 
 

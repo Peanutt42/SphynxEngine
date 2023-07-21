@@ -4,19 +4,36 @@
 #include "VulkanSwapChain.hpp"
 
 namespace Sphynx::Rendering {
+	enum class RenderPassUsage {
+		Single,
+		First,
+		Middle,
+		Last
+	};
+
 	class VulkanRenderpass {
 	public:
-		VulkanRenderpass(VkDevice device, VulkanSwapChain& swapchain);
+		VulkanRenderpass(RenderPassUsage usage, VkDevice device, VkFormat format);
 		~VulkanRenderpass();
 
 		VkRenderPass GetHandle() { return m_Renderpass; }
 
-		void Begin(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		// Isn't needed for the swapchain renderpass
+		void CreateFramebuffers(VkPhysicalDevice physicalDevice, uint32_t maxFramesInFlight, uint32_t width, uint32_t height, VkFormat format, VkSharingMode sharingMode);
+
+		VkFramebuffer GetFramebuffer(uint32_t currentImageIndex);
+
+		void Begin(VkFramebuffer framebuffer, VkCommandBuffer commandBuffer, VkExtent2D extent);
 		void End(VkCommandBuffer commandBuffer);
 
 	private:
 		VkDevice m_Device = VK_NULL_HANDLE;
-		VulkanSwapChain& m_Swapchain;
 		VkRenderPass m_Renderpass = VK_NULL_HANDLE;
+
+		// own framebuffers
+		std::vector<VkFramebuffer> m_Framebuffers;
+		std::vector<VkImage> m_FramebufferImages;
+		std::vector<VkDeviceMemory> m_FramebufferImageMemories;
+		std::vector<VkImageView> m_FramebufferImageViews;
 	};
 }

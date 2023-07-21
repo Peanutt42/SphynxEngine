@@ -23,6 +23,14 @@ namespace Sphynx::Rendering {
 		m_PhysicalDevice = VulkanPhysicalDevice::Pick(m_Instance->Instance, m_Surface, deviceExtensions);
 		
 		SE_INFO(Logging::Rendering, "Chosen GPU: {}", VulkanPhysicalDevice::GetName(m_PhysicalDevice));
+		
+		VulkanQueueFamilyIndices indices(m_PhysicalDevice, m_Surface);
+		m_SharingMode = indices.GraphicsFamily == indices.PresentFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
+
+		VulkanSwapChain::SupportDetails swapChainSupport = VulkanSwapChain::GetSupport(m_PhysicalDevice, m_Surface);
+		m_MaxFramesInFlight = swapChainSupport.Capabilities.minImageCount + 1;
+		if (swapChainSupport.Capabilities.maxImageCount > 0 && m_MaxFramesInFlight > swapChainSupport.Capabilities.maxImageCount)
+			m_MaxFramesInFlight = swapChainSupport.Capabilities.maxImageCount;
 
 		VulkanLogicalDevice::CreateResult logicalDeviceResult = VulkanLogicalDevice::Create(m_PhysicalDevice, m_Instance->ValidationLayers, deviceExtensions, m_Surface);
 		m_LogicalDevice = logicalDeviceResult.Device;
@@ -32,16 +40,17 @@ namespace Sphynx::Rendering {
 
 		m_SwapChain = std::make_unique<VulkanSwapChain>(m_PhysicalDevice, m_LogicalDevice, m_Surface, m_Window.GetGLFWHandle());
 
-		m_Renderpass = std::make_unique<VulkanRenderpass>(m_LogicalDevice, *m_SwapChain);
+		m_SceneRenderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::First, m_LogicalDevice, m_SwapChain->GetFormat());
 
-		ShaderCreateInfo createInfo("Engine/Resources/Shaders/triangle.glsl");
-		m_TriangleShader = std::make_unique<VulkanShader>(createInfo, m_LogicalDevice, *m_Renderpass);
+		m_Renderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::Last, m_LogicalDevice, m_SwapChain->GetFormat());
 
 		m_SwapChain->CreateFramebuffers(m_Renderpass->GetHandle());
 
 		m_CommandPool = std::make_unique<VulkanCommandPool>(m_PhysicalDevice, m_LogicalDevice, m_Surface, m_MaxFramesInFlight);
 
 		_CreateSyncObjects();
+
+		m_SceneRenderpass->CreateFramebuffers(m_PhysicalDevice, m_MaxFramesInFlight, m_SceneWidth, m_SceneHeight, m_SwapChain->GetFormat(), m_SharingMode);
 	}
 
 	VulkanContext::~VulkanContext() {
@@ -49,9 +58,9 @@ namespace Sphynx::Rendering {
 
 		m_CommandPool.reset();
 
-		m_TriangleShader.reset();
-
 		m_Renderpass.reset();
+
+		m_SceneRenderpass.reset();
 
 		m_SwapChain.reset();
 
@@ -84,7 +93,30 @@ namespace Sphynx::Rendering {
 
 		m_CommandBuffer = m_CommandPool->BeginRecording(m_CurrentFrame);
 
-		m_Renderpass->Begin(m_CommandBuffer, m_CurrentImage);
+		m_SceneRenderpass->Begin(m_SceneRenderpass->GetFramebuffer(m_CurrentImage), m_CommandBuffer, VkExtent2D(m_SceneWidth, m_SceneHeight));
+		m_SceneRenderpass->End(m_CommandBuffer);
+
+		//// Make Scene Texture readable for shaders
+		//{
+		//	VkImageMemoryBarrier barrier{};
+		//	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+		//	barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		//	barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+		//	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		//	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+		//	barrier.image = m_SceneImages[m_CurrentImage];
+		//	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		//	barrier.subresourceRange.baseMipLevel = 0;
+		//	barrier.subresourceRange.levelCount = 1;
+		//	barrier.subresourceRange.baseArrayLayer = 0;
+		//	barrier.subresourceRange.layerCount = 1;
+		//	barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		//	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		//	vkCmdPipelineBarrier(m_CommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		//}
+
+
+		m_Renderpass->Begin(m_SwapChain->GetFramebuffer(m_CurrentImage), m_CommandBuffer, m_SwapChain->GetExtent());
 	}
 
 	void VulkanContext::End() {
@@ -95,18 +127,12 @@ namespace Sphynx::Rendering {
 		// Submit
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		std::array<VkSemaphore, 1> waitSemaphores = { m_ImageAvailableSemaphores[m_CurrentFrame] };
-		submitInfo.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
-		submitInfo.pWaitSemaphores = waitSemaphores.data();
-
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.pWaitDstStageMask = waitStages;
-
-		std::array<VkSemaphore, 1> signalSemaphores = { m_RenderFinishedSemaphores[m_CurrentFrame] };
-		submitInfo.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
-		submitInfo.pSignalSemaphores = signalSemaphores.data();
-
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = &m_ImageAvailableSemaphores[m_CurrentFrame];
+		VkPipelineStageFlags waitDstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+		submitInfo.pWaitDstStageMask = &waitDstStageMask;
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &m_CommandBuffer;
 
@@ -118,12 +144,12 @@ namespace Sphynx::Rendering {
 		// Present
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
-		presentInfo.pWaitSemaphores = signalSemaphores.data();
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];
 
-		VkSwapchainKHR swapChains[] = { m_SwapChain->GetHandle() };
 		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
+		VkSwapchainKHR swapchain = m_SwapChain->GetHandle();
+		presentInfo.pSwapchains = &swapchain;
 		presentInfo.pImageIndices = &m_CurrentImage;
 		presentInfo.pResults = nullptr; // Optional
 

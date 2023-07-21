@@ -37,7 +37,7 @@ namespace Sphynx::UI {
 
 		VkCommandBuffer cmd = context.GetCommandPool().BeginSingleUseCommandbuffer();
 		ImGui_ImplVulkan_CreateFontsTexture(cmd);
-		context.GetCommandPool().EndSingleUseCommandbuffer(cmd, context);
+		context.GetCommandPool().EndSingleUseCommandbuffer(cmd, context.GetGraphicsQueue());
 
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 	}

@@ -77,7 +77,7 @@ namespace Sphynx::Rendering {
 		return commandBuffer;
 	}
 
-	void VulkanCommandPool::EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer, VulkanContext& context) {
+	void VulkanCommandPool::EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer, VkQueue graphicsQueue) {
 		vkEndCommandBuffer(commandbuffer);
 
 		VkSubmitInfo submitInfo{};
@@ -85,8 +85,8 @@ namespace Sphynx::Rendering {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandbuffer;
 
-		vkQueueSubmit(context.GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(context.GetGraphicsQueue());
+		vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(graphicsQueue);
 
 		vkFreeCommandBuffers(m_Device, m_Pool, 1, &commandbuffer);
 	}

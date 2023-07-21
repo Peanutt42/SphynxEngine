@@ -1,19 +1,42 @@
 #include "pch.hpp"
 #include "VulkanRenderpass.hpp"
+#include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	VulkanRenderpass::VulkanRenderpass(VkDevice device, VulkanSwapChain& swapchain)
-		: m_Device(device), m_Swapchain(swapchain)
+	VulkanRenderpass::VulkanRenderpass(RenderPassUsage usage, VkDevice device, VkFormat format)
+		: m_Device(device)
 	{
+		VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		switch (usage) {
+		default: break;
+		case RenderPassUsage::Single:
+			initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			break;
+		case RenderPassUsage::First:
+			initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			break;
+		case RenderPassUsage::Middle:
+			initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			break;
+		case RenderPassUsage::Last:
+			initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+			finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			break;
+		}
+
 		VkAttachmentDescription colorAttachment{};
-		colorAttachment.format = m_Swapchain.GetFormat();
+		colorAttachment.format = format;
 		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
 		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
 		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
 		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
 		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-		colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+		colorAttachment.initialLayout = initialLayout;
+		colorAttachment.finalLayout = finalLayout;
 
 		VkAttachmentReference colorAttachmentRef{};
 		colorAttachmentRef.attachment = 0;
@@ -47,19 +70,59 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanRenderpass::~VulkanRenderpass() {
+		for (auto sceneFramebuffer : m_Framebuffers)
+			vkDestroyFramebuffer(m_Device, sceneFramebuffer, nullptr);
+
+		for (auto imageView : m_FramebufferImageViews)
+			vkDestroyImageView(m_Device, imageView, nullptr);
+		for (auto image : m_FramebufferImages)
+			vkDestroyImage(m_Device, image, nullptr);
+		for (auto memory : m_FramebufferImageMemories)
+			vkFreeMemory(m_Device, memory, nullptr);
+
 		vkDestroyRenderPass(m_Device, m_Renderpass, nullptr);
 		m_Renderpass = VK_NULL_HANDLE;
 	}
 
-	void VulkanRenderpass::Begin(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-		const VkExtent2D& swapchainExtent = m_Swapchain.GetExtent();
+	void VulkanRenderpass::CreateFramebuffers(VkPhysicalDevice physicalDevice, uint32_t maxFramesInFlight, uint32_t width, uint32_t height, VkFormat format, VkSharingMode sharingMode) {
+		m_FramebufferImages.resize(maxFramesInFlight);
+		m_FramebufferImageMemories.resize(maxFramesInFlight);
+		m_FramebufferImageViews.resize(maxFramesInFlight);
+		for (size_t i = 0; i < maxFramesInFlight; i++) {
+			VulkanTexture::CreateImage(physicalDevice, m_Device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, sharingMode, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
+			m_FramebufferImageViews[i] = VulkanTexture::CreateImageView(m_Device, m_FramebufferImages[i], format, VK_IMAGE_ASPECT_COLOR_BIT);
+		}
 
+		m_Framebuffers.resize(maxFramesInFlight);
+		for (size_t i = 0; i < maxFramesInFlight; i++) {
+			VkFramebufferCreateInfo framebufferInfo{};
+			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			framebufferInfo.renderPass = m_Renderpass;
+			framebufferInfo.attachmentCount = 1;
+			framebufferInfo.pAttachments = &m_FramebufferImageViews[i];
+			framebufferInfo.width = width;
+			framebufferInfo.height = height;
+			framebufferInfo.layers = 1;
+
+			if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS)
+				SE_ERR(Logging::Rendering, "Failed to create scene framebuffer {}", i);
+		}
+	}
+
+	VkFramebuffer VulkanRenderpass::GetFramebuffer(uint32_t currentImageIndex) {
+		if (currentImageIndex < m_Framebuffers.size())
+			return m_Framebuffers[currentImageIndex];
+		else
+			return VK_NULL_HANDLE;
+	}
+
+	void VulkanRenderpass::Begin(VkFramebuffer framebuffer, VkCommandBuffer commandBuffer, VkExtent2D extent) {
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = m_Renderpass;
-		renderPassInfo.framebuffer = m_Swapchain.GetFramebuffer(imageIndex);
+		renderPassInfo.framebuffer = framebuffer;
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = swapchainExtent;
+		renderPassInfo.renderArea.extent = extent;
 
 		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
@@ -71,15 +134,15 @@ namespace Sphynx::Rendering {
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(swapchainExtent.width);
-		viewport.height = static_cast<float>(swapchainExtent.height);
+		viewport.width = static_cast<float>(extent.width);
+		viewport.height = static_cast<float>(extent.height);
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent = swapchainExtent;
+		scissor.extent = extent;
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 

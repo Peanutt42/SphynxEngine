@@ -16,7 +16,7 @@ namespace Sphynx::Rendering {
 		void EndRecording(uint32_t frameIndex);
 
 		VkCommandBuffer BeginSingleUseCommandbuffer();
-		void EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer, VulkanContext& context);
+		void EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer, VkQueue graphicsQueue);
 
 	private:
 		VkDevice m_Device = VK_NULL_HANDLE;

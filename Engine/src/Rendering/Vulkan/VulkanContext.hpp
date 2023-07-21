@@ -7,6 +7,7 @@
 #include "VulkanShader.hpp"
 #include "VulkanRenderpass.hpp"
 #include "VulkanCommandPool.hpp"
+#include "VulkanTexture.hpp"
 
 namespace Sphynx::Rendering {
 	class VulkanContext {
@@ -56,13 +57,16 @@ namespace Sphynx::Rendering {
 
 		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
 
+		std::unique_ptr<VulkanRenderpass> m_SceneRenderpass;
+		uint32_t m_SceneWidth = 1920, m_SceneHeight = 1080;
+
+		VkSharingMode m_SharingMode = VK_SHARING_MODE_MAX_ENUM;
+
 		uint32_t m_MaxFramesInFlight = 2;
 		uint32_t m_CurrentFrame = 0;
 		uint32_t m_CurrentImage = 0;
 		bool m_FramebufferResized = false;
 
 		VkDescriptorPool m_ImGuiDescriptorPool = VK_NULL_HANDLE;
-
-		std::unique_ptr<VulkanShader> m_TriangleShader;
 	};
 }
