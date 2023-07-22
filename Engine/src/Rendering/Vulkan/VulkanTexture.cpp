@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "VulkanTexture.hpp"
 #include "VulkanBuffer.hpp"
+#include "VulkanContext.hpp"
 
 
 namespace Sphynx::Rendering {
@@ -49,37 +50,35 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanTexture::~VulkanTexture() {
-		vkDestroyImageView(m_Device, m_View, nullptr);
+		vkDestroyImageView(VulkanContext::LogicalDevice, m_View, nullptr);
 		m_View = nullptr;
 		
-		vkDestroyImage(m_Device, m_Image, nullptr);
+		vkDestroyImage(VulkanContext::LogicalDevice, m_Image, nullptr);
 		m_Image = nullptr;
 		
-		vkFreeMemory(m_Device, m_Memory, nullptr);
+		vkFreeMemory(VulkanContext::LogicalDevice, m_Memory, nullptr);
 		m_Memory = nullptr;
 	}
 
-	void VulkanTexture::UploadToGPU(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VulkanCommandPool& commandPool, VkQueue graphicsQueue) {
-		m_Device = logicalDevice;
-
-		VulkanBuffer stagingBuffer(physicalDevice, logicalDevice, m_Data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	void VulkanTexture::UploadToGPU() {
+		VulkanBuffer stagingBuffer(m_Data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		stagingBuffer.Set(m_Data);
 
 		m_Data.clear();
 
-		CreateImage(physicalDevice, m_Device, m_Width, m_Height, m_VulkanFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, VK_SHARING_MODE_EXCLUSIVE, m_Image, m_Memory);
+		CreateImage(m_Width, m_Height, m_VulkanFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_Memory);
 
-		VkCommandBuffer commandBuffer = commandPool.BeginSingleUseCommandbuffer();
+		VkCommandBuffer commandBuffer = VulkanContext::CommandPool->BeginSingleUseCommandbuffer();
 		TransitionImageLayout(commandBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_Image);
 		CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, m_Image, m_Width, m_Height);
 		TransitionImageLayout(commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_Image);
-		commandPool.EndSingleUseCommandbuffer(commandBuffer, graphicsQueue);
+		VulkanContext::CommandPool->EndSingleUseCommandbuffer(commandBuffer);
 
-		m_View = CreateImageView(m_Device, m_Image, m_VulkanFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+		m_View = CreateImageView(m_Image, m_VulkanFormat, VK_IMAGE_ASPECT_COLOR_BIT);
 	}
 
 
-	void VulkanTexture::CreateImage(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkSharingMode sharingMode, VkImage& image, VkDeviceMemory& memory, VkImageCreateFlags flags, uint32_t arrayLayers) {
+	void VulkanTexture::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& memory, VkImageCreateFlags flags, uint32_t arrayLayers) {
 		VkImageCreateInfo imageInfo{};
 		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
 		imageInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -93,24 +92,24 @@ namespace Sphynx::Rendering {
 		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageInfo.usage = usage;
 		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-		imageInfo.sharingMode = sharingMode;
+		imageInfo.sharingMode = VulkanContext::SharingMode;
 		imageInfo.flags = flags;
 
-		VkResult result = vkCreateImage(logicalDevice, &imageInfo, nullptr, &image);
+		VkResult result = vkCreateImage(VulkanContext::LogicalDevice, &imageInfo, nullptr, &image);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create image");
 
 		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(logicalDevice, image, &memRequirements);
+		vkGetImageMemoryRequirements(VulkanContext::LogicalDevice, image, &memRequirements);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-		result = vkAllocateMemory(logicalDevice, &allocInfo, nullptr, &memory);
+		result = vkAllocateMemory(VulkanContext::LogicalDevice, &allocInfo, nullptr, &memory);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to allocate memory for image");
 
-		vkBindImageMemory(logicalDevice, image, memory, 0);
+		vkBindImageMemory(VulkanContext::LogicalDevice, image, memory, 0);
 	}
 
 	void VulkanTexture::TransitionImageLayout(VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout, VkImage image) {
@@ -191,7 +190,7 @@ namespace Sphynx::Rendering {
 		vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 	}
 
-	VkImageView VulkanTexture::CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType type, uint32_t layerCount) {
+	VkImageView VulkanTexture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType type, uint32_t layerCount) {
 		VkImageViewCreateInfo viewInfo{};
 		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 		viewInfo.image = image;
@@ -203,12 +202,12 @@ namespace Sphynx::Rendering {
 		viewInfo.subresourceRange.levelCount = 1;
 		viewInfo.subresourceRange.layerCount = layerCount;
 		VkImageView imageView;
-		VkResult result = vkCreateImageView(device, &viewInfo, nullptr, &imageView);
+		VkResult result = vkCreateImageView(VulkanContext::LogicalDevice, &viewInfo, nullptr, &imageView);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create image view!");
 		return imageView;
 	}
 
-	VkSampler VulkanTexture::CreateSampler(VkDevice device) {
+	VkSampler VulkanTexture::CreateSampler() {
 		VkSamplerCreateInfo samplerInfo{};
 		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
 		samplerInfo.magFilter = VK_FILTER_LINEAR;
@@ -228,7 +227,7 @@ namespace Sphynx::Rendering {
 		samplerInfo.maxLod = 0.0f;
 
 		VkSampler sampler;
-		VkResult result = vkCreateSampler(device, &samplerInfo, nullptr, &sampler);
+		VkResult result = vkCreateSampler(VulkanContext::LogicalDevice, &samplerInfo, nullptr, &sampler);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create image sampler");
 		return sampler;
 	}

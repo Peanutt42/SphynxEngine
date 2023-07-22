@@ -16,12 +16,8 @@ namespace Sphynx::Rendering {
 
 		void WaitBeforeClose();
 
-		VulkanContext& GetVulkanContext() { return *m_Context; }
-
 	private:
 		Window& m_Window;
 		std::function<void()> m_ResizeCallback;
-
-		std::unique_ptr<VulkanContext> m_Context;
 	};
 }

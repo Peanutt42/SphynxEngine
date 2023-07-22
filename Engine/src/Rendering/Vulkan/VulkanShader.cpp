@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "VulkanShader.hpp"
+#include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
 #pragma region SpirvHelper
@@ -228,11 +229,11 @@ namespace Sphynx::Rendering {
         return shaderModule;
     }
 
-    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VkDevice device, VulkanRenderpass& renderpass)
-        : m_CreateInfo(createInfo), m_Device(device)
+    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass)
+        : m_CreateInfo(createInfo)
     {
-        VkShaderModule vertexModule = CreateShaderModule(m_Device, m_CreateInfo.VertexCode);
-        VkShaderModule fragmentModule = CreateShaderModule(m_Device, m_CreateInfo.FragmentCode);
+        VkShaderModule vertexModule = CreateShaderModule(VulkanContext::LogicalDevice, m_CreateInfo.VertexCode);
+        VkShaderModule fragmentModule = CreateShaderModule(VulkanContext::LogicalDevice, m_CreateInfo.FragmentCode);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -307,7 +308,7 @@ namespace Sphynx::Rendering {
         pipelineLayoutInfo.setLayoutCount = 0;
         pipelineLayoutInfo.pushConstantRangeCount = 0;
 
-        VkResult result = vkCreatePipelineLayout(device, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
+        VkResult result = vkCreatePipelineLayout(VulkanContext::LogicalDevice, &pipelineLayoutInfo, nullptr, &m_PipelineLayout);
         SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create pipelineLayout");
 
         VkGraphicsPipelineCreateInfo pipelineInfo{};
@@ -326,17 +327,17 @@ namespace Sphynx::Rendering {
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        result = vkCreateGraphicsPipelines(device, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline);
+        result = vkCreateGraphicsPipelines(VulkanContext::LogicalDevice, VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline);
         SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create graphics pipeline");
 
-        vkDestroyShaderModule(device, fragmentModule, nullptr);
-        vkDestroyShaderModule(device, vertexModule, nullptr);
+        vkDestroyShaderModule(VulkanContext::LogicalDevice, fragmentModule, nullptr);
+        vkDestroyShaderModule(VulkanContext::LogicalDevice, vertexModule, nullptr);
     }
 
     VulkanShader::~VulkanShader() {
-        vkDestroyPipeline(m_Device, m_Pipeline, nullptr);
+        vkDestroyPipeline(VulkanContext::LogicalDevice, m_Pipeline, nullptr);
         m_Pipeline = VK_NULL_HANDLE;
-        vkDestroyPipelineLayout(m_Device, m_PipelineLayout, nullptr);
+        vkDestroyPipelineLayout(VulkanContext::LogicalDevice, m_PipelineLayout, nullptr);
         m_PipelineLayout = VK_NULL_HANDLE;
     }
 

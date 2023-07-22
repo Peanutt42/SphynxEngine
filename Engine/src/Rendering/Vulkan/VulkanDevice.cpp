@@ -1,9 +1,10 @@
 #include "pch.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanSwapChain.hpp"
+#include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	bool VulkanPhysicalDevice::IsDeviceSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface, std::vector<const char*>& outUnsupportedExtensions) {
+	bool VulkanPhysicalDevice::IsDeviceSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, std::vector<const char*>& outUnsupportedExtensions) {
 		VkPhysicalDeviceFeatures deviceFeatures;
 		vkGetPhysicalDeviceFeatures(device, &deviceFeatures);
 		if (!deviceFeatures.geometryShader)
@@ -37,28 +38,28 @@ namespace Sphynx::Rendering {
 		if (!outUnsupportedExtensions.empty())
 			return false;
 
-		VulkanSwapChain::SupportDetails swapChainSupport = VulkanSwapChain::GetSupport(device, surface);
+		VulkanSwapChain::SupportDetails swapChainSupport = VulkanSwapChain::GetSupport(device);
 		if (swapChainSupport.Formats.empty() || swapChainSupport.PresentModes.empty())
 			return false;
 
-		VulkanQueueFamilyIndices indices(device, surface);
+		VulkanQueueFamilyIndices indices(device);
 		return indices.IsComplete();
 	}
 
-	VkPhysicalDevice VulkanPhysicalDevice::Pick(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions) {
+	VkPhysicalDevice VulkanPhysicalDevice::Pick(const std::vector<const char*>& deviceExtensions) {
 		VkPhysicalDevice physicalDevice = VK_NULL_HANDLE;
 
 		uint32_t deviceCount = 0;
-		vkEnumeratePhysicalDevices(instance, &deviceCount, nullptr);
+		vkEnumeratePhysicalDevices(VulkanContext::Instance->Instance, &deviceCount, nullptr);
 		SE_ASSERT(deviceCount > 0, Logging::Rendering, "Couldn't find a single GPU with Vulkan support!");
 
 		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(instance, &deviceCount, devices.data());
+		vkEnumeratePhysicalDevices(VulkanContext::Instance->Instance, &deviceCount, devices.data());
 
 		std::multimap<int, VkPhysicalDevice> gpuChoices;
 		std::unordered_map<VkPhysicalDevice, std::vector<const char*>> unsupportedExtensionsMap;
 		for (const auto& device : devices) {
-			if (!IsDeviceSupported(device, deviceExtensions, surface, unsupportedExtensionsMap[device]))
+			if (!IsDeviceSupported(device, deviceExtensions, unsupportedExtensionsMap[device]))
 				continue;
 
 			// give each GPU a score
@@ -99,7 +100,7 @@ namespace Sphynx::Rendering {
 	}
 
 
-	VulkanQueueFamilyIndices::VulkanQueueFamilyIndices(VkPhysicalDevice device, VkSurfaceKHR surface) {
+	VulkanQueueFamilyIndices::VulkanQueueFamilyIndices(VkPhysicalDevice device) {
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -111,7 +112,7 @@ namespace Sphynx::Rendering {
 				GraphicsFamily = i;
 
 			VkBool32 presentSupport = false;
-			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, surface, &presentSupport);
+			vkGetPhysicalDeviceSurfaceSupportKHR(device, i, VulkanContext::Surface, &presentSupport);
 			if (presentSupport)
 				PresentFamily = i;
 
@@ -121,8 +122,8 @@ namespace Sphynx::Rendering {
 	}
 
 
-	VulkanLogicalDevice::CreateResult VulkanLogicalDevice::Create(VkPhysicalDevice physicalDevice, const std::vector<const char*>& validationLayers, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface) {
-		VulkanQueueFamilyIndices indices(physicalDevice, surface);
+	VulkanLogicalDevice::CreateResult VulkanLogicalDevice::Create(const std::vector<const char*>& validationLayers, const std::vector<const char*>& deviceExtensions) {
+		VulkanQueueFamilyIndices indices(VulkanContext::PhysicalDevice);
 
 		VkDeviceQueueCreateInfo queueCreateInfo{};
 		queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
@@ -132,6 +133,10 @@ namespace Sphynx::Rendering {
 		queueCreateInfo.pQueuePriorities = &queuePriority;
 
 		VkPhysicalDeviceFeatures deviceFeatures{};
+		deviceFeatures.samplerAnisotropy = true;
+		deviceFeatures.geometryShader = true;
+		deviceFeatures.fillModeNonSolid = true;
+		deviceFeatures.independentBlend = true;
 
 		VkDeviceCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
@@ -162,7 +167,7 @@ namespace Sphynx::Rendering {
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
 		CreateResult result;
-		if (vkCreateDevice(physicalDevice, &createInfo, nullptr, &result.Device) != VK_SUCCESS) {
+		if (vkCreateDevice(VulkanContext::PhysicalDevice, &createInfo, nullptr, &result.Device) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create logical device!");
 		}
 

@@ -10,64 +10,50 @@
 #include "VulkanTexture.hpp"
 
 namespace Sphynx::Rendering {
-	class VulkanContext {
+	class SE_API VulkanContext {
 	public:
-		VulkanContext(Window& window);
-		~VulkanContext();
+		static void Init(Window& window);
+		static void Shutdown();
 
-		void Begin();
-		void End();
+		static void Begin();
+		static void End();
 
-		void WaitBeforeClose();
+		static void WaitBeforeClose();
 
-		void SetFramebufferResized() { m_FramebufferResized = true; }
 
-		Window& GetWindow() { return m_Window; }
-		GLFWwindow* GetWindowHandle() { return m_Window.GetGLFWHandle(); }
+		inline static Rendering::Window* Window = nullptr;
 
-		VkInstance GetVkInstance() { return m_Instance->Instance; }
-		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
-		VkDevice GetDevice() { return m_LogicalDevice; }
-		VkQueue GetGraphicsQueue() { return m_GraphicsQueue; }
-		uint32_t GetMaxFramesInFlight() { return m_MaxFramesInFlight; }
-		VulkanCommandPool& GetCommandPool() { return *m_CommandPool; }
-		VulkanRenderpass& GetRenderpass() { return *m_Renderpass; }
-		VkCommandBuffer GetCurrentCommandBuffer() { return m_CommandBuffer; }
+		inline static std::unique_ptr<VulkanInstance> Instance;
+		inline static VkSurfaceKHR Surface = VK_NULL_HANDLE;
+		inline static VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
+		inline static VkDevice LogicalDevice = VK_NULL_HANDLE;
+		inline static VkQueue GraphicsQueue = VK_NULL_HANDLE;
+		inline static VkQueue PresentQueue = VK_NULL_HANDLE;
+		inline static std::unique_ptr<VulkanSwapChain> SwapChain;
+		inline static std::unique_ptr<VulkanRenderpass> Renderpass;
+		inline static std::unique_ptr<VulkanCommandPool> CommandPool;
 
-		VkDescriptorPool GetImGuiDescriptorPool();
+		inline static std::vector<VkSemaphore> ImageAvailableSemaphores;
+		inline static std::vector<VkSemaphore> RenderFinishedSemaphores;
+		inline static std::vector<VkFence> InFlightFences;
+
+		inline static VkCommandBuffer CommandBuffer = VK_NULL_HANDLE;
+
+		inline static std::unique_ptr<VulkanRenderpass> SceneRenderpass;
+		inline static uint32_t SceneWidth = 1920;
+		inline static uint32_t SceneHeight = 1080;
+
+		inline static VkSharingMode SharingMode = VK_SHARING_MODE_MAX_ENUM;
+
+		inline static uint32_t MaxFramesInFlight = 2;
+		inline static uint32_t CurrentFrame = 0;
+		inline static uint32_t CurrentImage = 0;
+		inline static bool FramebufferResized = false;
+
+		inline static VkDescriptorPool ImGuiDescriptorPool = VK_NULL_HANDLE;
 
 	private:
-		void _CreateSyncObjects(), _DestroySyncObjects();
-
-	private:
-		Window& m_Window;
-
-		std::unique_ptr<VulkanInstance> m_Instance;
-		VkSurfaceKHR m_Surface = VK_NULL_HANDLE;
-		VkPhysicalDevice m_PhysicalDevice = VK_NULL_HANDLE;
-		VkDevice m_LogicalDevice = VK_NULL_HANDLE;
-		VkQueue m_GraphicsQueue = VK_NULL_HANDLE;
-		VkQueue m_PresentQueue = VK_NULL_HANDLE;
-		std::unique_ptr<VulkanSwapChain> m_SwapChain;
-		std::unique_ptr<VulkanRenderpass> m_Renderpass;
-		std::unique_ptr<VulkanCommandPool> m_CommandPool;
-
-		std::vector<VkSemaphore> m_ImageAvailableSemaphores;
-		std::vector<VkSemaphore> m_RenderFinishedSemaphores;
-		std::vector<VkFence> m_InFlightFences;
-
-		VkCommandBuffer m_CommandBuffer = VK_NULL_HANDLE;
-
-		std::unique_ptr<VulkanRenderpass> m_SceneRenderpass;
-		uint32_t m_SceneWidth = 1920, m_SceneHeight = 1080;
-
-		VkSharingMode m_SharingMode = VK_SHARING_MODE_MAX_ENUM;
-
-		uint32_t m_MaxFramesInFlight = 2;
-		uint32_t m_CurrentFrame = 0;
-		uint32_t m_CurrentImage = 0;
-		bool m_FramebufferResized = false;
-
-		VkDescriptorPool m_ImGuiDescriptorPool = VK_NULL_HANDLE;
+		static void _CreateSyncObjects();
+		static void _DestroySyncObjects();
 	};
 }

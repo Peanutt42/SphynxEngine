@@ -4,6 +4,7 @@
 #include "Fonts.hpp"
 #include "UIThemes.hpp"
 #include "UI.hpp"
+#include "Rendering/Vulkan/VulkanContext.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -15,9 +16,7 @@
 #include "../Resources/Icons/WindowToolbarIcons.embed"
 
 namespace Sphynx::UI {
-	VulkanImGuiHelper::VulkanImGuiHelper(Rendering::VulkanContext& context)
-		: m_Context(context)
-	{
+	VulkanImGuiHelper::VulkanImGuiHelper() {
 		SE_PROFILE_FUNCTION();
 
 		IMGUI_CHECKVERSION();
@@ -31,29 +30,29 @@ namespace Sphynx::UI {
 		Fonts::Init();
 
 		ImGui::StyleColorsDark();
-		ImGui_ImplGlfw_InitForVulkan(m_Context.GetWindowHandle(), true);
+		ImGui_ImplGlfw_InitForVulkan(Rendering::VulkanContext::Window->GetGLFWHandle(), true);
 		
 		ImGui_ImplVulkan_InitInfo init_info = {};
-		init_info.Instance = m_Context.GetVkInstance();
-		init_info.PhysicalDevice = m_Context.GetPhysicalDevice();
-		init_info.Device = m_Context.GetDevice();
-		init_info.Queue = m_Context.GetGraphicsQueue();
-		init_info.DescriptorPool = m_Context.GetImGuiDescriptorPool();
-		init_info.MinImageCount = m_Context.GetMaxFramesInFlight();
-		init_info.ImageCount = m_Context.GetMaxFramesInFlight();
+		init_info.Instance = Rendering::VulkanContext::Instance->Instance;
+		init_info.PhysicalDevice = Rendering::VulkanContext::PhysicalDevice;
+		init_info.Device = Rendering::VulkanContext::LogicalDevice;
+		init_info.Queue = Rendering::VulkanContext::GraphicsQueue;
+		init_info.DescriptorPool = Rendering::VulkanContext::ImGuiDescriptorPool;
+		init_info.MinImageCount = Rendering::VulkanContext::MaxFramesInFlight;
+		init_info.ImageCount = Rendering::VulkanContext::MaxFramesInFlight;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-		ImGui_ImplVulkan_Init(&init_info, m_Context.GetRenderpass().GetHandle());
+		ImGui_ImplVulkan_Init(&init_info, Rendering::VulkanContext::Renderpass->GetHandle());
 
-		VkCommandBuffer cmd = m_Context.GetCommandPool().BeginSingleUseCommandbuffer();
+		VkCommandBuffer cmd = Rendering::VulkanContext::CommandPool->BeginSingleUseCommandbuffer();
 		ImGui_ImplVulkan_CreateFontsTexture(cmd);
-		m_Context.GetCommandPool().EndSingleUseCommandbuffer(cmd, m_Context.GetGraphicsQueue());
+		Rendering::VulkanContext::CommandPool->EndSingleUseCommandbuffer(cmd);
 
 		ImGui_ImplVulkan_DestroyFontUploadObjects();
 
 		Themes::SetDefaultTheme();
 
-		m_Context.GetWindow().SetTitlebarhitTestCallback([this]() -> bool {
+		Rendering::VulkanContext::Window->SetTitlebarhitTestCallback([this]() -> bool {
 			return m_TitlebarHovered;
 		});
 
@@ -97,7 +96,7 @@ namespace Sphynx::UI {
 			if constexpr (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
 				window_flags |= ImGuiWindowFlags_NoBackground;
 
-			bool isMaximized = m_Context.GetWindow().IsMaximized();
+			bool isMaximized = Rendering::VulkanContext::Window->IsMaximized();
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, isMaximized ? ImVec2(6.0f, 6.0f) : ImVec2(1.0f, 1.0f));
 			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 3.0f);
 			static bool opened = true;
@@ -122,10 +121,10 @@ namespace Sphynx::UI {
 	}
 
 	
-	void VulkanImGuiHelper::Render(VkCommandBuffer cmd) {
+	void VulkanImGuiHelper::Render() {
 		ImDrawData* drawData = ImGui::GetDrawData();
 		if (drawData)
-			ImGui_ImplVulkan_RenderDrawData(drawData, cmd);
+			ImGui_ImplVulkan_RenderDrawData(drawData, Rendering::VulkanContext::CommandBuffer);
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable)
 		{
@@ -154,7 +153,7 @@ namespace Sphynx::UI {
 
 	void VulkanImGuiHelper::_DrawTitlebar() {
 		const float titlebarHeight = 37.f;
-		const bool isMaximized = m_Context.GetWindow().IsMaximized();
+		const bool isMaximized = Rendering::VulkanContext::Window->IsMaximized();
 		float titlebarVerticalOffset = isMaximized ? -6.0f : 0.0f;
 		const ImVec2 windowPadding = ImGui::GetCurrentWindow()->WindowPadding;
 
@@ -228,7 +227,7 @@ namespace Sphynx::UI {
 		{
 			// Centered Window title
 			ImVec2 currentCursorPos = ImGui::GetCursorPos();
-			const char* titleName = m_Context.GetWindow().GetTitle().c_str();
+			const char* titleName = Rendering::VulkanContext::Window->GetTitle().c_str();
 			ImVec2 textSize = ImGui::CalcTextSize(titleName);
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() * 0.5f - textSize.x * 0.5f, 2.0f + windowPadding.y + 6.0f));
 			ImGui::Text("%s", titleName); // Draw title
@@ -240,12 +239,12 @@ namespace Sphynx::UI {
 		const ImU32 buttonColH = ColorWithMultipliedValue(Themes::Default::text, 1.2f);
 		const ImU32 buttonColP = Themes::Default::textDarker;
 		constexpr float buttonSize = 32.f;
-		constexpr float iconSize = 16.f;
+		constexpr float iconSize = 12.f;
 		const float iconPadding = (buttonSize - iconSize) / 2;
 				
 		ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonSize * 3 - 2.f, windowPadding.y + 2.f));
 		if (ImGui::InvisibleButton("Minimize", ImVec2(buttonSize, buttonSize)))
-			m_Context.GetWindow().Minimize();
+			Rendering::VulkanContext::Window->Minimize();
 		if (ImGui::IsItemHovered())
 			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Themes::Default::textDarker);
 
@@ -256,9 +255,9 @@ namespace Sphynx::UI {
 		ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonSize * 2 - 2.f, windowPadding.y + 2.f));
 		if (ImGui::InvisibleButton("Maximize", ImVec2(buttonSize, buttonSize))) {
 			if (isMaximized)
-				m_Context.GetWindow().Restore();
+				Rendering::VulkanContext::Window->Restore();
 			else
-				m_Context.GetWindow().Maximize();
+				Rendering::VulkanContext::Window->Maximize();
 		}
 		if (ImGui::IsItemHovered())
 			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Themes::Default::textDarker);

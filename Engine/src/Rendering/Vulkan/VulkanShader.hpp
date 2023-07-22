@@ -50,15 +50,13 @@ namespace Sphynx::Rendering {
 
 	class VulkanShader {
 	public:
-		VulkanShader(const ShaderCreateInfo& createInfo, VkDevice device, VulkanRenderpass& renderpass);
+		VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass);
 		~VulkanShader();
 
 		void Bind(VkCommandBuffer commandBuffer);
 
 	private:
 		ShaderCreateInfo m_CreateInfo;
-
-		VkDevice m_Device = VK_NULL_HANDLE;
 
 		VkPipeline m_Pipeline = VK_NULL_HANDLE;
 		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;

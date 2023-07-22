@@ -8,7 +8,7 @@
 namespace Sphynx::UI {
 	class SE_API VulkanImGuiHelper {
 	public:
-		VulkanImGuiHelper(Rendering::VulkanContext& context);
+		VulkanImGuiHelper();
 		~VulkanImGuiHelper();
 
 		void Begin();
@@ -16,7 +16,7 @@ namespace Sphynx::UI {
 
 		void EnableDocking();
 
-		void Render(VkCommandBuffer cmd);
+		void Render();
 
 		void SetSaveFilepath(const std::filesystem::path& filepath);
 		void DisableSaveFile();
@@ -29,7 +29,6 @@ namespace Sphynx::UI {
 		void _DrawTitlebar();
 
 	private:
-		Rendering::VulkanContext& m_Context;
 		bool m_TitlebarHovered = false;
 		std::function<void()> m_MenubarCallback;
 

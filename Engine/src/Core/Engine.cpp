@@ -30,7 +30,7 @@ namespace Sphynx {
 			s_Renderer = new Rendering::Renderer(*s_Window, &Update);
 
 			if (s_Settings.ImGuiEnabled)
-				s_ImGuiHelper = new UI::VulkanImGuiHelper(s_Renderer->GetVulkanContext());
+				s_ImGuiHelper = new UI::VulkanImGuiHelper();
 		}
 
 		s_UpdateTimer.Reset();
@@ -83,7 +83,7 @@ namespace Sphynx {
 			}
 			
 			s_Renderer->Begin();
-			s_ImGuiHelper->Render(s_Renderer->GetVulkanContext().GetCurrentCommandBuffer());
+			s_ImGuiHelper->Render();
 			s_Renderer->End();
 
 			s_Window->Update();

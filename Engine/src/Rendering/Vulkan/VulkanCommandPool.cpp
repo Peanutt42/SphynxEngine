@@ -4,19 +4,17 @@
 #include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	VulkanCommandPool::VulkanCommandPool(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkSurfaceKHR surface, uint32_t maxFramesInFlight)
-		: m_Device(logicalDevice)
-	{
-		m_CommandBuffers.resize(maxFramesInFlight, VK_NULL_HANDLE);
+	VulkanCommandPool::VulkanCommandPool() {
+		m_CommandBuffers.resize(VulkanContext::MaxFramesInFlight, VK_NULL_HANDLE);
 
-		VulkanQueueFamilyIndices queueFamilyIndices(physicalDevice, surface);
+		VulkanQueueFamilyIndices queueFamilyIndices(VulkanContext::PhysicalDevice);
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		poolInfo.queueFamilyIndex = queueFamilyIndices.GraphicsFamily.value();
 
-		VkResult result = vkCreateCommandPool(m_Device, &poolInfo, nullptr, &m_Pool);
+		VkResult result = vkCreateCommandPool(VulkanContext::LogicalDevice, &poolInfo, nullptr, &m_Pool);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create commandPool");
 		
 
@@ -26,12 +24,12 @@ namespace Sphynx::Rendering {
 		commandBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		commandBufferAllocInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
 
-		result = vkAllocateCommandBuffers(m_Device, &commandBufferAllocInfo, m_CommandBuffers.data());
+		result = vkAllocateCommandBuffers(VulkanContext::LogicalDevice, &commandBufferAllocInfo, m_CommandBuffers.data());
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to allocate commandBuffers");
 	}
 
 	VulkanCommandPool::~VulkanCommandPool() {
-		vkDestroyCommandPool(m_Device, m_Pool, nullptr);
+		vkDestroyCommandPool(VulkanContext::LogicalDevice, m_Pool, nullptr);
 		m_Pool = VK_NULL_HANDLE;
 	}
 
@@ -66,7 +64,7 @@ namespace Sphynx::Rendering {
 		allocInfo.commandBufferCount = 1;
 
 		VkCommandBuffer commandBuffer;
-		vkAllocateCommandBuffers(m_Device, &allocInfo, &commandBuffer);
+		vkAllocateCommandBuffers(VulkanContext::LogicalDevice, &allocInfo, &commandBuffer);
 
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -77,7 +75,7 @@ namespace Sphynx::Rendering {
 		return commandBuffer;
 	}
 
-	void VulkanCommandPool::EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer, VkQueue graphicsQueue) {
+	void VulkanCommandPool::EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer) {
 		vkEndCommandBuffer(commandbuffer);
 
 		VkSubmitInfo submitInfo{};
@@ -85,9 +83,9 @@ namespace Sphynx::Rendering {
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandbuffer;
 
-		vkQueueSubmit(graphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(graphicsQueue);
+		vkQueueSubmit(VulkanContext::GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
+		vkQueueWaitIdle(VulkanContext::GraphicsQueue);
 
-		vkFreeCommandBuffers(m_Device, m_Pool, 1, &commandbuffer);
+		vkFreeCommandBuffers(VulkanContext::LogicalDevice, m_Pool, 1, &commandbuffer);
 	}
 }

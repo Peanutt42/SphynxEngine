@@ -4,10 +4,10 @@
 #include "VulkanSurface.hpp"
 
 namespace Sphynx::Rendering {
-	VulkanContext::VulkanContext(Window& window)
-		: m_Window(window)
-	{
-		m_Instance = std::make_unique<VulkanInstance>(
+	void VulkanContext::Init(Rendering::Window& window) {
+		Window = &window;
+
+		Instance = std::make_unique<VulkanInstance>(
 #if defined(DEBUG) || defined(RELEASE)
 			true
 #else
@@ -15,86 +15,108 @@ namespace Sphynx::Rendering {
 #endif
 		);
 
-		m_Surface = VulkanSurface::GetFromWindow(m_Instance->Instance, window.GetGLFWHandle());
+		Surface = VulkanSurface::GetFromWindow(Instance->Instance, window.GetGLFWHandle());
 
 		std::vector<const char*> deviceExtensions {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
-		m_PhysicalDevice = VulkanPhysicalDevice::Pick(m_Instance->Instance, m_Surface, deviceExtensions);
+		PhysicalDevice = VulkanPhysicalDevice::Pick(deviceExtensions);
 		
-		SE_INFO(Logging::Rendering, "Chosen GPU: {}", VulkanPhysicalDevice::GetName(m_PhysicalDevice));
+		SE_INFO(Logging::Rendering, "Chosen GPU: {}", VulkanPhysicalDevice::GetName(PhysicalDevice));
 		
-		VulkanQueueFamilyIndices indices(m_PhysicalDevice, m_Surface);
-		m_SharingMode = indices.GraphicsFamily == indices.PresentFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
+		VulkanQueueFamilyIndices indices(PhysicalDevice);
+		SharingMode = indices.GraphicsFamily == indices.PresentFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
 
-		VulkanSwapChain::SupportDetails swapChainSupport = VulkanSwapChain::GetSupport(m_PhysicalDevice, m_Surface);
-		m_MaxFramesInFlight = swapChainSupport.Capabilities.minImageCount + 1;
-		if (swapChainSupport.Capabilities.maxImageCount > 0 && m_MaxFramesInFlight > swapChainSupport.Capabilities.maxImageCount)
-			m_MaxFramesInFlight = swapChainSupport.Capabilities.maxImageCount;
+		VulkanSwapChain::SupportDetails swapChainSupport = VulkanSwapChain::GetSupport(PhysicalDevice);
+		MaxFramesInFlight = swapChainSupport.Capabilities.minImageCount + 1;
+		if (swapChainSupport.Capabilities.maxImageCount > 0 && MaxFramesInFlight > swapChainSupport.Capabilities.maxImageCount)
+			MaxFramesInFlight = swapChainSupport.Capabilities.maxImageCount;
 
-		VulkanLogicalDevice::CreateResult logicalDeviceResult = VulkanLogicalDevice::Create(m_PhysicalDevice, m_Instance->ValidationLayers, deviceExtensions, m_Surface);
-		m_LogicalDevice = logicalDeviceResult.Device;
-		m_GraphicsQueue = logicalDeviceResult.GraphicsQueue;
-		m_GraphicsQueue = logicalDeviceResult.PresentQueue;
-		m_PresentQueue = logicalDeviceResult.PresentQueue;
+		VulkanLogicalDevice::CreateResult logicalDeviceResult = VulkanLogicalDevice::Create(Instance->ValidationLayers, deviceExtensions);
+		LogicalDevice = logicalDeviceResult.Device;
+		GraphicsQueue = logicalDeviceResult.GraphicsQueue;
+		GraphicsQueue = logicalDeviceResult.PresentQueue;
+		PresentQueue = logicalDeviceResult.PresentQueue;
 
-		m_SwapChain = std::make_unique<VulkanSwapChain>(m_PhysicalDevice, m_LogicalDevice, m_Surface, m_Window.GetGLFWHandle());
+		SwapChain = std::make_unique<VulkanSwapChain>();
 
-		m_SceneRenderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::First, m_LogicalDevice, m_SwapChain->GetFormat());
+		SceneRenderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::First, SwapChain->GetFormat());
 
-		m_Renderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::Last, m_LogicalDevice, m_SwapChain->GetFormat());
+		Renderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::Last, SwapChain->GetFormat());
 
-		m_SwapChain->CreateFramebuffers(m_Renderpass->GetHandle());
+		SwapChain->CreateFramebuffers(Renderpass->GetHandle());
 
-		m_CommandPool = std::make_unique<VulkanCommandPool>(m_PhysicalDevice, m_LogicalDevice, m_Surface, m_MaxFramesInFlight);
+		CommandPool = std::make_unique<VulkanCommandPool>();
 
 		_CreateSyncObjects();
 
-		m_SceneRenderpass->CreateFramebuffers(m_PhysicalDevice, m_MaxFramesInFlight, m_SceneWidth, m_SceneHeight, m_SwapChain->GetFormat(), m_SharingMode);
+		SceneRenderpass->CreateFramebuffers(SceneWidth, SceneHeight, SwapChain->GetFormat());
+
+		// ImGui DescriptorPool
+		std::array<VkDescriptorPoolSize, 11> poolSizes = {
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
+				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+		};
+		VkDescriptorPoolCreateInfo pool_info{};
+		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		pool_info.maxSets = 1000;
+		pool_info.poolSizeCount = (uint32_t)poolSizes.size();
+		pool_info.pPoolSizes = poolSizes.data();
+		vkCreateDescriptorPool(LogicalDevice, &pool_info, nullptr, &ImGuiDescriptorPool);
 	}
 
-	VulkanContext::~VulkanContext() {
+	void VulkanContext::Shutdown() {
 		_DestroySyncObjects();
 
-		m_CommandPool.reset();
+		CommandPool.reset();
 
-		m_Renderpass.reset();
+		Renderpass.reset();
 
-		m_SceneRenderpass.reset();
+		SceneRenderpass.reset();
 
-		m_SwapChain.reset();
+		SwapChain.reset();
 
-		if (m_ImGuiDescriptorPool != VK_NULL_HANDLE)
-			vkDestroyDescriptorPool(m_LogicalDevice, m_ImGuiDescriptorPool, nullptr);
+		if (ImGuiDescriptorPool != VK_NULL_HANDLE)
+			vkDestroyDescriptorPool(LogicalDevice, ImGuiDescriptorPool, nullptr);
 
-		vkDestroyDevice(m_LogicalDevice, nullptr);
-		m_LogicalDevice = VK_NULL_HANDLE;
+		vkDestroyDevice(LogicalDevice, nullptr);
+		LogicalDevice = VK_NULL_HANDLE;
 
-		vkDestroySurfaceKHR(m_Instance->Instance, m_Surface, nullptr);
-		m_Surface = VK_NULL_HANDLE;
+		vkDestroySurfaceKHR(Instance->Instance, Surface, nullptr);
+		Surface = VK_NULL_HANDLE;
 
-		m_Instance.reset();
+		Instance.reset();
 	}
 
 	void VulkanContext::Begin() {
-		vkWaitForFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame], VK_TRUE, UINT64_MAX);
+		vkWaitForFences(LogicalDevice, 1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX);
 
-		VkResult result = vkAcquireNextImageKHR(m_LogicalDevice, m_SwapChain->GetHandle(), UINT64_MAX, m_ImageAvailableSemaphores[m_CurrentFrame], VK_NULL_HANDLE, &m_CurrentImage);
+		VkResult result = vkAcquireNextImageKHR(LogicalDevice, SwapChain->GetHandle(), UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &CurrentImage);
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-			m_SwapChain->Recreate(m_Renderpass->GetHandle());
+			SwapChain->Recreate(Renderpass->GetHandle());
 			return;
 		}
 		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
 			SE_FATAL(Logging::Rendering, "Failed to acquire swapchain image!");
 
 		// only reset if we are submitting work
-		vkResetFences(m_LogicalDevice, 1, &m_InFlightFences[m_CurrentFrame]);
+		vkResetFences(LogicalDevice, 1, &InFlightFences[CurrentFrame]);
 
-		m_CommandBuffer = m_CommandPool->BeginRecording(m_CurrentFrame);
+		CommandBuffer = CommandPool->BeginRecording(CurrentFrame);
 
-		m_SceneRenderpass->Begin(m_SceneRenderpass->GetFramebuffer(m_CurrentImage), m_CommandBuffer, VkExtent2D(m_SceneWidth, m_SceneHeight));
-		m_SceneRenderpass->End(m_CommandBuffer);
+		SceneRenderpass->Begin(SceneRenderpass->GetFramebuffer(CurrentImage), CommandBuffer, VkExtent2D(SceneWidth, SceneHeight));
+		SceneRenderpass->End(CommandBuffer);
 
 		//// Make Scene Texture readable for shaders
 		//{
@@ -116,112 +138,84 @@ namespace Sphynx::Rendering {
 		//}
 
 
-		m_Renderpass->Begin(m_SwapChain->GetFramebuffer(m_CurrentImage), m_CommandBuffer, m_SwapChain->GetExtent());
+		Renderpass->Begin(SwapChain->GetFramebuffer(CurrentImage), CommandBuffer, SwapChain->GetExtent());
 	}
 
 	void VulkanContext::End() {
-		m_Renderpass->End(m_CommandBuffer);
+		Renderpass->End(CommandBuffer);
 
-		m_CommandPool->EndRecording(m_CurrentFrame);
+		CommandPool->EndRecording(CurrentFrame);
 
 		// Submit
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = &m_ImageAvailableSemaphores[m_CurrentFrame];
+		submitInfo.pWaitSemaphores = &ImageAvailableSemaphores[CurrentFrame];
 		VkPipelineStageFlags waitDstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 		submitInfo.pWaitDstStageMask = &waitDstStageMask;
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];
+		submitInfo.pSignalSemaphores = &RenderFinishedSemaphores[CurrentFrame];
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_CommandBuffer;
+		submitInfo.pCommandBuffers = &CommandBuffer;
 
-		VkResult result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfo, m_InFlightFences[m_CurrentFrame]);
+		VkResult result = vkQueueSubmit(GraphicsQueue, 1, &submitInfo, InFlightFences[CurrentFrame]);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to submit commandBuffer");
 
-		m_CommandBuffer = VK_NULL_HANDLE;
+		CommandBuffer = VK_NULL_HANDLE;
 
 		// Present
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &m_RenderFinishedSemaphores[m_CurrentFrame];
+		presentInfo.pWaitSemaphores = &RenderFinishedSemaphores[CurrentFrame];
 
 		presentInfo.swapchainCount = 1;
-		VkSwapchainKHR swapchain = m_SwapChain->GetHandle();
+		VkSwapchainKHR swapchain = SwapChain->GetHandle();
 		presentInfo.pSwapchains = &swapchain;
-		presentInfo.pImageIndices = &m_CurrentImage;
+		presentInfo.pImageIndices = &CurrentImage;
 		presentInfo.pResults = nullptr; // Optional
 
-		result = vkQueuePresentKHR(m_PresentQueue, &presentInfo);
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || m_FramebufferResized) {
-			m_FramebufferResized = false;
-			m_SwapChain->Recreate(m_Renderpass->GetHandle());
+		result = vkQueuePresentKHR(PresentQueue, &presentInfo);
+		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || FramebufferResized) {
+			FramebufferResized = false;
+			SwapChain->Recreate(Renderpass->GetHandle());
 		}
 		else if (result != VK_SUCCESS)
 			SE_FATAL(Logging::Rendering, "Failed to present swapchain image!");
 
-		m_CurrentFrame = (m_CurrentFrame + 1) % m_MaxFramesInFlight;
+		CurrentFrame = (CurrentFrame + 1) % MaxFramesInFlight;
 	}
 
 	void VulkanContext::WaitBeforeClose() {
-		vkDeviceWaitIdle(m_LogicalDevice);
-	}
-
-	VkDescriptorPool VulkanContext::GetImGuiDescriptorPool() {
-		if (m_ImGuiDescriptorPool == VK_NULL_HANDLE) {
-			std::array<VkDescriptorPoolSize, 11> poolSizes = {
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
-			};
-
-			VkDescriptorPoolCreateInfo pool_info{};
-			pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-			pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-			pool_info.maxSets = 1000;
-			pool_info.poolSizeCount = (uint32_t)poolSizes.size();
-			pool_info.pPoolSizes = poolSizes.data();
-
-			vkCreateDescriptorPool(m_LogicalDevice, &pool_info, nullptr, &m_ImGuiDescriptorPool);
-		}
-		return m_ImGuiDescriptorPool;
+		vkDeviceWaitIdle(LogicalDevice);
 	}
 
 	void VulkanContext::_CreateSyncObjects() {
-		m_ImageAvailableSemaphores.resize(m_MaxFramesInFlight, VK_NULL_HANDLE);
-		m_RenderFinishedSemaphores.resize(m_MaxFramesInFlight, VK_NULL_HANDLE);
-		m_InFlightFences.resize(m_MaxFramesInFlight, VK_NULL_HANDLE);
+		ImageAvailableSemaphores.resize(MaxFramesInFlight, VK_NULL_HANDLE);
+		RenderFinishedSemaphores.resize(MaxFramesInFlight, VK_NULL_HANDLE);
+		InFlightFences.resize(MaxFramesInFlight, VK_NULL_HANDLE);
 
-		for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; frameIndex++) {
+		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
 			VkSemaphoreCreateInfo semaphoreInfo{};
 			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-			VkResult result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_ImageAvailableSemaphores[frameIndex]);
+			VkResult result = vkCreateSemaphore(LogicalDevice, &semaphoreInfo, nullptr, &ImageAvailableSemaphores[frameIndex]);
 			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create semaphore");
-			result = vkCreateSemaphore(m_LogicalDevice, &semaphoreInfo, nullptr, &m_RenderFinishedSemaphores[frameIndex]);
+			result = vkCreateSemaphore(LogicalDevice, &semaphoreInfo, nullptr, &RenderFinishedSemaphores[frameIndex]);
 			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create semaphore");
 
 			VkFenceCreateInfo fenceInfo{};
 			fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 			fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-			result = vkCreateFence(m_LogicalDevice, &fenceInfo, nullptr, &m_InFlightFences[frameIndex]);
+			result = vkCreateFence(LogicalDevice, &fenceInfo, nullptr, &InFlightFences[frameIndex]);
 			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create inFlightFence");
 		}
 	}
 
 	void VulkanContext::_DestroySyncObjects() {
-		for (uint32_t frameIndex = 0; frameIndex < m_MaxFramesInFlight; frameIndex++) {
-			vkDestroySemaphore(m_LogicalDevice, m_ImageAvailableSemaphores[frameIndex], nullptr);
-			vkDestroySemaphore(m_LogicalDevice, m_RenderFinishedSemaphores[frameIndex], nullptr);
-			vkDestroyFence(m_LogicalDevice, m_InFlightFences[frameIndex], nullptr);
+		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
+			vkDestroySemaphore(LogicalDevice, ImageAvailableSemaphores[frameIndex], nullptr);
+			vkDestroySemaphore(LogicalDevice, RenderFinishedSemaphores[frameIndex], nullptr);
+			vkDestroyFence(LogicalDevice, InFlightFences[frameIndex], nullptr);
 		}
 	}
 }

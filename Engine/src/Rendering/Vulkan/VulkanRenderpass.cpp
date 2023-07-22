@@ -3,9 +3,7 @@
 #include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	VulkanRenderpass::VulkanRenderpass(RenderPassUsage usage, VkDevice device, VkFormat format)
-		: m_Device(device)
-	{
+	VulkanRenderpass::VulkanRenderpass(RenderPassUsage usage, VkFormat format) {
 		VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		switch (usage) {
@@ -65,36 +63,36 @@ namespace Sphynx::Rendering {
 		createInfo.dependencyCount = 1;
 		createInfo.pDependencies = &dependency;
 
-		VkResult result = vkCreateRenderPass(m_Device, &createInfo, nullptr, &m_Renderpass);
+		VkResult result = vkCreateRenderPass(VulkanContext::LogicalDevice, &createInfo, nullptr, &m_Renderpass);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create renderpass");
 	}
 
 	VulkanRenderpass::~VulkanRenderpass() {
 		for (auto sceneFramebuffer : m_Framebuffers)
-			vkDestroyFramebuffer(m_Device, sceneFramebuffer, nullptr);
+			vkDestroyFramebuffer(VulkanContext::LogicalDevice, sceneFramebuffer, nullptr);
 
 		for (auto imageView : m_FramebufferImageViews)
-			vkDestroyImageView(m_Device, imageView, nullptr);
+			vkDestroyImageView(VulkanContext::LogicalDevice, imageView, nullptr);
 		for (auto image : m_FramebufferImages)
-			vkDestroyImage(m_Device, image, nullptr);
+			vkDestroyImage(VulkanContext::LogicalDevice, image, nullptr);
 		for (auto memory : m_FramebufferImageMemories)
-			vkFreeMemory(m_Device, memory, nullptr);
+			vkFreeMemory(VulkanContext::LogicalDevice, memory, nullptr);
 
-		vkDestroyRenderPass(m_Device, m_Renderpass, nullptr);
+		vkDestroyRenderPass(VulkanContext::LogicalDevice, m_Renderpass, nullptr);
 		m_Renderpass = VK_NULL_HANDLE;
 	}
 
-	void VulkanRenderpass::CreateFramebuffers(VkPhysicalDevice physicalDevice, uint32_t maxFramesInFlight, uint32_t width, uint32_t height, VkFormat format, VkSharingMode sharingMode) {
-		m_FramebufferImages.resize(maxFramesInFlight);
-		m_FramebufferImageMemories.resize(maxFramesInFlight);
-		m_FramebufferImageViews.resize(maxFramesInFlight);
-		for (size_t i = 0; i < maxFramesInFlight; i++) {
-			VulkanTexture::CreateImage(physicalDevice, m_Device, width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, sharingMode, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
-			m_FramebufferImageViews[i] = VulkanTexture::CreateImageView(m_Device, m_FramebufferImages[i], format, VK_IMAGE_ASPECT_COLOR_BIT);
+	void VulkanRenderpass::CreateFramebuffers(uint32_t width, uint32_t height, VkFormat format) {
+		m_FramebufferImages.resize(VulkanContext::MaxFramesInFlight);
+		m_FramebufferImageMemories.resize(VulkanContext::MaxFramesInFlight);
+		m_FramebufferImageViews.resize(VulkanContext::MaxFramesInFlight);
+		for (size_t i = 0; i < VulkanContext::MaxFramesInFlight; i++) {
+			VulkanTexture::CreateImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
+			m_FramebufferImageViews[i] = VulkanTexture::CreateImageView(m_FramebufferImages[i], format, VK_IMAGE_ASPECT_COLOR_BIT);
 		}
 
-		m_Framebuffers.resize(maxFramesInFlight);
-		for (size_t i = 0; i < maxFramesInFlight; i++) {
+		m_Framebuffers.resize(VulkanContext::MaxFramesInFlight);
+		for (size_t i = 0; i < VulkanContext::MaxFramesInFlight; i++) {
 			VkFramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 			framebufferInfo.renderPass = m_Renderpass;
@@ -104,7 +102,7 @@ namespace Sphynx::Rendering {
 			framebufferInfo.height = height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(m_Device, &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS)
+			if (vkCreateFramebuffer(VulkanContext::LogicalDevice, &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS)
 				SE_ERR(Logging::Rendering, "Failed to create scene framebuffer {}", i);
 		}
 	}

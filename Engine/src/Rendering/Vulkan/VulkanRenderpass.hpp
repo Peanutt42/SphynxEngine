@@ -13,13 +13,13 @@ namespace Sphynx::Rendering {
 
 	class VulkanRenderpass {
 	public:
-		VulkanRenderpass(RenderPassUsage usage, VkDevice device, VkFormat format);
+		VulkanRenderpass(RenderPassUsage usage, VkFormat format);
 		~VulkanRenderpass();
 
 		VkRenderPass GetHandle() { return m_Renderpass; }
 
 		// Isn't needed for the swapchain renderpass
-		void CreateFramebuffers(VkPhysicalDevice physicalDevice, uint32_t maxFramesInFlight, uint32_t width, uint32_t height, VkFormat format, VkSharingMode sharingMode);
+		void CreateFramebuffers(uint32_t width, uint32_t height, VkFormat format);
 
 		VkFramebuffer GetFramebuffer(uint32_t currentImageIndex);
 
@@ -27,7 +27,6 @@ namespace Sphynx::Rendering {
 		void End(VkCommandBuffer commandBuffer);
 
 	private:
-		VkDevice m_Device = VK_NULL_HANDLE;
 		VkRenderPass m_Renderpass = VK_NULL_HANDLE;
 
 		// own framebuffers

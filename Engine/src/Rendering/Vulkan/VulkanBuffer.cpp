@@ -1,10 +1,11 @@
 #include "pch.hpp"
 #include "VulkanBuffer.hpp"
+#include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	uint32_t FindMemoryType(VkPhysicalDevice physicalDevice, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(physicalDevice, &memProperties);
+		vkGetPhysicalDeviceMemoryProperties(VulkanContext::PhysicalDevice, &memProperties);
 
 		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties)
@@ -15,41 +16,39 @@ namespace Sphynx::Rendering {
 	}
 
 	
-	VulkanBuffer::VulkanBuffer(VkPhysicalDevice physicalDevice, VkDevice logicalDevice, VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
-		: m_Device(logicalDevice)
-	{
+	VulkanBuffer::VulkanBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = size;
 		bufferInfo.usage = usage;
 		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		VkResult result = vkCreateBuffer(m_Device, &bufferInfo, nullptr, &Buffer);
+		VkResult result = vkCreateBuffer(VulkanContext::LogicalDevice, &bufferInfo, nullptr, &Buffer);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create Buffer");
 
 		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(m_Device, Buffer, &memRequirements);
+		vkGetBufferMemoryRequirements(VulkanContext::LogicalDevice, Buffer, &memRequirements);
 
 		VkMemoryAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(physicalDevice, memRequirements.memoryTypeBits, properties);
+		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
 
-		result = vkAllocateMemory(m_Device, &allocInfo, nullptr, &Memory);
+		result = vkAllocateMemory(VulkanContext::LogicalDevice, &allocInfo, nullptr, &Memory);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to allocate buffer");
 
-		vkBindBufferMemory(m_Device, Buffer, Memory, 0);
+		vkBindBufferMemory(VulkanContext::LogicalDevice, Buffer, Memory, 0);
 	}
 
 	VulkanBuffer::~VulkanBuffer() {
-		vkDestroyBuffer(m_Device, Buffer, nullptr);
+		vkDestroyBuffer(VulkanContext::LogicalDevice, Buffer, nullptr);
 		Buffer = VK_NULL_HANDLE;
-		vkFreeMemory(m_Device, Memory, nullptr);
+		vkFreeMemory(VulkanContext::LogicalDevice, Memory, nullptr);
 		Memory = VK_NULL_HANDLE;
 	}
 
-	std::unique_ptr<VulkanBuffer> VulkanBuffer::CreateWithStaging(VulkanCommandPool& commandPool, VkQueue graphicsQueue, VkPhysicalDevice physicalDevice, VkDevice logicalDevice, const std::vector<uint8_t>& data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
-		VulkanBuffer stagingBuffer(physicalDevice, logicalDevice, data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	std::unique_ptr<VulkanBuffer> VulkanBuffer::CreateWithStaging(const std::vector<uint8_t>& data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+		VulkanBuffer stagingBuffer(data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		stagingBuffer.Set(data);
 
 		if (!(usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT))
@@ -58,28 +57,28 @@ namespace Sphynx::Rendering {
 		if (!(properties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 			properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		std::unique_ptr<VulkanBuffer> result = std::make_unique<VulkanBuffer>(physicalDevice, logicalDevice, data.size(), usage, properties);
-		VkCommandBuffer commandBuffer = commandPool.BeginSingleUseCommandbuffer();
+		std::unique_ptr<VulkanBuffer> result = std::make_unique<VulkanBuffer>(data.size(), usage, properties);
+		VkCommandBuffer commandBuffer = VulkanContext::CommandPool->BeginSingleUseCommandbuffer();
 		stagingBuffer.Copy(commandBuffer, result->Buffer);
-		commandPool.EndSingleUseCommandbuffer(commandBuffer, graphicsQueue);
+		VulkanContext::CommandPool->EndSingleUseCommandbuffer(commandBuffer);
 		return result;
 	}
 
 	void VulkanBuffer::Set(const std::vector<uint8_t>& data) {
 		void* gpuData = nullptr;
-		VkResult result = vkMapMemory(m_Device, Memory, 0, data.size(), 0, &gpuData);
+		VkResult result = vkMapMemory(VulkanContext::LogicalDevice, Memory, 0, data.size(), 0, &gpuData);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to map buffer memory");
 		memcpy(gpuData, data.data(), data.size());
-		vkUnmapMemory(m_Device, Memory);
+		vkUnmapMemory(VulkanContext::LogicalDevice, Memory);
 	}
 
 	void VulkanBuffer::Get(std::vector<uint8_t>& outData) {
 		outData.resize(Size);
 		void* gpuData = nullptr;
-		VkResult result = vkMapMemory(m_Device, Memory, 0, Size, 0, &gpuData);
+		VkResult result = vkMapMemory(VulkanContext::LogicalDevice, Memory, 0, Size, 0, &gpuData);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to map buffer memory");
 		memcpy(outData.data(), gpuData, Size);
-		vkUnmapMemory(m_Device, Memory);
+		vkUnmapMemory(VulkanContext::LogicalDevice, Memory);
 	}
 
 	void VulkanBuffer::Copy(VkCommandBuffer commandBuffer, VkBuffer dst) {

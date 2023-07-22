@@ -8,29 +8,29 @@ namespace Sphynx::Rendering {
 		SE_PROFILE_FUNCTION();
 
 		m_Window.SetResizeCallback([this](Window*) {
-			m_Context->SetFramebufferResized();
+			VulkanContext::FramebufferResized = true;
 			if (m_ResizeCallback)
 				m_ResizeCallback();
 		});
 
-		m_Context = std::make_unique<VulkanContext>(m_Window);
+		VulkanContext::Init(m_Window);
 	}
 
 	Renderer::~Renderer() {
 		SE_PROFILE_FUNCTION();
 
-		m_Context.reset();
+		VulkanContext::Shutdown();
 	}
 
 	void Renderer::Begin() {
-		m_Context->Begin();
+		VulkanContext::Begin();
 	}
 
 	void Renderer::End() {
-		m_Context->End();
+		VulkanContext::End();
 	}
 
 	void Renderer::WaitBeforeClose() {
-		m_Context->WaitBeforeClose();
+		VulkanContext::WaitBeforeClose();
 	}
 }

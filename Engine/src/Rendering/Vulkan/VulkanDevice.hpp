@@ -9,7 +9,7 @@ namespace Sphynx::Rendering {
 		std::optional<uint32_t> GraphicsFamily;
 		std::optional<uint32_t> PresentFamily;
 
-		VulkanQueueFamilyIndices(VkPhysicalDevice device, VkSurfaceKHR surface);
+		VulkanQueueFamilyIndices(VkPhysicalDevice device);
 
 		bool IsComplete() const {
 			return GraphicsFamily.has_value() && PresentFamily.has_value();
@@ -18,9 +18,9 @@ namespace Sphynx::Rendering {
 
 	class VulkanPhysicalDevice {
 	public:
-		static bool IsDeviceSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface, std::vector<const char*>& outUnsupportedExtensions);
+		static bool IsDeviceSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, std::vector<const char*>& outUnsupportedExtensions);
 
-		static VkPhysicalDevice Pick(VkInstance instance, VkSurfaceKHR surface, const std::vector<const char*>& deviceExtensions);
+		static VkPhysicalDevice Pick(const std::vector<const char*>& deviceExtensions);
 
 		static std::string GetName(VkPhysicalDevice device);
 	};
@@ -33,6 +33,6 @@ namespace Sphynx::Rendering {
 			VkQueue PresentQueue = VK_NULL_HANDLE;
 		};
 
-		static CreateResult Create(VkPhysicalDevice physicalDevice, const std::vector<const char*>& validationLayers, const std::vector<const char*>& deviceExtensions, VkSurfaceKHR surface);
+		static CreateResult Create(const std::vector<const char*>& validationLayers, const std::vector<const char*>& deviceExtensions);
 	};
 }
