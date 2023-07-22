@@ -29,7 +29,7 @@ namespace Sphynx::ECS {
 				return Get(entity);
 
 			if (entity >= m_ComponentIndexes.size())
-				m_ComponentIndexes.resize(entity + 1, InvalidComponentIndex);
+				m_ComponentIndexes.resize((size_t)entity + 1, InvalidComponentIndex);
 
 			ComponentIndex index = m_NextComponentIndex;
 			m_NextComponentIndex += (ComponentIndex)m_ElementSize;

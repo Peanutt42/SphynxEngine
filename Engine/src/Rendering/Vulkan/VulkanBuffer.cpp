@@ -16,7 +16,9 @@ namespace Sphynx::Rendering {
 	}
 
 	
-	VulkanBuffer::VulkanBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+	VulkanBuffer::VulkanBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
+		: Size(size)
+	{
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = size;

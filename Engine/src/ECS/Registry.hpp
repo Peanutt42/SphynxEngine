@@ -33,7 +33,7 @@ namespace Sphynx::ECS {
 		EntityId Create() {
 			const EntityId entity = m_NextEntityId++;
 			if (m_AliveMap.size() <= m_NextEntityId)
-				m_AliveMap.resize(m_NextEntityId * 2);
+				m_AliveMap.resize((size_t)m_NextEntityId * 2);
 			m_AliveMap[entity] = true;
 			return entity;
 		}

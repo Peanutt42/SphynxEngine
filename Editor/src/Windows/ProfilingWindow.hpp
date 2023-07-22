@@ -19,7 +19,7 @@ namespace Sphynx::Editor {
 			else
 				m_FrameCount++;
 
-			ImGui::Text("FPS: %f.3\n\t%f.5 ms", 1.f / Engine::DeltaTime(), Engine::DeltaTime() * 1000);
+			ImGui::Text("FPS: %f.3\n\t%f.5 ms", 1.f / Engine::DeltaTime(), Engine::DeltaTime() * 1000.f);
 			ImGui::Text("Avg FPS: %d", m_CurrentAvgFps);
 		}
 

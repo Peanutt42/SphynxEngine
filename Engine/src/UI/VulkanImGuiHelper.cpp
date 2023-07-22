@@ -107,7 +107,6 @@ namespace Sphynx::UI {
 			_DrawTitlebar();
 
 
-			ImGuiIO& io = ImGui::GetIO();
 			ImGuiID dockspace_id = ImGui::GetID("Dockspace");
 			ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dockspace_flags);
 		}
@@ -162,9 +161,9 @@ namespace Sphynx::UI {
 		const ImVec2 titlebarMax = { ImGui::GetCursorScreenPos().x + ImGui::GetWindowWidth() - windowPadding.y * 2.0f,
 									 ImGui::GetCursorScreenPos().y + titlebarHeight };
 		auto* bgDrawList = ImGui::GetBackgroundDrawList();
-		auto* fgDrawList = ImGui::GetForegroundDrawList();
 		bgDrawList->AddRectFilled(titlebarMin, titlebarMax, Themes::Default::titlebar);
 		// DEBUG TITLEBAR BOUNDS
+		// auto* fgDrawList = ImGui::GetForegroundDrawList();
 		// fgDrawList->AddRect(titlebarMin, titlebarMax, IM_COL32(255, 0, 0, 255));
 
 		//// Logo

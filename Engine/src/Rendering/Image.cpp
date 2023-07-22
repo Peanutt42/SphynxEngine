@@ -12,7 +12,7 @@ namespace Sphynx::Rendering {
 		int width, height, channels;
 		
 		uint8_t* stbi_data = stbi_load_from_memory(data, (int)size, &width, &height, &channels, 4);
-		uint64_t stbi_size = width * height * 4;
+		size_t stbi_size = (size_t)width * (size_t)height * 4;
 
 		TextureSpecification spec{
 			.Width = (uint32_t)width,

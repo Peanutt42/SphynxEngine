@@ -27,16 +27,16 @@ namespace Sphynx::Rendering {
 		}
 
 		size_t expectedPixelSize = GetVkFormatSize(m_VulkanFormat);
-		size_t expectedDataSize = m_Width * m_Height * expectedPixelSize;
+		size_t expectedDataSize = (size_t)m_Width * (size_t)m_Height * expectedPixelSize;
 
 		// Convert RBG to RGBA (RGB isn't supported hardwarewise)
 		if (spec.Format == TextureFormat::RGB) {
 			size_t suppliedPixelSize = GetVkFormatSize(VK_FORMAT_R8G8B8_SRGB);
-			size_t expectedSuppliedDataSize = m_Width * m_Height * suppliedPixelSize;
+			size_t expectedSuppliedDataSize = (size_t)m_Width * (size_t)m_Height * suppliedPixelSize;
 			SE_ASSERT(expectedSuppliedDataSize == spec.Data.size(), Logging::Rendering, "Wrong data size!");
 
 			m_Data.resize(expectedDataSize);
-			for (size_t i = 0; i < m_Width * m_Height; i++) {
+			for (size_t i = 0; i < (size_t)m_Width * (size_t)m_Height; i++) {
 				m_Data[i * expectedPixelSize + 0] = spec.Data[i * suppliedPixelSize];
 				m_Data[i * expectedPixelSize + 1] = spec.Data[i * suppliedPixelSize + 1];
 				m_Data[i * expectedPixelSize + 2] = spec.Data[i * suppliedPixelSize + 2];
