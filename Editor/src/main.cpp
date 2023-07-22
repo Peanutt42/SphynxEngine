@@ -2,6 +2,8 @@
 #include "Core/Engine.hpp"
 #include "EditorApplication.hpp"
 
+#include <misc/cpp/imgui_stdlib.cpp>
+
 int main(int argc, const char** argv) {
 	SE_ASSERT(argc >= 1, "There should be at least 1 argument being the .exe filepath");
 

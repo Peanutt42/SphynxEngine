@@ -1,8 +1,8 @@
 #pragma once
 
 #include "Core/CoreInclude.hpp"
-#include <imgui/imgui.h>
-#include <imgui/imgui_stdlib.h>
+#include <imgui.h>
+#include <misc/cpp/imgui_stdlib.h>
 
 namespace Sphynx::Editor {
 	class EditorWindow {

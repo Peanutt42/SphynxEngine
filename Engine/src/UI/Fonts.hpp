@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Core/CoreInclude.hpp"
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 namespace Sphynx::UI {
 	class SE_API Fonts {

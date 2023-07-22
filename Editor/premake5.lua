@@ -31,12 +31,17 @@ project "Editor"
 		"%{IncludeDirs.imgui}"
 	}
 
+	libdirs {
+		"%{LibaryDirs.Vulkan}"
+	}
+
 	links {
 		"Engine",
 		"yaml",
 		"stb_image",
 		"tracy",
-		"imgui"
+		"imgui",
+		"%{Libaries.Vulkan}"
 	}
 
 	postbuildcommands {

@@ -4,7 +4,7 @@
 #include "../../../Engine/src/Debug/StackTrace.hpp"
 #include <filesystem>
 #include <iostream>
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 namespace Sphynx {
 	struct CrashData {

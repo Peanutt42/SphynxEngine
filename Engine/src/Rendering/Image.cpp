@@ -5,7 +5,7 @@
 
 #include <stb_image.h>
 
-#include <imgui/imgui_impl_vulkan.h>
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Sphynx::Rendering {
 	Image::Image(const uint8_t* data, size_t size) {

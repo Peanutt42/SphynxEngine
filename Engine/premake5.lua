@@ -31,7 +31,6 @@ project "Engine"
 	}
 
 	libdirs {
-		"%{LibaryDirs.glfw}",
 		"%{LibaryDirs.Vulkan}"
 	}
 

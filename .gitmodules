@@ -1,3 +1,6 @@
 [submodule "vendor/glfw"]
 	path = vendor/glfw
 	url = https://github.com/Peanutt42/glfw.git
+[submodule "vendor/imgui"]
+	path = vendor/imgui
+	url = https://github.com/Peanutt42/imgui/commit/1a96ac382aff490a85b5f70403d06adfdcb3b883

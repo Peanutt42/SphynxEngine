@@ -3,7 +3,7 @@
 #include "Core/CoreInclude.hpp"
 #include "Rendering/Image.hpp"
 #include "Rendering/Vulkan/VulkanContext.hpp"
-#include <imgui/imgui.h>
+#include <imgui.h>
 
 namespace Sphynx::UI {
 	class SE_API VulkanImGuiHelper {

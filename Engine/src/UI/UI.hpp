@@ -3,8 +3,8 @@
 #include "Core/CoreInclude.hpp"
 #include "Rendering/Image.hpp"
 
-#include <imgui/imgui.h>
-#include <imgui/imgui_internal.h>
+#include <imgui.h>
+#include <imgui_internal.h>
 
 namespace Sphynx::UI {
 	inline ImU32 ColorWithMultipliedValue(const ImColor& color, float multiplier) {
