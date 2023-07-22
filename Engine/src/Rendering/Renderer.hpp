@@ -18,6 +18,5 @@ namespace Sphynx::Rendering {
 
 	private:
 		Window& m_Window;
-		std::function<void()> m_ResizeCallback;
 	};
 }

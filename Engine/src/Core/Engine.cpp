@@ -83,7 +83,8 @@ namespace Sphynx {
 			}
 			
 			s_Renderer->Begin();
-			s_ImGuiHelper->Render();
+			if (s_Settings.ImGuiEnabled)
+				s_ImGuiHelper->Render();
 			s_Renderer->End();
 
 			s_Window->Update();

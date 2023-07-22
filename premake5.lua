@@ -26,6 +26,7 @@ workspace "SphynxEngine"
 group "Core"
 	include "Editor"
 	include "Engine"
+	include "EngineRuntime"
 
 group "Programs"
 	include "Programs/ReflectionGenerator"

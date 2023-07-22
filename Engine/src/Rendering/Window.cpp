@@ -5,6 +5,7 @@
 #include <GLFW/glfw3.h>
 
 #include <stb_image.h>
+#include <Core/Engine.hpp>
 
 namespace Sphynx::Rendering {
 	void GLFWErrorCallback([[maybe_unused]] int error, [[maybe_unused]] const char* description) {
@@ -12,7 +13,7 @@ namespace Sphynx::Rendering {
 	}
 
 	Window::Window(const std::string_view title, uint32_t width, uint32_t height, bool fullscreen)
-		: m_Title(title), m_Width(width), m_Height(height), m_Maximized(fullscreen)
+		: m_Title(title), m_Width(width), m_Height(height)
 	{
 		SE_PROFILE_FUNCTION();
 
@@ -24,10 +25,13 @@ namespace Sphynx::Rendering {
 		s_WindowCount++;
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_MAXIMIZED, m_Maximized);
 		glfwWindowHint(GLFW_SAMPLES, 0);
+		glfwWindowHint(GLFW_MAXIMIZED, fullscreen);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-		glfwWindowHint(GLFW_TITLEBAR, false);
+
+		// ImGui implements custom titlebar
+		if (Engine::GetSettings().ImGuiEnabled && !fullscreen)
+			glfwWindowHint(GLFW_TITLEBAR, false);
 
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {
@@ -51,7 +55,7 @@ namespace Sphynx::Rendering {
 		glfwSetWindowMaximizeCallback(m_Window, _WindowMaximizeCallback);
 		glfwSetTitlebarHitTestCallback(m_Window, _TitlebarHitTestCallback);
 
-
+		
 		// Center Window
 		if (!m_Maximized) {
 			GLFWmonitor* windowMonitor = glfwGetWindowMonitor(m_Window);
@@ -82,13 +86,14 @@ namespace Sphynx::Rendering {
 		for (auto& callback : m_PendingMainThreadCallbacks)
 			callback();
 		m_PendingMainThreadCallbacks.clear();
-
+		
 		glfwPollEvents();
 
 		m_Minimized = glfwGetWindowAttrib(m_Window, GLFW_ICONIFIED);
 		m_Maximized = glfwGetWindowAttrib(m_Window, GLFW_MAXIMIZED);
 		m_Hovered = glfwGetWindowAttrib(m_Window, GLFW_HOVERED);
 		m_Focused = glfwGetWindowAttrib(m_Window, GLFW_FOCUSED);
+		m_Fullscreen = glfwGetWindowMonitor(m_Window) != nullptr;
 	}
 
 	bool Window::ShouldClose() {
@@ -142,6 +147,12 @@ namespace Sphynx::Rendering {
 		});
 	}
 
+	glm::ivec2 Window::GetFramebufferSize() {
+		glm::ivec2 result;
+		glfwGetFramebufferSize(m_Window, &result.x, &result.y);
+		return result;
+	}
+
 	void Window::SetIcon(const std::filesystem::path& filepath) {
 		m_PendingMainThreadCallbacks.push_back([this, filepath]() {
 			std::string filepathStr = filepath.string();
@@ -159,20 +170,20 @@ namespace Sphynx::Rendering {
 	void Window::_FramebufferResizedCallback(GLFWwindow* window, int width, int height) {
 		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		if (_window) {
-			if (_window->m_ResizeCallback)
-				_window->m_ResizeCallback(_window);
 			_window->m_Width = width;
 			_window->m_Height = height;
+			if (_window->m_EnableResizeCallback && _window->m_ResizeCallback)
+				_window->m_ResizeCallback(_window);
 		}
 	}
 
 	void Window::_WindowResizedCallback(GLFWwindow* window, int width, int height) {
 		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		if (_window) {
-			if (_window->m_ResizeCallback)
-				_window->m_ResizeCallback(_window);
 			_window->m_Width = width;
 			_window->m_Height = height;
+			if (_window->m_EnableResizeCallback && _window->m_ResizeCallback)
+				_window->m_ResizeCallback(_window);
 		}
 	}
 

@@ -5,16 +5,18 @@
 #include "Platform/Platform.hpp"
 #include "Serialization/YAMLSerializer.hpp"
 
-#include <signal.h>
+#include <csignal>
 
 namespace Sphynx {
 	void CrashHandler::Init() {
-		signal(SIGILL, OnProcessCrashed);  // illegal instruction
-		signal(SIGSEGV, OnProcessCrashed); // segmentation fault
-		signal(SIGABRT, OnProcessCrashed); // abort()
+		if (Platform::IsDebuggerAttached())
+			return;
+		
+		std::signal(SIGILL, OnProcessCrashed);  // illegal instruction
+		std::signal(SIGSEGV, OnProcessCrashed); // segmentation fault
+		std::signal(SIGABRT, OnProcessCrashed); // abort()
 
-		if (!Platform::IsDebuggerAttached())
-			Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
+		Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
 	}
 
 	void CrashHandler::OnProcessCrashed(int signal) {

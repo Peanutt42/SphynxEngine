@@ -36,13 +36,19 @@ namespace Sphynx::Rendering {
 
 		bool IsHovered() const { return m_Hovered; }
 
+		bool IsFullscreen() const { return m_Fullscreen; }
+
 		const glm::vec2& GetPosition() const { return m_Position; }
+
+		glm::ivec2 GetFramebufferSize();
 
 		void SetIcon(const std::filesystem::path& filepath);
 
 		GLFWwindow* GetGLFWHandle() { return m_Window; }
 
 		void SetResizeCallback(const std::function<void(Window*)>& callback) { m_ResizeCallback = callback; }
+		void SetResizeCallbackEnable(bool enabled) { m_EnableResizeCallback = enabled; }
+
 		void SetTitlebarhitTestCallback(const std::function<bool()>& callback) { m_TitlebarhitTest = callback; }
 
 	private:
@@ -64,11 +70,13 @@ namespace Sphynx::Rendering {
 		bool m_Minimized = false;
 		bool m_Hovered = false;
 		bool m_Focused = false;
+		bool m_Fullscreen = false;
 
 		// Stores all changes for the window for the next Update() call from the main thread
 		std::vector<std::function<void()>> m_PendingMainThreadCallbacks;
 
 		std::function<void(Window*)> m_ResizeCallback;
+		bool m_EnableResizeCallback = true;
 		std::function<bool()> m_TitlebarhitTest;
 	};
 }

@@ -3,14 +3,16 @@
 
 namespace Sphynx::Rendering {
 	Renderer::Renderer(Window& window, const std::function<void()>& resizeCallback)
-		: m_Window(window), m_ResizeCallback(resizeCallback)
+		: m_Window(window)
 	{
 		SE_PROFILE_FUNCTION();
 
-		m_Window.SetResizeCallback([this](Window*) {
-			VulkanContext::FramebufferResized = true;
-			if (m_ResizeCallback)
-				m_ResizeCallback();
+		m_Window.SetResizeCallback([this, resizeCallback](Window* window) {
+			if (window->GetWidth() != 0 && window->GetHeight() != 0 && resizeCallback) {
+
+				VulkanContext::FramebufferResized = true;
+				resizeCallback();
+			}
 		});
 
 		VulkanContext::Init(m_Window);

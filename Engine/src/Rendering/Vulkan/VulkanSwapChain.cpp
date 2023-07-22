@@ -2,6 +2,7 @@
 #include "VulkanSwapChain.hpp"
 #include "VulkanDevice.hpp"
 #include "VulkanContext.hpp"
+#include "Core/Engine.hpp"
 
 #include <GLFW/glfw3.h>
 
@@ -15,12 +16,13 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanSwapChain::Recreate(VkRenderPass renderpass) {
-		int width = (int)VulkanContext::Window->GetWidth();
-		int height = (int)VulkanContext::Window->GetHeight();
-		while (width == 0 || height == 0) {
-			glfwGetFramebufferSize(VulkanContext::Window->GetGLFWHandle(), &width, &height);
-			glfwWaitEvents();
+		VulkanContext::Window->SetResizeCallbackEnable(false);
+		while ((VulkanContext::Window->GetWidth() == 0 || VulkanContext::Window->GetHeight() == 0) && !Engine::ShouldClose()) {
+			VulkanContext::Window->Update();
 		}
+		VulkanContext::Window->SetResizeCallbackEnable(true);
+		if (Engine::ShouldClose())
+			return;
 
 		vkDeviceWaitIdle(VulkanContext::LogicalDevice);
 
@@ -81,6 +83,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanSwapChain::Create() {
+		VulkanContext::Window->Update();
+
 		SupportDetails swapChainSupport = GetSupport(VulkanContext::PhysicalDevice);
 		std::optional<VkSurfaceFormatKHR> surfaceFormat = ChooseFormat(swapChainSupport.Formats);
 		SE_ASSERT(surfaceFormat.has_value(), Logging::Rendering, "Failed to get format for swapchain");
