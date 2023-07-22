@@ -15,7 +15,6 @@
 *.pch
 
 # Executables
-*.exe
 *.out
 *.app
 /bin
