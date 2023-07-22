@@ -2,11 +2,15 @@
 
 #include "std.hpp"
 #include "Core/EngineApi.hpp"
+#include "StackTrace.hpp"
+#include "Logging/Logging.hpp"
 
 namespace Sphynx {
 	class SE_API Platform {
 	public:
 		static bool IsDebuggerAttached();
+
+		static StackTrace GenerateStackTrace();
 
 		class SE_API MessagePrompts {
 		public:
@@ -37,6 +41,29 @@ namespace Sphynx {
 		class SE_API Thread {
 		public:
 			static unsigned int GetCurrentId();
+		};
+
+
+		struct DLLPlatformData;
+		class SE_API DynamicLinkLibary {
+		public:
+			DynamicLinkLibary(const std::filesystem::path& filepath);
+			~DynamicLinkLibary();
+
+			DynamicLinkLibary(const DynamicLinkLibary&) = delete;
+
+			template<typename Func>
+			auto LoadFunction(const std::string_view name) {
+				Func function = (Func)_GetFuncAddress(name.data());
+				SE_ASSERT(function, Logging::Scripting, "Failed to get function '{}'", name);
+				return function;
+			}
+
+		private:
+			void* _GetFuncAddress(const char* name);
+
+		private:
+			DLLPlatformData* m_PlatformData = nullptr;
 		};
 	};
 }

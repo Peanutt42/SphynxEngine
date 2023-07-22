@@ -1,7 +1,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include "../../../Engine/src/Debug/StackTrace.hpp"
+#include "../../../Engine/src/Platform/StackTrace.hpp"
 #include <filesystem>
 #include <iostream>
 #include <imgui.h>

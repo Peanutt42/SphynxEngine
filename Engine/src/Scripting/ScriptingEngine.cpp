@@ -4,7 +4,7 @@
 
 namespace Sphynx::Scripting {
 	ScriptingEngine::ScriptingEngine() {
-		m_Module = std::make_unique<Module>(Engine::GetProject()->Folderpath / "Binaries/" / (Engine::GetProject()->Name + ".dll"));
+		m_Module = std::make_unique<Platform::DynamicLinkLibary>(Engine::GetProject()->Folderpath / "Binaries/" / (Engine::GetProject()->Name + ".dll"));
 		m_Components = m_Module->LoadFunction<GetComponentsFunc>("GetComponents")();
 		m_Configs = m_Module->LoadFunction<GetConfigsFunc>("GetConfigs")();
 		m_Systems = m_Module->LoadFunction<GetSystemsFunc>("GetSystems")();

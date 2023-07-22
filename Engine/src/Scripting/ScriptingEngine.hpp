@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Core/CoreInclude.hpp"
-#include "ScriptingModule.hpp"
 #include "../../Programs/ReflectionGenerator/src/ReflectionInfo.hpp"
 
 namespace Sphynx::Scripting {
@@ -22,7 +21,7 @@ namespace Sphynx::Scripting {
 		using GetSystemsFunc = std::vector<SystemReflectionInfo>* (*)();
 
 	private:
-		std::unique_ptr<Module> m_Module;
+		std::unique_ptr<Platform::DynamicLinkLibary> m_Module;
 		std::vector<ComponentReflectionInfo>* m_Components = nullptr;
 		std::vector<ConfigReflectionInfo>* m_Configs = nullptr;
 		std::vector<SystemReflectionInfo>* m_Systems = nullptr;

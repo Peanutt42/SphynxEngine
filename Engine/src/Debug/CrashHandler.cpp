@@ -1,20 +1,10 @@
 #include "pch.hpp"
 #include "CrashHandler.hpp"
-
 #include "Core/Engine.hpp"
 #include "Logging/Logging.hpp"
 #include "Platform/Platform.hpp"
 #include "Serialization/YAMLSerializer.hpp"
 
-#ifdef WINDOWS
-#define WIN32_LEAN_AND_MEAN
-#include <windows.h>
-#include <DbgHelp.h>
-#pragma comment(lib, "Dbghelp.lib")
-#endif
-
-#include <stdio.h>
-#include <stdlib.h>
 #include <signal.h>
 
 namespace Sphynx {
@@ -25,80 +15,6 @@ namespace Sphynx {
 
 		if (!Platform::IsDebuggerAttached())
 			Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
-	}
-
-	StackTrace CrashHandler::MakeStackTrace(bool cutSetup) {
-		StackTrace trace;
-
-		constexpr int maxStackTraceDepth = 100;
-		std::array<void*, maxStackTraceDepth> internalStacktraces;
-		USHORT stackTraceSize = CaptureStackBackTrace(0, maxStackTraceDepth, internalStacktraces.data(), nullptr);
-
-		HANDLE process = GetCurrentProcess();
-
-		// Initialize symbol handling
-		SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_INCLUDE_32BIT_MODULES);
-		SymInitialize(process, nullptr, TRUE);
-
-		// Allocate space for symbol information
-		constexpr DWORD maxSymbolNameLength = 256;
-		char symbolBuffer[sizeof(IMAGEHLP_SYMBOL64) + maxSymbolNameLength];
-		PIMAGEHLP_SYMBOL64 symbol = reinterpret_cast<PIMAGEHLP_SYMBOL64>(symbolBuffer);
-		symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL64);
-		symbol->MaxNameLength = maxSymbolNameLength;
-
-
-		IMAGEHLP_LINE64 line;
-		ZeroMemory(&line, sizeof(line));
-		line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-		DWORD displacement32 = 0;
-
-		for (USHORT i = 0; i < stackTraceSize; ++i) {
-			DWORD64 address = reinterpret_cast<DWORD64>(internalStacktraces[i]);
-			if (SymGetSymFromAddr64(process, address, nullptr, symbol)) {
-				std::string_view symbolName = symbol->Name;
-				if (symbolName == "abort")
-					trace.Entries.emplace_back("Internal function: abort()", false, "internal", 0);
-				else if (symbolName == "raise")
-					trace.Entries.emplace_back("Internal function: raise()", false, "internal", 0);
-				else if (symbolName == "Sphynx::CrashHandler::OnProcessCrashed" ||
-						 symbolName == "Sphynx::CrashHandler::MakeStackTrace" ||
-						 symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::operator()" ||
-						 symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::<lambda_invoker_cdecl>" ||
-						 symbolName == "_seh_filter_exe" ||
-						 symbolName == "`__scrt_common_main_seh'::`1'::filt$0" ||
-						 symbolName == "__C_specific_handler" ||
-						 symbolName == "__chkstk" ||
-						 symbolName == "log2f" ||
-						 symbolName == "RtlFindCharInUnicodeString" ||
-						 symbolName == "KiUserExceptionDispatcher")
-					continue;
-				else {
-					auto& entry = trace.Entries.emplace_back();
-					entry.FunctionName = std::string(symbol->Name) + "()";
-
-					if (SymGetLineFromAddr64(process, address, &displacement32, &line)) {
-						entry.HasSource = true;
-						entry.SourceFile = std::string(line.FileName);
-						entry.SourceLine = (size_t)line.LineNumber;
-					}
-					else
-						entry.HasSource = false;
-
-					if (cutSetup && symbolName == "main")
-						break;
-				}
-			}
-			else {
-				std::stringstream addressHex;
-				addressHex << "0x" << std::hex << std::uppercase << symbol->Address;
-				trace.Entries.emplace_back("Unknown symbol - " + addressHex.str(), false);
-			}
-		}
-		SymCleanup(process);
-
-		return trace;
 	}
 
 	void CrashHandler::OnProcessCrashed(int signal) {
@@ -112,7 +28,7 @@ namespace Sphynx {
 		case SIGABRT: std::cout << "abort() was called!\n"; break;
 		}
 
-		StackTrace stackTrace = MakeStackTrace(true);
+		StackTrace stackTrace = Platform::GenerateStackTrace();
 		for (size_t i = 0; i < stackTrace.Entries.size(); i++) {
 			auto& entry = stackTrace.Entries[i];
 			std::cout << "[" + std::to_string(i + 1) + "] At " + entry.FunctionName << " in ";
