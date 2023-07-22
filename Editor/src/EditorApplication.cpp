@@ -5,6 +5,7 @@
 #include "Windows/LoggingOutputWindow.hpp"
 #include "Windows/HierarchyWindow.hpp"
 #include "Windows/PropertyWindow.hpp"
+#include "Windows/ProfilingWindow.hpp"
 
 namespace Sphynx::Editor {
 	EditorApplication::EditorApplication() {
@@ -24,6 +25,7 @@ namespace Sphynx::Editor {
 		m_Windows.push_back(std::make_unique<LoggingOutputWindow>());
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
 		m_Windows.push_back(std::make_unique<PropertyWindow>());
+		m_Windows.push_back(std::make_unique<ProfilingWindow>());
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
 		m_SceneFilepath = Engine::GetProject()->StartSceneFilepath;
