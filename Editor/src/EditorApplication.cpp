@@ -19,6 +19,7 @@ namespace Sphynx::Editor {
 
 		Engine::ImGuiHelper().EnableDocking();
 		Engine::ImGuiHelper().SetSaveFilepath("Engine/imgui.ini");
+		Engine::ImGuiHelper().SetMenubarCallback([this]() { OnDrawMenubar(); });
 
 		m_Windows.push_back(std::make_unique<LoggingOutputWindow>());
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
@@ -53,40 +54,6 @@ namespace Sphynx::Editor {
 	}
 
 	void EditorApplication::DrawUI() {
-		Engine::ImGuiHelper().BeginDockspace("Dockspace");
-
-		if (ImGui::BeginMenuBar()) {
-			if (ImGui::BeginMenu("File")) {
-				if (ImGui::MenuItem("New Scene", "Ctrl + N"))
-					CreateNewScene();
-
-				if (ImGui::MenuItem("Open Scene", "Ctrl + O"))
-					OpenScene();
-
-				if (ImGui::MenuItem("Save Scene", "Ctrl + S"))
-					SaveCurrentScene();
-
-				if (ImGui::MenuItem("Save Scene to File", "Ctrl + Shift + S"))
-					SaveScene();
-
-				if (ImGui::MenuItem("Exit", "Alt + F4"))
-					Engine::CloseNextFrame();
-
-				ImGui::EndMenu();
-			}
-
-			if (ImGui::BeginMenu("Windows")) {
-				for (auto& window : m_Windows) {
-					if (ImGui::MenuItem(window->Name.c_str()))
-						window->Opened = true;
-				}
-
-				ImGui::EndMenu();
-			}
-
-			ImGui::EndMenuBar();
-		}
-
 		for (const auto& window : m_Windows) {
 			if (!window->Opened)
 				continue;
@@ -101,8 +68,36 @@ namespace Sphynx::Editor {
 		ImGui::Text("This is a test");
 
 		ImGui::End();
+	}
 
-		Engine::ImGuiHelper().EndDockspace();
+	void EditorApplication::OnDrawMenubar() {
+		if (ImGui::BeginMenu("File")) {
+			if (ImGui::MenuItem("New Scene", "Ctrl + N"))
+				CreateNewScene();
+
+			if (ImGui::MenuItem("Open Scene", "Ctrl + O"))
+				OpenScene();
+
+			if (ImGui::MenuItem("Save Scene", "Ctrl + S"))
+				SaveCurrentScene();
+
+			if (ImGui::MenuItem("Save Scene to File", "Ctrl + Shift + S"))
+				SaveScene();
+
+			if (ImGui::MenuItem("Exit", "Alt + F4"))
+				Engine::CloseNextFrame();
+
+			ImGui::EndMenu();
+		}
+
+		if (ImGui::BeginMenu("Windows")) {
+			for (auto& window : m_Windows) {
+				if (ImGui::MenuItem(window->Name.c_str()))
+					window->Opened = true;
+			}
+
+			ImGui::EndMenu();
+		}
 	}
 
 

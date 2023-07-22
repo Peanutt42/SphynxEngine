@@ -29,6 +29,10 @@ namespace Sphynx::Rendering {
 		static VkImageView CreateImageView(VkDevice device, VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType type = VK_IMAGE_VIEW_TYPE_2D, uint32_t layerCount = 1);
 		static VkSampler CreateSampler(VkDevice device);
 
+		uint32_t GetWidth() const { return m_Width; }
+		uint32_t GetHeight() const { return m_Height; }
+
+		VkImageView GetImageView() { return m_View; }
 
 	private:
 		uint32_t m_Width = 0, m_Height = 0;

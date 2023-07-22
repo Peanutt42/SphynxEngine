@@ -13,8 +13,6 @@ IncludeDirs["yaml"] = EngineDir .. "vendor/yaml/include"
 
 -- glfw
 IncludeDirs["glfw"] = EngineDir .. "vendor/glfw/include"
-LibaryDirs["glfw"] = EngineDir .. "vendor/glfw/lib"
-Libaries["glfw"] = "glfw3.lib"
 
 -- glm
 IncludeDirs["glm"] = EngineDir .. "vendor/glm/include"

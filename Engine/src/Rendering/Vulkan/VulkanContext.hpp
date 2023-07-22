@@ -22,6 +22,7 @@ namespace Sphynx::Rendering {
 
 		void SetFramebufferResized() { m_FramebufferResized = true; }
 
+		Window& GetWindow() { return m_Window; }
 		GLFWwindow* GetWindowHandle() { return m_Window.GetGLFWHandle(); }
 
 		VkInstance GetVkInstance() { return m_Instance->Instance; }

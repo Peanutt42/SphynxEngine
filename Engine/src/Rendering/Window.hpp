@@ -23,15 +23,18 @@ namespace Sphynx::Rendering {
 		void SetHeight(uint32_t height);
 		uint32_t GetWidth() const { return m_Width; }
 		uint32_t GetHeight() const { return m_Height; }
+		const std::string& GetTitle() const { return m_Title; }
 
-		void SetMaximized(bool maximized);
+		void Maximize();
+		void Restore();
 		bool IsMaximized() const { return m_Maximized; }
 
+		void Minimize();
 		bool IsMinimized() const { return m_Minimized; }
 
-		bool IsFocused();
+		bool IsFocused() const { return m_Focused; }
 
-		bool IsHovered();
+		bool IsHovered() const { return m_Hovered; }
 
 		const glm::vec2& GetPosition() const { return m_Position; }
 
@@ -40,12 +43,14 @@ namespace Sphynx::Rendering {
 		GLFWwindow* GetGLFWHandle() { return m_Window; }
 
 		void SetResizeCallback(const std::function<void(Window*)>& callback) { m_ResizeCallback = callback; }
+		void SetTitlebarhitTestCallback(const std::function<bool()>& callback) { m_TitlebarhitTest = callback; }
 
 	private:
 		static void _FramebufferResizedCallback(GLFWwindow* window, int width, int height);
 		static void _WindowResizedCallback(GLFWwindow* window, int width, int height);
 		static void _WindowPositionCallback(GLFWwindow* window, int xpos, int ypos);
 		static void _WindowMaximizeCallback(GLFWwindow* window, int maximized);
+		static void _TitlebarHitTestCallback(GLFWwindow* window, int x, int y, int* hit);
 
 	private:
 		inline static int s_WindowCount = 0;
@@ -54,8 +59,16 @@ namespace Sphynx::Rendering {
 		std::string m_Title;
 		uint32_t m_Width = 0, m_Height = 0;
 		glm::vec2 m_Position{ 0, 0 };
-		bool m_Maximized = false, m_Minimized = false;
+
+		bool m_Maximized = false;
+		bool m_Minimized = false;
+		bool m_Hovered = false;
+		bool m_Focused = false;
+
+		// Stores all changes for the window for the next Update() call from the main thread
+		std::vector<std::function<void()>> m_PendingMainThreadCallbacks;
 
 		std::function<void(Window*)> m_ResizeCallback;
+		std::function<bool()> m_TitlebarhitTest;
 	};
 }

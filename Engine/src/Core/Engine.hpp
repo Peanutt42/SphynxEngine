@@ -37,6 +37,7 @@ namespace Sphynx {
 		static std::shared_ptr<Project> GetProject() { return s_Project; }
 
 		static Scripting::ScriptingEngine& Scripting() { return *s_ScriptingEngine; }
+		static Rendering::Renderer& Renderer() { return *s_Renderer; }
 
 		static UI::VulkanImGuiHelper& ImGuiHelper() { return *s_ImGuiHelper; }
 

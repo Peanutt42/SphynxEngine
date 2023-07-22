@@ -27,6 +27,7 @@ namespace Sphynx::Rendering {
 		glfwWindowHint(GLFW_MAXIMIZED, m_Maximized);
 		glfwWindowHint(GLFW_SAMPLES, 0);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
+		glfwWindowHint(GLFW_TITLEBAR, false);
 
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {
@@ -48,6 +49,7 @@ namespace Sphynx::Rendering {
 		glfwSetWindowPosCallback(m_Window, _WindowPositionCallback);
 		glfwSetWindowSizeLimits(m_Window, 200, 200, GLFW_DONT_CARE, GLFW_DONT_CARE);
 		glfwSetWindowMaximizeCallback(m_Window, _WindowMaximizeCallback);
+		glfwSetTitlebarHitTestCallback(m_Window, _TitlebarHitTestCallback);
 
 
 		// Center Window
@@ -77,7 +79,16 @@ namespace Sphynx::Rendering {
 	void Window::Update() {
 		SE_PROFILE_FUNCTION();
 
+		for (auto& callback : m_PendingMainThreadCallbacks)
+			callback();
+		m_PendingMainThreadCallbacks.clear();
+
 		glfwPollEvents();
+
+		m_Minimized = glfwGetWindowAttrib(m_Window, GLFW_ICONIFIED);
+		m_Maximized = glfwGetWindowAttrib(m_Window, GLFW_MAXIMIZED);
+		m_Hovered = glfwGetWindowAttrib(m_Window, GLFW_HOVERED);
+		m_Focused = glfwGetWindowAttrib(m_Window, GLFW_FOCUSED);
 	}
 
 	bool Window::ShouldClose() {
@@ -85,44 +96,64 @@ namespace Sphynx::Rendering {
 	}
 
 	void Window::SetSize(uint32_t width, uint32_t height) {
-		m_Width = width;
-		m_Height = height;
-		glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);
+		m_PendingMainThreadCallbacks.push_back([this, width, height]() {
+			m_Width = width;
+			m_Height = height;
+			glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);
+		});
 	}
 
 	void Window::SetWidth(uint32_t width) {
-		m_Width = width;
-		glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);
+		m_PendingMainThreadCallbacks.push_back([this, width]() {
+			m_Width = width;
+			glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);
+		});
 	}
 
 	void Window::SetHeight(uint32_t height) {
-		m_Height = height;
-		glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);
+		m_PendingMainThreadCallbacks.push_back([this, height]() {
+			m_Height = height;
+			glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);
+		});
 	}
 
 
-	void Window::SetMaximized(bool maximized) {
-		glfwSetWindowAttrib(m_Window, GLFW_MAXIMIZED, maximized);
+	void Window::Maximize() {
+		m_PendingMainThreadCallbacks.push_back([this]() {
+			glfwMaximizeWindow(m_Window);
+			m_Maximized = true;
+			m_Minimized = false;
+		});
 	}
 
-	bool Window::IsFocused() {
-		return glfwGetWindowAttrib(m_Window, GLFW_FOCUSED);
+	void Window::Restore() {
+		m_PendingMainThreadCallbacks.push_back([this]() {
+			glfwRestoreWindow(m_Window);
+			m_Maximized = false;
+			m_Minimized = false;
+		});
 	}
 
-	bool Window::IsHovered() {
-		return glfwGetWindowAttrib(m_Window, GLFW_HOVERED);
+	void Window::Minimize() {
+		m_PendingMainThreadCallbacks.push_back([this]() {
+			glfwIconifyWindow(m_Window);
+			m_Maximized = false;
+			m_Minimized = true;
+		});
 	}
 
 	void Window::SetIcon(const std::filesystem::path& filepath) {
-		std::string filepathStr = filepath.string();
-		
-		int w, h, channels;
-		SE_ASSERT(std::filesystem::exists(filepath), Logging::Rendering, "IconFile '{}' doesn't exist!", filepathStr);
-		stbi_set_flip_vertically_on_load(filepathStr.ends_with(".jpg"));
-		unsigned char* pixels = stbi_load(filepathStr.c_str(), &w, &h, &channels, 4);
-		GLFWimage image{ w, h, pixels };
-		glfwSetWindowIcon(m_Window, 1, &image);
-		stbi_image_free(pixels);
+		m_PendingMainThreadCallbacks.push_back([this, filepath]() {
+			std::string filepathStr = filepath.string();
+
+			int w, h, channels;
+			SE_ASSERT(std::filesystem::exists(filepath), Logging::Rendering, "IconFile '{}' doesn't exist!", filepathStr);
+			stbi_set_flip_vertically_on_load(filepathStr.ends_with(".jpg"));
+			unsigned char* pixels = stbi_load(filepathStr.c_str(), &w, &h, &channels, 4);
+			GLFWimage image{ w, h, pixels };
+			glfwSetWindowIcon(m_Window, 1, &image);
+			stbi_image_free(pixels);
+		});
 	}
 
 	void Window::_FramebufferResizedCallback(GLFWwindow* window, int width, int height) {
@@ -157,5 +188,13 @@ namespace Sphynx::Rendering {
 			_window->m_Maximized = maximized == 1;
 			_window->m_Minimized = maximized == 0;
 		}
+	}
+
+	void Window::_TitlebarHitTestCallback(GLFWwindow* window, [[maybe_unused]] int x, [[maybe_unused]] int y, int* hit) {
+		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
+		if (_window && _window->m_TitlebarhitTest)
+			*hit = _window->m_TitlebarhitTest();
+		else
+			*hit = false;
 	}
 }

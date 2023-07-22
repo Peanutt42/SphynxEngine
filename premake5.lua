@@ -37,6 +37,7 @@ group "Dependencies"
 	include "vendor/Tracy"
 	include "vendor/imgui"
 	include "vendor/glad"
+	include "vendor/glfw"
 	
 newaction {
 	trigger = "clean",

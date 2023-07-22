@@ -2,20 +2,109 @@ OS: Windows
 Archetecture: 64 bit
 Crash:
   Process: Editor.exe
-  Thread: 25104
+  Thread: 27208
   LastErrorMessages:
     - This is a test
-    - THisis a test
-  Signal: Explicit decision!
+  Signal: abort() was called!
 Stacktrace:
-  - FunctionName: Sphynx::Editor::EditorApplication::DrawUI()
+  - FunctionName: "Internal function: raise()"
+    HasSource: false
+  - FunctionName: "Internal function: abort()"
+    HasSource: false
+  - FunctionName: get_wpgmptr()
+    HasSource: false
+  - FunctionName: get_wpgmptr()
+    HasSource: false
+  - FunctionName: wassert()
+    HasSource: false
+  - FunctionName: ImGui::ErrorCheckNewFrameSanityChecks()
     HasSource: true
-    SourceFile: C:\dev\cpp\SphynxEngine\Editor\src\EditorApplication.cpp
-    SourceLine: 43
+    SourceFile: C:\dev\cpp\SphynxEngine\vendor\imgui\include\imgui\imgui.cpp
+    SourceLine: 8603
+  - FunctionName: ImGui::NewFrame()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\vendor\imgui\include\imgui\imgui.cpp
+    SourceLine: 4449
+  - FunctionName: Sphynx::UI::VulkanImGuiHelper::Begin()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\UI\VulkanImGuiHelper.cpp
+    SourceLine: 87
   - FunctionName: Sphynx::Engine::Update()
     HasSource: true
     SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\Core\Engine.cpp
-    SourceLine: 82
+    SourceLine: 81
+  - FunctionName: Sphynx::Rendering::Window::_FramebufferResizedCallback()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\Rendering\Window.cpp
+    SourceLine: 145
+  - FunctionName: windowProc()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\vendor\glfw\src\win32_window.c
+    SourceLine: 1075
+  - FunctionName: DispatchMessageW()
+    HasSource: false
+  - FunctionName: CallWindowProcW()
+    HasSource: false
+  - FunctionName: Unknown symbol - 0x7FFEDA3D79D0
+    HasSource: false
+  - FunctionName: DispatchMessageW()
+    HasSource: false
+  - FunctionName: DispatchMessageW()
+    HasSource: false
+  - FunctionName: GetClassLongW()
+    HasSource: false
+  - FunctionName: KiUserCallbackDispatcher()
+    HasSource: false
+  - FunctionName: NtUserMessageCall()
+    HasSource: false
+  - FunctionName: SendMessageW()
+    HasSource: false
+  - FunctionName: GetDlgCtrlID()
+    HasSource: false
+  - FunctionName: GetDlgCtrlID()
+    HasSource: false
+  - FunctionName: CloseThemeData()
+    HasSource: false
+  - FunctionName: CloseThemeData()
+    HasSource: false
+  - FunctionName: GetDlgCtrlID()
+    HasSource: false
+  - FunctionName: windowProc()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\vendor\glfw\src\win32_window.c
+    SourceLine: 1365
+  - FunctionName: DispatchMessageW()
+    HasSource: false
+  - FunctionName: CallWindowProcW()
+    HasSource: false
+  - FunctionName: Unknown symbol - 0x7FFEDA3D79D0
+    HasSource: false
+  - FunctionName: DispatchMessageW()
+    HasSource: false
+  - FunctionName: DispatchMessageW()
+    HasSource: false
+  - FunctionName: TranslateAcceleratorW()
+    HasSource: false
+  - FunctionName: KiUserCallbackDispatcher()
+    HasSource: false
+  - FunctionName: NtUserShowWindow()
+    HasSource: false
+  - FunctionName: Sphynx::Rendering::Window::Minimize()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\Rendering\Window.cpp
+    SourceLine: 118
+  - FunctionName: Sphynx::UI::VulkanImGuiHelper::_DrawTitlebar()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\UI\VulkanImGuiHelper.cpp
+    SourceLine: 257
+  - FunctionName: Sphynx::UI::VulkanImGuiHelper::Begin()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\UI\VulkanImGuiHelper.cpp
+    SourceLine: 111
+  - FunctionName: Sphynx::Engine::Update()
+    HasSource: true
+    SourceFile: C:\dev\cpp\SphynxEngine\Engine\src\Core\Engine.cpp
+    SourceLine: 81
   - FunctionName: main()
     HasSource: true
     SourceFile: C:\dev\cpp\SphynxEngine\Editor\src\main.cpp

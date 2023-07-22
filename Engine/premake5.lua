@@ -40,7 +40,7 @@ project "Engine"
 		"stb_image",
 		"Tracy",
 		"imgui",
-		"%{Libaries.glfw}",
+		"glfw",
 		"%{Libaries.Vulkan}"
 	}
 

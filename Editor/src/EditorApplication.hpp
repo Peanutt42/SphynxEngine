@@ -22,6 +22,7 @@ namespace Sphynx::Editor {
 
 		virtual void Update() override;
 		virtual void DrawUI() override;
+		void OnDrawMenubar();
 
 		static Scene& GetEditingScene() { return *s_Instance->m_EditingScene; }
 		static Scene& GetGameScene() { return *s_Instance->m_GameScene; }

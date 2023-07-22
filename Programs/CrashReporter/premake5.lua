@@ -30,7 +30,7 @@ project "CrashReporter"
 	}
 
 	links {
-		"%{Libaries.glfw}",
+		"glfw",
 		"imgui",
 		"yaml",
 		"glad",
