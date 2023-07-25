@@ -2,8 +2,8 @@
 
 #include "Core/CoreInclude.hpp"
 #include "Window.hpp"
-
-#include "Vulkan/VulkanContext.hpp"
+#include "Mesh.hpp"
+#include "Shader.hpp"
 
 namespace Sphynx::Rendering {
 	class SE_API Renderer {
@@ -18,5 +18,7 @@ namespace Sphynx::Rendering {
 
 	private:
 		Window& m_Window;
+		std::unique_ptr<Mesh> m_CubeMesh;
+		std::unique_ptr<Shader> m_DefaultShader;
 	};
 }

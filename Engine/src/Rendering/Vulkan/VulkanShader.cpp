@@ -114,26 +114,6 @@ namespace Sphynx::Rendering {
             std::string name = compiler.get_name(sampler.id);
             outInfo.DescriptorBindings[binding] = { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, stage, name };
         }
-
-        if (stage & VK_SHADER_STAGE_VERTEX_BIT) {
-            outInfo.VertexAttributes.clear();
-            for (auto& input : resources.stage_inputs) {
-                const auto& type = compiler.get_type(input.type_id);
-                uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
-
-                VkFormat attributeFormat = SpirvTypeToVkFormat(type.basetype, type.vecsize);
-                for (uint32_t i = 0; i < type.columns; i++) {
-                    uint32_t attributeSize = (type.width * type.vecsize) / 8;
-                    uint32_t attributeLocation = location + i;
-
-                    VkVertexInputAttributeDescription& desc = outInfo.VertexAttributes.emplace_back();
-                    desc.binding = 0;
-                    desc.location = attributeLocation;
-                    desc.format = attributeFormat;
-                    outInfo.VertexInputAttributeSizes[attributeLocation] = attributeSize;
-                }
-            }
-        }
     }
 #pragma endregion
 
@@ -213,6 +193,9 @@ namespace Sphynx::Rendering {
             cachedShaderFile.write((char*)&fragmentShaderSize, sizeof(size_t));
             cachedShaderFile.write((char*)FragmentCode.data(), FragmentCode.size() * sizeof(uint32_t));
         }
+
+        SpirvHelper::GetReflectionInfo(VertexCode, VK_SHADER_STAGE_VERTEX_BIT, ReflectionInfo);
+        SpirvHelper::GetReflectionInfo(FragmentCode, VK_SHADER_STAGE_FRAGMENT_BIT, ReflectionInfo);
     }
 #pragma endregion
 
@@ -229,11 +212,9 @@ namespace Sphynx::Rendering {
         return shaderModule;
     }
 
-    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass)
-        : m_CreateInfo(createInfo)
-    {
-        VkShaderModule vertexModule = CreateShaderModule(VulkanContext::LogicalDevice, m_CreateInfo.VertexCode);
-        VkShaderModule fragmentModule = CreateShaderModule(VulkanContext::LogicalDevice, m_CreateInfo.FragmentCode);
+    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass) {
+        VkShaderModule vertexModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.VertexCode);
+        VkShaderModule fragmentModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.FragmentCode);
 
         VkPipelineShaderStageCreateInfo vertShaderStageInfo{};
         vertShaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -251,8 +232,10 @@ namespace Sphynx::Rendering {
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.pVertexBindingDescriptions = &createInfo.VertexInput.Description;
+        vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)createInfo.VertexInput.Attributes.size();
+        vertexInputInfo.pVertexAttributeDescriptions = createInfo.VertexInput.Attributes.data();
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -343,5 +326,26 @@ namespace Sphynx::Rendering {
 
     void VulkanShader::Bind(VkCommandBuffer commandBuffer) {
         vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+    }
+
+
+    VkFormat VulkanVertexAttributeBuilder::ToVkFormat(AttributeFormat format) {
+        switch (format) {
+        default:
+            throw std::invalid_argument("invalid format arg");
+        case AttributeFormat::Float2: return VK_FORMAT_R32G32_SFLOAT;
+        case AttributeFormat::Float3: return VK_FORMAT_R32G32B32_SFLOAT;
+        case AttributeFormat::Float4: return VK_FORMAT_R32G32B32A32_SFLOAT;
+        }
+    }
+
+    void VulkanVertexAttributeBuilder::Add(AttributeFormat attributeFormat, uint32_t offset, uint32_t binding) {
+        VkVertexInputAttributeDescription& desc = m_Attributes.emplace_back();
+        desc.binding = binding;
+        desc.location = m_Location;
+        desc.format = ToVkFormat(attributeFormat);
+        desc.offset = offset;
+        
+        m_Location++;
     }
 }

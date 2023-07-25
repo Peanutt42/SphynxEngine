@@ -2,12 +2,15 @@
 
 #include "Core/CoreInclude.hpp"
 #include "Vulkan/VulkanBuffer.hpp"
+#include "Vulkan/VulkanShader.hpp"
 
 namespace Sphynx::Rendering {
-	struct Vertex {
+	struct SE_API Vertex {
 		glm::vec3 Position{ 0, 0, 0 };
 		glm::vec3 Normal{ 0, 0, 0 };
 		glm::vec2 UV{ 0, 0 };
+
+		static VertexInput GetInputDescription();
 	};
 
 	struct SE_API MeshData {
@@ -26,7 +29,7 @@ namespace Sphynx::Rendering {
 		Mesh(BufferView vertices, uint32_t vertexCount, const std::vector<uint32_t>& indices);
 		~Mesh();
 
-		void Draw(VkCommandBuffer cmd, uint32_t instanceCount);
+		void Draw(uint32_t instanceCount);
 
 	private:
 		std::unique_ptr<VulkanBuffer> m_VertexBuffer;

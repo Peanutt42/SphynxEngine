@@ -3,6 +3,8 @@
 #include "Core/Engine.hpp"
 #include "Renderer.hpp"
 
+#include "Vulkan/VulkanContext.hpp"
+
 #include <stb_image.h>
 
 #include <backends/imgui_impl_vulkan.h>

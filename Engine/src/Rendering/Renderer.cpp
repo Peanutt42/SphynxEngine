@@ -1,10 +1,9 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
-#include "Mesh.hpp"
+
+#include "Vulkan/VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	Mesh* cubeMesh = nullptr;
-
 	Renderer::Renderer(Window& window, const std::function<void()>& resizeCallback)
 		: m_Window(window)
 	{
@@ -22,17 +21,25 @@ namespace Sphynx::Rendering {
 
 		MeshData data;
 		data.LoadMesh("Engine/Resources/Meshes/cube.semesh");
+		m_CubeMesh = std::make_unique<Mesh>(data);
+
+		m_DefaultShader = std::make_unique<Shader>("Engine/Resources/Shaders/Default.glsl");
+		m_DefaultShader->UploadToGPU();
 	}
 
 	Renderer::~Renderer() {
 		SE_PROFILE_FUNCTION();
 
+		m_DefaultShader.reset();
+		m_CubeMesh.reset();
 		VulkanContext::Shutdown();
 	}
 
 	void Renderer::Begin() {
 		VulkanContext::BeginSceneRenderpass();
 		// Draw Scene
+		m_DefaultShader->Bind();
+		m_CubeMesh->Draw(1);
 		VulkanContext::EndSceneRenderpass();
 		VulkanContext::BeginLastRenderpass();
 	}
