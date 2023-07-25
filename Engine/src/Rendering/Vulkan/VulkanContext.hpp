@@ -15,8 +15,10 @@ namespace Sphynx::Rendering {
 		static void Init(Window& window);
 		static void Shutdown();
 
-		static void Begin();
-		static void End();
+		static void BeginSceneRenderpass();
+		static void EndSceneRenderpass();
+		static void BeginLastRenderpass();
+		static void EndLastRenderpass();
 
 		static void WaitBeforeClose();
 

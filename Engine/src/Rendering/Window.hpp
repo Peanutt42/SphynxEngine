@@ -11,8 +11,6 @@ namespace Sphynx::Rendering {
 		~Window();
 
 		Window(const Window&) = delete;
-		Window(Window&&) = delete;
-		Window& operator=(const Window&) = delete;
 
 		void Update();
 

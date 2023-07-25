@@ -1,0 +1,36 @@
+#pragma once
+
+#include "Core/CoreInclude.hpp"
+#include "Vulkan/VulkanBuffer.hpp"
+
+namespace Sphynx::Rendering {
+	struct Vertex {
+		glm::vec3 Position{ 0, 0, 0 };
+		glm::vec3 Normal{ 0, 0, 0 };
+		glm::vec2 UV{ 0, 0 };
+	};
+
+	struct SE_API MeshData {
+		std::vector<Vertex> Vertices;
+		std::vector<uint32_t> Indices;
+
+		// .semesh format only
+		void LoadMesh(const std::filesystem::path& filepath);
+		// .semesh format only
+		void SaveMesh(const std::filesystem::path& filepath);
+	};
+
+	class SE_API Mesh {
+	public:
+		Mesh(const MeshData& data);
+		Mesh(BufferView vertices, uint32_t vertexCount, const std::vector<uint32_t>& indices);
+		~Mesh();
+
+		void Draw(VkCommandBuffer cmd, uint32_t instanceCount);
+
+	private:
+		std::unique_ptr<VulkanBuffer> m_VertexBuffer;
+		std::unique_ptr<VulkanBuffer> m_IndexBuffer;
+		uint32_t m_VertexCount = 0, m_IndicesCount = 0;
+	};
+}

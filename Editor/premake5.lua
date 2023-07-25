@@ -28,11 +28,13 @@ project "Editor"
 		"%{IncludeDirs.glfw}",
 		"%{IncludeDirs.Vulkan}",
 		"%{IncludeDirs.Tracy}",
-		"%{IncludeDirs.imgui}"
+		"%{IncludeDirs.imgui}",
+		"%{IncludeDirs.assimp}"
 	}
 
 	libdirs {
-		"%{LibaryDirs.Vulkan}"
+		"%{LibaryDirs.Vulkan}",
+		"%{LibaryDirs.assimp}"
 	}
 
 	links {
@@ -41,11 +43,13 @@ project "Editor"
 		"stb_image",
 		"tracy",
 		"imgui",
-		"%{Libaries.Vulkan}"
+		"%{Libaries.Vulkan}",
+		"%{Libaries.assimp}"
 	}
 
 	postbuildcommands {
-		"%{CopyBinaryCmds.Tracy}"
+		"%{CopyBinaryCmds.Tracy}",
+		"%{CopyBinaryCmds.assimp}"
 	}
 	
 	-- Config dependent links

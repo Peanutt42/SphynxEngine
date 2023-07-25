@@ -1,5 +1,7 @@
 #include "pch.hpp"
 #include "EditorApplication.hpp"
+#include "EditorAssetManager.hpp"
+
 #include "Scene/SceneSerializer.hpp"
 
 #include "Windows/LoggingOutputWindow.hpp"
@@ -26,6 +28,8 @@ namespace Sphynx::Editor {
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
 		m_Windows.push_back(std::make_unique<PropertyWindow>());
 		m_Windows.push_back(std::make_unique<ProfilingWindow>());
+
+		EditorAssetManager::LoadAssets();
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
 		m_SceneFilepath = Engine::GetProject()->StartSceneFilepath;

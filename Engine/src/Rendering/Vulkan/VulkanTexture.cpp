@@ -62,7 +62,7 @@ namespace Sphynx::Rendering {
 
 	void VulkanTexture::UploadToGPU() {
 		VulkanBuffer stagingBuffer(m_Data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		stagingBuffer.Set(m_Data);
+		stagingBuffer.Set(BufferView(m_Data));
 
 		m_Data.clear();
 

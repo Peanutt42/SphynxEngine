@@ -49,8 +49,8 @@ namespace Sphynx::Rendering {
 		Memory = VK_NULL_HANDLE;
 	}
 
-	std::unique_ptr<VulkanBuffer> VulkanBuffer::CreateWithStaging(const std::vector<uint8_t>& data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
-		VulkanBuffer stagingBuffer(data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	std::unique_ptr<VulkanBuffer> VulkanBuffer::CreateWithStaging(BufferView data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+		VulkanBuffer stagingBuffer(data.Size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		stagingBuffer.Set(data);
 
 		if (!(usage & VK_BUFFER_USAGE_TRANSFER_DST_BIT))
@@ -59,18 +59,18 @@ namespace Sphynx::Rendering {
 		if (!(properties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 			properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		std::unique_ptr<VulkanBuffer> result = std::make_unique<VulkanBuffer>(data.size(), usage, properties);
+		std::unique_ptr<VulkanBuffer> result = std::make_unique<VulkanBuffer>(data.Size, usage, properties);
 		VkCommandBuffer commandBuffer = VulkanContext::CommandPool->BeginSingleUseCommandbuffer();
 		stagingBuffer.Copy(commandBuffer, result->Buffer);
 		VulkanContext::CommandPool->EndSingleUseCommandbuffer(commandBuffer);
 		return result;
 	}
 
-	void VulkanBuffer::Set(const std::vector<uint8_t>& data) {
+	void VulkanBuffer::Set(BufferView data) {
 		void* gpuData = nullptr;
-		VkResult result = vkMapMemory(VulkanContext::LogicalDevice, Memory, 0, data.size(), 0, &gpuData);
+		VkResult result = vkMapMemory(VulkanContext::LogicalDevice, Memory, 0, data.Size, 0, &gpuData);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to map buffer memory");
-		memcpy(gpuData, data.data(), data.size());
+		memcpy(gpuData, data.Data, data.Size);
 		vkUnmapMemory(VulkanContext::LogicalDevice, Memory);
 	}
 

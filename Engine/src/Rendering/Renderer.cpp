@@ -1,7 +1,10 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
+#include "Mesh.hpp"
 
 namespace Sphynx::Rendering {
+	Mesh* cubeMesh = nullptr;
+
 	Renderer::Renderer(Window& window, const std::function<void()>& resizeCallback)
 		: m_Window(window)
 	{
@@ -16,6 +19,9 @@ namespace Sphynx::Rendering {
 		});
 
 		VulkanContext::Init(m_Window);
+
+		MeshData data;
+		data.LoadMesh("Engine/Resources/Meshes/cube.semesh");
 	}
 
 	Renderer::~Renderer() {
@@ -25,11 +31,14 @@ namespace Sphynx::Rendering {
 	}
 
 	void Renderer::Begin() {
-		VulkanContext::Begin();
+		VulkanContext::BeginSceneRenderpass();
+		// Draw Scene
+		VulkanContext::EndSceneRenderpass();
+		VulkanContext::BeginLastRenderpass();
 	}
 
 	void Renderer::End() {
-		VulkanContext::End();
+		VulkanContext::EndLastRenderpass();
 	}
 
 	void Renderer::WaitBeforeClose() {

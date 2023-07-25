@@ -43,4 +43,10 @@ CopyBinaryCmds["Tracy"] = copydll_cmd_begin .. EngineDir .. "bin\\" .. outputdir
 IncludeDirs["imgui"] = EngineDir .. "vendor/imgui"
 
 -- glad
-IncludeDirs["glad"] = "%{wks.location}/vendor/glad/include"
+IncludeDirs["glad"] = EngineDir .. "vendor/glad/include"
+
+-- assimp
+IncludeDirs["assimp"] = EngineDir .. "vendor/assimp/include"
+LibaryDirs["assimp"] = EngineDir .. "vendor/assimp/lib/%{cfg.buildcfg}"
+Libaries["assimp"] = "assimp.lib"
+CopyBinaryCmds["assimp"] = copydll_cmd_begin .. EngineDir .. "vendor\\assimp\\bin\\%{cfg.buildcfg}\\assimp.dll" .. copydll_cmd_end

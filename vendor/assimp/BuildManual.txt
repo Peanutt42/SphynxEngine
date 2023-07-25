@@ -1,0 +1,6 @@
+Clone assimp repo: git clone https://github.com/assimp/assimp.git
+
+use cmake:
+	- Set LIBRARY_SUFFIX to empty
+	- Set CMAKE_DEBUG_POSTFIX to empty
+copy assimp .lib and .dll binaries (+ .pdb)

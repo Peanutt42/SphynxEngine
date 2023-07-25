@@ -195,7 +195,7 @@ namespace Sphynx {
 					trace.Entries.emplace_back("Internal function: raise()", false, "internal", 0);
 				else if (symbolName == "Sphynx::CrashHandler::OnProcessCrashed" ||
 					symbolName == "Sphynx::CrashHandler::MakeStackTrace" ||
-					symbolName == "Sphynx::Platform::GenerateStackTrace()" ||
+					symbolName == "Sphynx::Platform::GenerateStackTrace" ||
 					symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::operator()" ||
 					symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::<lambda_invoker_cdecl>" ||
 					symbolName == "_seh_filter_exe" ||
@@ -205,7 +205,13 @@ namespace Sphynx {
 					symbolName == "log2f" ||
 					symbolName == "RtlFindCharInUnicodeString" ||
 					symbolName == "KiUserExceptionDispatcher")
+				{
 					continue;
+				}
+				else if (symbolName == "CxxThrowException") {
+					trace.Entries.clear(); // Everything until now has been internal c++ std::exception handeling
+					trace.Entries.emplace_back("unhandeled std::exception", false, "internal", 0);
+				}
 				else {
 					auto& entry = trace.Entries.emplace_back();
 					entry.FunctionName = std::string(symbol->Name) + "()";

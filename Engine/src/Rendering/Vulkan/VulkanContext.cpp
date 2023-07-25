@@ -98,7 +98,7 @@ namespace Sphynx::Rendering {
 		Instance.reset();
 	}
 
-	void VulkanContext::Begin() {
+	void VulkanContext::BeginSceneRenderpass() {
 		vkWaitForFences(LogicalDevice, 1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX);
 
 		VkResult result = vkAcquireNextImageKHR(LogicalDevice, SwapChain->GetHandle(), UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &CurrentImage);
@@ -116,6 +116,9 @@ namespace Sphynx::Rendering {
 		CommandBuffer = CommandPool->BeginRecording(CurrentFrame);
 
 		SceneRenderpass->Begin(SceneRenderpass->GetFramebuffer(CurrentImage), CommandBuffer, VkExtent2D(SceneWidth, SceneHeight));
+	}
+
+	void VulkanContext::EndSceneRenderpass() {
 		SceneRenderpass->End(CommandBuffer);
 
 		//// Make Scene Texture readable for shaders
@@ -136,12 +139,13 @@ namespace Sphynx::Rendering {
 		//	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 		//	vkCmdPipelineBarrier(m_CommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 		//}
+	}
 
-
+	void VulkanContext::BeginLastRenderpass() {
 		Renderpass->Begin(SwapChain->GetFramebuffer(CurrentImage), CommandBuffer, SwapChain->GetExtent());
 	}
 
-	void VulkanContext::End() {
+	void VulkanContext::EndLastRenderpass() {
 		Renderpass->End(CommandBuffer);
 
 		CommandPool->EndRecording(CurrentFrame);

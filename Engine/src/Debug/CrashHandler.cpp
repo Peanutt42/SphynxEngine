@@ -27,7 +27,7 @@ namespace Sphynx {
 		case -1: break;
 		case SIGILL: std::cout << "Illegal instruction!\n"; break;
 		case SIGSEGV: std::cout << "Segmentation fault!\n"; break;
-		case SIGABRT: std::cout << "abort() was called!\n"; break;
+		case SIGABRT: std::cout << "abort() / throw was called!\n"; break;
 		}
 
 		StackTrace stackTrace = Platform::GenerateStackTrace();
