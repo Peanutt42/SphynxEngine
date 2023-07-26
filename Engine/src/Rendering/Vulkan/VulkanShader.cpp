@@ -23,7 +23,13 @@ namespace Sphynx::Rendering {
         shaderc::SpvCompilationResult module = compiler.CompileGlslToSpv(preprocessedShaderCode, type, shaderName.c_str(), options);
 
         if (module.GetCompilationStatus() != shaderc_compilation_status_success) {
-            SE_FATAL(Logging::Rendering, "Failed to compile shader: {}", module.GetErrorMessage());
+            const char* shaderTypeStr = "";
+            switch (type) {
+            default: break;
+            case shaderc_vertex_shader: shaderTypeStr = "vertex"; break;
+            case shaderc_fragment_shader: shaderTypeStr = "fragment"; break;
+            }
+            SE_FATAL(Logging::Rendering, "Failed to compile {} shader: {}", shaderTypeStr, module.GetErrorMessage());
             return;
         }
         outSpirvCode.assign(module.cbegin(), module.cend());
