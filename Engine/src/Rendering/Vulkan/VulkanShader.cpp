@@ -153,28 +153,16 @@ namespace Sphynx::Rendering {
         cachedShaderFilepath.replace_extension(".cached_shader");
 
         if (IsCachedShaderUsable(filepath, cachedShaderFilepath)) {
-            std::ifstream shaderFile(cachedShaderFilepath, std::ios::binary);
-            if (shaderFile) {
-                size_t vertexShaderSize = 0;
-                shaderFile.read((char*)&vertexShaderSize, sizeof(vertexShaderSize));
-                VertexCode.resize(vertexShaderSize);
-                shaderFile.read((char*)VertexCode.data(), vertexShaderSize * sizeof(uint32_t));
-
-                size_t fragmentShaderSize = 0;
-                shaderFile.read((char*)&fragmentShaderSize, sizeof(fragmentShaderSize));
-                FragmentCode.resize(fragmentShaderSize);
-                shaderFile.read((char*)FragmentCode.data(), fragmentShaderSize * sizeof(uint32_t));
-            }
-            else
-                SE_ERR(Logging::Rendering, "Failed to load cached shader file {}", cachedShaderFilepath.string());
+            FileStreamReader shaderFile(cachedShaderFilepath);
+            shaderFile.ReadArray(VertexCode);
+            shaderFile.ReadArray(FragmentCode);
         }
         else {
             ScopedTimer t("Compiling shader " + filepath.string());
 
-            std::ifstream shaderFile(filepath);
-            std::stringstream ss;
-            ss << shaderFile.rdbuf();
-            std::string shaderCode = ss.str();
+
+            std::string shaderCode;
+            FileStreamReader::ReadTextFile(filepath, shaderCode);
             std::string shaderName = filepath.filename().string();
 
             std::string vertexCode, fragmentCode;
@@ -183,15 +171,9 @@ namespace Sphynx::Rendering {
             SpirvHelper::CompileShader(vertexCode, shaderc_vertex_shader, shaderName, VertexCode);
             SpirvHelper::CompileShader(fragmentCode, shaderc_fragment_shader, shaderName, FragmentCode);
 
-            std::ofstream cachedShaderFile(cachedShaderFilepath, std::ios::binary);
-
-            size_t vertexShaderSize = VertexCode.size();
-            cachedShaderFile.write((char*)&vertexShaderSize, sizeof(size_t));
-            cachedShaderFile.write((char*)VertexCode.data(), VertexCode.size() * sizeof(uint32_t));
-
-            size_t fragmentShaderSize = FragmentCode.size();
-            cachedShaderFile.write((char*)&fragmentShaderSize, sizeof(size_t));
-            cachedShaderFile.write((char*)FragmentCode.data(), FragmentCode.size() * sizeof(uint32_t));
+            FileStreamWriter cachedShaderFile(cachedShaderFilepath);
+            cachedShaderFile.WriteArray(VertexCode);
+            cachedShaderFile.WriteArray(FragmentCode);
         }
 
         SpirvHelper::GetReflectionInfo(VertexCode, VK_SHADER_STAGE_VERTEX_BIT, ReflectionInfo);
@@ -212,7 +194,9 @@ namespace Sphynx::Rendering {
         return shaderModule;
     }
 
-    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass) {
+    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass)
+        : m_ReflectionInfo(createInfo.ReflectionInfo), m_SharedUniformBuffers(createInfo.SharedUniformBuffers)
+    {
         VkShaderModule vertexModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.VertexCode);
         VkShaderModule fragmentModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.FragmentCode);
 
@@ -315,6 +299,18 @@ namespace Sphynx::Rendering {
 
         vkDestroyShaderModule(VulkanContext::LogicalDevice, fragmentModule, nullptr);
         vkDestroyShaderModule(VulkanContext::LogicalDevice, vertexModule, nullptr);
+
+
+        for (const auto& [binding, descriptor] : m_ReflectionInfo.DescriptorBindings) {
+            m_DescriptorNameToBindingMap[descriptor.Name] = binding;
+
+            // Create empty uniform buffer (if not shared by other shaders)
+            if (descriptor.Type == VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER &&
+                !m_SharedUniformBuffers.contains(descriptor.Name))
+            {
+                // TODO: UniformBuffers
+            }
+        }
     }
 
     VulkanShader::~VulkanShader() {

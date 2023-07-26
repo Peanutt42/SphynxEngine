@@ -17,11 +17,13 @@ namespace Sphynx::Editor {
 					fileExtension == ".fbx" ||
 					fileExtension == ".gltf")
 				{
-					Rendering::MeshData data;
-					MeshImporter::Import(path, data);
 					std::filesystem::path convertedFilepath = path;
-					convertedFilepath.replace_extension(".semesh");
-					data.SaveMesh(convertedFilepath);
+					if (!std::filesystem::exists(convertedFilepath)) {
+						Rendering::MeshData data;
+						MeshImporter::Import(path, data);
+						convertedFilepath.replace_extension(".semesh");
+						data.SaveMesh(convertedFilepath);
+					}
 				}
 			}
 		}

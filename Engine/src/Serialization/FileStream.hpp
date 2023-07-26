@@ -75,9 +75,31 @@ namespace Sphynx {
 			return true;
 		}
 
+		template<typename CharT = char>
+		static void ReadTextFile(const std::filesystem::path& filepath, std::basic_string<CharT>& outText) {
+			SE_ASSERT(std::filesystem::exists(filepath), "Can't find file {}", filepath.string());
+			std::ifstream stream(filepath, std::ifstream::in | std::ios::ate);
+			SE_ASSERT(stream, "Can't open file {}", filepath.string());
+			std::streampos end = stream.tellg();
+			stream.seekg(0, std::ios::beg);
+			size_t fileSize = end - stream.tellg();
+			outText.resize(fileSize / sizeof(CharT));
+			stream.read(outText.data(), fileSize);
+		}
+
+		static void ReadBinaryFile(const std::filesystem::path& filepath, std::vector<uint8_t>& outData) {
+			SE_ASSERT(std::filesystem::exists(filepath), "Can't find file {}", filepath.string());
+			std::ifstream stream(filepath, std::ifstream::in | std::ios::ate);
+			SE_ASSERT(stream, "Can't open file {}", filepath.string());
+			std::streampos end = stream.tellg();
+			stream.seekg(0, std::ios::beg);
+			size_t fileSize = end - stream.tellg();
+			outData.resize(fileSize);
+			stream.read((char*)outData.data(), fileSize);
+		}
+
 	private:
 		std::filesystem::path m_Path;
 		std::ifstream m_Stream;
 	};
-
 }

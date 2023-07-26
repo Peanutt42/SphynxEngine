@@ -16,8 +16,7 @@ namespace Sphynx::Rendering {
 			VkShaderStageFlags Stage = VK_SHADER_STAGE_FLAG_BITS_MAX_ENUM;
 			std::string Name;
 
-			// For Uniforms
-			size_t Size = 0;
+			size_t UniformSize = 0;
 		};
 
 		std::map<uint32_t, DescriptorBinding> DescriptorBindings; // binding - type pair
@@ -46,6 +45,11 @@ namespace Sphynx::Rendering {
 
 		ShaderReflectionInfo ReflectionInfo;
 
+		// Names of uniform buffers that are shared with other shaders and so aren't auto created
+		std::unordered_set<std::string> SharedUniformBuffers = {
+			//"u_UBO",
+		};
+
 		VertexInput VertexInput;
 
 		bool Wireframe = false;
@@ -62,6 +66,11 @@ namespace Sphynx::Rendering {
 	private:
 		VkPipeline m_Pipeline = VK_NULL_HANDLE;
 		VkPipelineLayout m_PipelineLayout = VK_NULL_HANDLE;
+
+		ShaderReflectionInfo m_ReflectionInfo;
+		std::unordered_map<std::string, uint32_t> m_DescriptorNameToBindingMap;
+
+		std::unordered_set<std::string> m_SharedUniformBuffers;
 	};
 
 	enum class AttributeFormat {
