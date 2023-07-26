@@ -18,6 +18,8 @@
 *.out
 *.app
 /bin
+Programs/ReflectionGenerator/bin
+Programs/CrashReporter/bin
 
 # Visual Studio
 **/.vs
