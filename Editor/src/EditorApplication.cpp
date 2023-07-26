@@ -18,6 +18,8 @@ namespace Sphynx::Editor {
 	}
 
 	void EditorApplication::OnCreate() {
+		SE_PROFILE_FUNCTION();
+
 		ImGui::SetCurrentContext(Engine::ImGuiHelper().GetContext());
 
 		Engine::ImGuiHelper().EnableDocking();
@@ -37,10 +39,14 @@ namespace Sphynx::Editor {
 	}
 
 	void EditorApplication::OnDestroy() {
+		SE_PROFILE_FUNCTION();
+
 		m_Windows.clear();
 	}
 	
 	void EditorApplication::Update() {
+		SE_PROFILE_FUNCTION();
+
 		for (const auto& window : m_Windows)
 			window->Update();
 
@@ -60,6 +66,8 @@ namespace Sphynx::Editor {
 	}
 
 	void EditorApplication::DrawUI() {
+		SE_PROFILE_FUNCTION();
+
 		for (const auto& window : m_Windows) {
 			if (!window->Opened)
 				continue;

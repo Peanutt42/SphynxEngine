@@ -78,6 +78,8 @@ namespace Sphynx::UI {
 	}
 
 	void VulkanImGuiHelper::Begin() {
+		SE_PROFILE_FUNCTION();
+
 		ImGui_ImplGlfw_NewFrame();
 		ImGui_ImplVulkan_NewFrame();
 		ImGui::NewFrame();
@@ -113,6 +115,8 @@ namespace Sphynx::UI {
 	}
 
 	void VulkanImGuiHelper::End() {
+		SE_PROFILE_FUNCTION();
+
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
 			ImGui::End();
 
@@ -121,6 +125,8 @@ namespace Sphynx::UI {
 
 	
 	void VulkanImGuiHelper::Render() {
+		SE_PROFILE_FUNCTION();
+
 		ImDrawData* drawData = ImGui::GetDrawData();
 		if (drawData)
 			ImGui_ImplVulkan_RenderDrawData(drawData, Rendering::VulkanContext::CommandBuffer);
@@ -151,6 +157,8 @@ namespace Sphynx::UI {
 	}
 
 	void VulkanImGuiHelper::_DrawTitlebar() {
+		SE_PROFILE_FUNCTION();
+
 		const float titlebarHeight = 37.f;
 		const bool isMaximized = Rendering::VulkanContext::Window->IsMaximized();
 		float titlebarVerticalOffset = isMaximized ? -6.0f : 0.0f;

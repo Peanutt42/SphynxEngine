@@ -36,6 +36,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void Renderer::Begin() {
+		SE_PROFILE_FUNCTION();
+
 		VulkanContext::BeginSceneRenderpass();
 		// Draw Scene
 		m_DefaultShader->Bind();
@@ -45,7 +47,11 @@ namespace Sphynx::Rendering {
 	}
 
 	void Renderer::End() {
+		SE_PROFILE_FUNCTION();
+
 		VulkanContext::EndLastRenderpass();
+
+		VulkanContext::Submit();
 	}
 
 	void Renderer::WaitBeforeClose() {

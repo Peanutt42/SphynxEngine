@@ -5,6 +5,8 @@
 
 namespace Sphynx::Rendering {
 	void VulkanContext::Init(Rendering::Window& window) {
+		SE_PROFILE_FUNCTION();
+
 		Window = &window;
 
 		Instance = std::make_unique<VulkanInstance>(
@@ -76,6 +78,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::Shutdown() {
+		SE_PROFILE_FUNCTION();
+
 		_DestroySyncObjects();
 
 		CommandPool.reset();
@@ -99,6 +103,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::BeginSceneRenderpass() {
+		SE_PROFILE_FUNCTION();
+
 		vkWaitForFences(LogicalDevice, 1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX);
 
 		VkResult result = vkAcquireNextImageKHR(LogicalDevice, SwapChain->GetHandle(), UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &CurrentImage);
@@ -119,6 +125,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::EndSceneRenderpass() {
+		SE_PROFILE_FUNCTION();
+
 		SceneRenderpass->End(CommandBuffer);
 
 		//// Make Scene Texture readable for shaders
@@ -142,50 +150,64 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::BeginLastRenderpass() {
+		SE_PROFILE_FUNCTION();
+
 		Renderpass->Begin(SwapChain->GetFramebuffer(CurrentImage), CommandBuffer, SwapChain->GetExtent());
 	}
 
 	void VulkanContext::EndLastRenderpass() {
+		SE_PROFILE_FUNCTION();
+
 		Renderpass->End(CommandBuffer);
 
 		CommandPool->EndRecording(CurrentFrame);
+	}
 
+	void VulkanContext::Submit() {
 		// Submit
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = &ImageAvailableSemaphores[CurrentFrame];
-		VkPipelineStageFlags waitDstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		submitInfo.pWaitDstStageMask = &waitDstStageMask;
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = &RenderFinishedSemaphores[CurrentFrame];
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &CommandBuffer;
+		{
+			SE_PROFILE_SCOPE("Sphynx::Rendering::VulkanContext::Submit");
 
-		VkResult result = vkQueueSubmit(GraphicsQueue, 1, &submitInfo, InFlightFences[CurrentFrame]);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to submit commandBuffer");
+			VkSubmitInfo submitInfo{};
+			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			submitInfo.waitSemaphoreCount = 1;
+			submitInfo.pWaitSemaphores = &ImageAvailableSemaphores[CurrentFrame];
+			VkPipelineStageFlags waitDstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			submitInfo.pWaitDstStageMask = &waitDstStageMask;
+			submitInfo.signalSemaphoreCount = 1;
+			submitInfo.pSignalSemaphores = &RenderFinishedSemaphores[CurrentFrame];
+			submitInfo.commandBufferCount = 1;
+			submitInfo.pCommandBuffers = &CommandBuffer;
 
-		CommandBuffer = VK_NULL_HANDLE;
+			VkResult result = vkQueueSubmit(GraphicsQueue, 1, &submitInfo, InFlightFences[CurrentFrame]);
+			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to submit commandBuffer");
+
+			CommandBuffer = VK_NULL_HANDLE;
+		}
 
 		// Present
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = &RenderFinishedSemaphores[CurrentFrame];
+		{
+			SE_PROFILE_SCOPE("Sphynx::Rendering::VulkanContext::Submit");
 
-		presentInfo.swapchainCount = 1;
-		VkSwapchainKHR swapchain = SwapChain->GetHandle();
-		presentInfo.pSwapchains = &swapchain;
-		presentInfo.pImageIndices = &CurrentImage;
-		presentInfo.pResults = nullptr; // Optional
+			VkPresentInfoKHR presentInfo{};
+			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			presentInfo.waitSemaphoreCount = 1;
+			presentInfo.pWaitSemaphores = &RenderFinishedSemaphores[CurrentFrame];
 
-		result = vkQueuePresentKHR(PresentQueue, &presentInfo);
-		if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || FramebufferResized) {
-			FramebufferResized = false;
-			SwapChain->Recreate(Renderpass->GetHandle());
+			presentInfo.swapchainCount = 1;
+			VkSwapchainKHR swapchain = SwapChain->GetHandle();
+			presentInfo.pSwapchains = &swapchain;
+			presentInfo.pImageIndices = &CurrentImage;
+			presentInfo.pResults = nullptr; // Optional
+
+			VkResult result = vkQueuePresentKHR(PresentQueue, &presentInfo);
+			if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || FramebufferResized) {
+				FramebufferResized = false;
+				SwapChain->Recreate(Renderpass->GetHandle());
+			}
+			else if (result != VK_SUCCESS)
+				SE_FATAL(Logging::Rendering, "Failed to present swapchain image!");
 		}
-		else if (result != VK_SUCCESS)
-			SE_FATAL(Logging::Rendering, "Failed to present swapchain image!");
 
 		CurrentFrame = (CurrentFrame + 1) % MaxFramesInFlight;
 	}

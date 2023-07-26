@@ -19,6 +19,8 @@ namespace Sphynx::Rendering {
 	VulkanBuffer::VulkanBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties)
 		: Size(size)
 	{
+		SE_PROFILE_FUNCTION();
+
 		VkBufferCreateInfo bufferInfo{};
 		bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
 		bufferInfo.size = size;
@@ -43,6 +45,8 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanBuffer::~VulkanBuffer() {
+		SE_PROFILE_FUNCTION();
+
 		vkDestroyBuffer(VulkanContext::LogicalDevice, Buffer, nullptr);
 		Buffer = VK_NULL_HANDLE;
 		vkFreeMemory(VulkanContext::LogicalDevice, Memory, nullptr);
@@ -50,6 +54,8 @@ namespace Sphynx::Rendering {
 	}
 
 	std::unique_ptr<VulkanBuffer> VulkanBuffer::CreateWithStaging(BufferView data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+		SE_PROFILE_FUNCTION();
+
 		VulkanBuffer stagingBuffer(data.Size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 		stagingBuffer.Set(data);
 
@@ -67,6 +73,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanBuffer::Set(BufferView data) {
+		SE_PROFILE_FUNCTION();
+
 		void* gpuData = nullptr;
 		VkResult result = vkMapMemory(VulkanContext::LogicalDevice, Memory, 0, data.Size, 0, &gpuData);
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to map buffer memory");
@@ -75,6 +83,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanBuffer::Get(std::vector<uint8_t>& outData) {
+		SE_PROFILE_FUNCTION();
+
 		outData.resize(Size);
 		void* gpuData = nullptr;
 		VkResult result = vkMapMemory(VulkanContext::LogicalDevice, Memory, 0, Size, 0, &gpuData);
@@ -84,6 +94,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanBuffer::Copy(VkCommandBuffer commandBuffer, VkBuffer dst) {
+		SE_PROFILE_FUNCTION();
+
 		VkBufferCopy copyRegion{};
 		copyRegion.srcOffset = 0; // Optional
 		copyRegion.dstOffset = 0; // Optional

@@ -20,6 +20,8 @@ namespace Sphynx::Scripting {
 	}
 	
 	void ScriptingEngine::Update() {
+		SE_PROFILE_FUNCTION();
+
 		m_Module->LoadFunction<void(*)()>("TestInput")();
 	}
 }
