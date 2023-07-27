@@ -10,7 +10,7 @@ namespace Sphynx::Rendering {
 	//  VulkanShader more for engine internal shaders
 	class SE_API Shader {
 	public:
-		Shader(const std::filesystem::path& filepath);
+		Shader(BufferView vertexCode, BufferView fragmentCode);
 
 		void Bind();
 

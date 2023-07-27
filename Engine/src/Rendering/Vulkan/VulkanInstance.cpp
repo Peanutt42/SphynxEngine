@@ -26,7 +26,10 @@ namespace Sphynx::Rendering {
 
 		if (Validation)
 			ValidationLayers.push_back("VK_LAYER_KHRONOS_validation");
-		_ConfigureValidationLayers(createInfo, ValidationLayers);
+		bool wantedValidation = Validation;
+		Validation = _ConfigureValidationLayers(createInfo, ValidationLayers);
+		if (wantedValidation && !Validation)													// validation layers only work on locally installed VulkanSDK!
+			SE_WARN(Logging::Rendering, "Couldn't enable vulkan validation layers.\n    -> Fix: Install VulkanSDK locally from https://vulkan.lunarg.com/sdk/home");
 
 		VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
 		if (Validation) {
@@ -91,7 +94,7 @@ namespace Sphynx::Rendering {
 	}
 
 
-	void VulkanInstance::_ConfigureValidationLayers(VkInstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers) {
+	bool VulkanInstance::_ConfigureValidationLayers(VkInstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers) {
 		// Get supported validation layers
 		uint32_t supportedLayerCount = 0;
 		vkEnumerateInstanceLayerProperties(&supportedLayerCount, nullptr);
@@ -109,20 +112,17 @@ namespace Sphynx::Rendering {
 				}
 			}
 			if (!foundLayer) {
-				SE_ERR(Logging::Rendering, "{} validation layers isn't supported!", layer);
+				SE_WARN(Logging::Rendering, "{} validation layer isn't supported!", layer);
 				unsupportedValidationLayerCount++;
 			}
 		}
-		if (unsupportedValidationLayerCount != 0) {
-			SE_FATAL(Logging::Rendering, "{} validation layers aren't supported!", unsupportedValidationLayerCount);
-		}
+		if (unsupportedValidationLayerCount != 0)
+			return false;
 
 		if (Validation) {
 			createInfo.enabledLayerCount = (uint32_t)validationLayers.size();
 			createInfo.ppEnabledLayerNames = validationLayers.data();
 		}
-		else
-			createInfo.enabledLayerCount = 0;
 	}
 
 	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/)

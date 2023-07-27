@@ -6,7 +6,7 @@ CopyBinaryCmds = {}
 copydll_cmd_begin = "xcopy \""
 copydll_cmd_end = "\"  \"%{cfg.targetdir}\\\" /Y"
 
-VulkanSDK = os.getenv("VULKAN_SDK")
+VulkanSDKVersion = "1.3.250.1"
 
 -- yaml
 IncludeDirs["yaml"] = EngineDir .. "vendor/yaml/include"
@@ -21,19 +21,22 @@ IncludeDirs["glm"] = EngineDir .. "vendor/glm/include"
 IncludeDirs["stbi"] = EngineDir .. "vendor/stb_image/include"
 
 -- Vulkan
-IncludeDirs["Vulkan"] = "%{VulkanSDK}/Include"
-LibaryDirs["Vulkan"] = "%{VulkanSDK}/Lib"
+IncludeDirs["Vulkan"] = EngineDir .. "vendor/vulkan/%{VulkanSDKVersion}/include"
+LibaryDirs["Vulkan"] = EngineDir .. "vendor/vulkan/%{VulkanSDKVersion}/lib"
 Libaries["Vulkan"] = "vulkan-1.lib"
 
 -- shaderc
-Libaries["shaderc_Debug"] = "%{LibaryDirs.Vulkan}/shaderc_sharedd.lib"
-Libaries["shaderc_Release"] = "%{LibaryDirs.Vulkan}/shaderc_shared.lib"
-Libaries["shaderc_Dist"] = "%{LibaryDirs.Vulkan}/shaderc_shared.lib"
+Libaries["shaderc_Debug"] = "shaderc_sharedd.lib"
+Libaries["shaderc_Release"] = "shaderc_shared.lib"
+Libaries["shaderc_Dist"] = "shaderc_shared.lib"
+CopyBinaryCmds["shaderc_Debug"] = copydll_cmd_begin .. EngineDir .. "vendor\\vulkan\\%{VulkanSDKVersion}\\bin\\shaderc_sharedd.dll" .. copydll_cmd_end
+CopyBinaryCmds["shaderc_Release"] = copydll_cmd_begin .. EngineDir .. "vendor\\vulkan\\%{VulkanSDKVersion}\\bin\\shaderc_shared.dll" .. copydll_cmd_end
+CopyBinaryCmds["shaderc_Dist"] = copydll_cmd_begin .. EngineDir .. "vendor\\vulkan\\%{VulkanSDKVersion}\\bin\\shaderc_shared.dll" .. copydll_cmd_end
 
 -- spirv-cross
-Libaries["spirv_cross_Debug"] = "%{LibaryDirs.Vulkan}/spirv-cross-cored.lib"
-Libaries["spirv_cross_Release"] = "%{LibaryDirs.Vulkan}/spirv-cross-core.lib"
-Libaries["spirv_cross_Dist"] = "%{LibaryDirs.Vulkan}/spirv-cross-core.lib"
+Libaries["spirv_cross_Debug"] = "spirv-cross-cored.lib"
+Libaries["spirv_cross_Release"] = "spirv-cross-core.lib"
+Libaries["spirv_cross_Dist"] = "spirv-cross-core.lib"
 
 -- Tracy
 IncludeDirs["Tracy"] = EngineDir .. "vendor/Tracy"

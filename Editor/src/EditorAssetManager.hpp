@@ -3,6 +3,7 @@
 #include "EditorApplication.hpp"
 
 #include "Importers/MeshImporter.hpp"
+#include "Importers/ShaderImporter.hpp"
 
 namespace Sphynx::Editor {
 	class EditorAssetManager {
@@ -18,12 +19,17 @@ namespace Sphynx::Editor {
 					fileExtension == ".gltf")
 				{
 					std::filesystem::path convertedFilepath = path;
+					convertedFilepath.replace_extension(".semesh");
 					if (!std::filesystem::exists(convertedFilepath)) {
 						Rendering::MeshData data;
 						MeshImporter::Import(path, data);
-						convertedFilepath.replace_extension(".semesh");
 						data.SaveMesh(convertedFilepath);
 					}
+				}
+
+				if (fileExtension == ".glsl") {
+					std::vector<uint32_t> vertexCode, fragmentCode;
+					ShaderImporter::Import(path, vertexCode, fragmentCode);
 				}
 			}
 		}

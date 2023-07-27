@@ -3,6 +3,14 @@
 
 #include "Vulkan/VulkanContext.hpp"
 
+uint32_t g_DefaultVertex[] = {
+#include "../Resources/Shaders/Embedded/Default.vert.embed"
+};
+
+uint32_t g_DefaultFragment[] = {
+#include "../Resources/Shaders/Embedded/Default.frag.embed"
+};
+
 namespace Sphynx::Rendering {
 	Renderer::Renderer(Window& window, const std::function<void()>& resizeCallback)
 		: m_Window(window)
@@ -23,7 +31,7 @@ namespace Sphynx::Rendering {
 		data.LoadMesh("Engine/Resources/Meshes/cube.semesh");
 		m_CubeMesh = std::make_unique<Mesh>(data);
 
-		m_DefaultShader = std::make_unique<Shader>("Engine/Resources/Shaders/Default.glsl");
+		m_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex, std::size(g_DefaultVertex) * sizeof(uint32_t)), BufferView(g_DefaultFragment, std::size(g_DefaultFragment) * sizeof(uint32_t)));
 		m_DefaultShader->UploadToGPU();
 	}
 

@@ -6,7 +6,6 @@
 #include "VulkanRenderpass.hpp"
 
 #include <vulkan/vulkan.h>
-#include <shaderc/shaderc.hpp>
 #include <spirv_cross/spirv_cross.hpp>
 
 namespace Sphynx::Rendering {
@@ -22,10 +21,8 @@ namespace Sphynx::Rendering {
 		std::map<uint32_t, DescriptorBinding> DescriptorBindings; // binding - type pair
 	};
 
-	class SpirvHelper {
+	class SE_API SpirvHelper {
 	public:
-		static void CompileShader(const std::string& shaderCode, shaderc_shader_kind type, const std::string& shaderName, std::vector<uint32_t>& outSpirvCode);
-		
 		static VkFormat SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32_t elements);
 
 		static void GetReflectionInfo(const std::vector<uint32_t>& spirvCode, VkShaderStageFlags stage, ShaderReflectionInfo& outInfo);
@@ -36,14 +33,9 @@ namespace Sphynx::Rendering {
 		std::vector<VkVertexInputAttributeDescription> Attributes;
 	};
 
-	struct ShaderCreateInfo {
-		ShaderCreateInfo() = default;
-		ShaderCreateInfo(const std::filesystem::path& filepath);
-
+	struct SE_API ShaderCreateInfo {
 		std::vector<uint32_t> VertexCode;
 		std::vector<uint32_t> FragmentCode;
-
-		ShaderReflectionInfo ReflectionInfo;
 
 		// Names of uniform buffers that are shared with other shaders and so aren't auto created
 		std::unordered_set<std::string> SharedUniformBuffers = {

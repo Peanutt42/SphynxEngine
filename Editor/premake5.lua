@@ -55,10 +55,13 @@ project "Editor"
 	-- Config dependent links
 	filter { "configurations:Debug" }
 		links { "%{Libaries.shaderc_Debug}", "%{Libaries.spirv_cross_Debug}" }
+		postbuildcommands { "%{CopyBinaryCmds.shaderc_Debug}" }
 	filter { "configurations:Release" }
 		links { "%{Libaries.shaderc_Release}", "%{Libaries.spirv_cross_Release}" }
+		postbuildcommands { "%{CopyBinaryCmds.shaderc_Release}" }
 	filter { "configurations:Dist" }
 		links { "%{Libaries.shaderc_Dist}", "%{Libaries.spirv_cross_Dist}" }
+		postbuildcommands { "%{CopyBinaryCmds.shaderc_Dist}" }
 
 
 	filter { "configurations:Debug" }

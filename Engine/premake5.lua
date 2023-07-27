@@ -49,17 +49,18 @@ project "Engine"
 
 	postbuildcommands {
 		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\Editor\\\" /Y",
-		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\EngineRuntime\\\" /Y"
+		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\EngineRuntime\\\" /Y",
+		"call " .. EngineDir .. "Engine\\Resources\\Shaders\\CompileShaders.bat"
 	}
 
 	
 	-- Config dependent links
 	filter { "configurations:Debug" }
-		links { "%{Libaries.shaderc_Debug}", "%{Libaries.spirv_cross_Debug}" }
+		links { "%{Libaries.spirv_cross_Debug}" }
 	filter { "configurations:Release" }
-		links { "%{Libaries.shaderc_Release}", "%{Libaries.spirv_cross_Release}" }
+		links { "%{Libaries.spirv_cross_Release}" }
 	filter { "configurations:Dist" }
-		links { "%{Libaries.shaderc_Dist}", "%{Libaries.spirv_cross_Dist}" }
+		links { "%{Libaries.spirv_cross_Dist}" }
 
 
 	filter { "configurations:Debug" }
