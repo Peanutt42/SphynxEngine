@@ -22,6 +22,10 @@ namespace Sphynx {
 		BufferView(const std::vector<T>& data)
 			: Data((const uint8_t*)data.data()), Size(data.size() * sizeof(T)) {}
 
+		template<typename T, size_t N>
+		BufferView(const T(&data)[N])
+			: Data((const uint8_t*)data), Size(N * sizeof(T)) {}
+
 		operator bool() const { return (bool)Data; }
 
 		const uint8_t& operator[](size_t index) const {

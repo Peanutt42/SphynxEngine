@@ -31,7 +31,7 @@ namespace Sphynx::Rendering {
 		data.LoadMesh("Engine/Resources/Meshes/cube.semesh");
 		m_CubeMesh = std::make_unique<Mesh>(data);
 
-		m_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex, std::size(g_DefaultVertex) * sizeof(uint32_t)), BufferView(g_DefaultFragment, std::size(g_DefaultFragment) * sizeof(uint32_t)));
+		m_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
 		m_DefaultShader->UploadToGPU();
 	}
 
