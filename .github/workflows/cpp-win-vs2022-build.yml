@@ -18,5 +18,9 @@ jobs:
       - name: Setup VS2022
         uses: microsoft/setup-msbuild@v1.3.1
         
-      - name: Build Solution
-        run: msbuild /p:Configurations=Debug;Release;Dist /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
+      - name: Build Debug Solution
+        run: msbuild /p:Configurations=Debug /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
+      - name: Build Release Solution
+        run: msbuild /p:Configurations=Release /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
+      - name: Build Dist Solution
+        run: msbuild /p:Configurations=Dist /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
