@@ -15,5 +15,8 @@ jobs:
       - name: Generate VS2022 Solution
         run: Scripts/BuildProjectWin.bat
 
+      - name: Setup VS2022
+        uses: microsoft/setup-msbuild@v1.3.1
+        
       - name: Build Solution
         run: msbuild /p:Configurations=Debug;Release;Dist /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
