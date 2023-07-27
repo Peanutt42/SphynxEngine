@@ -1,6 +1,9 @@
 name: C++ Windows VS2022 Build
 on:
   push:
+    paths-ignore:
+      - 'TestProject'
+      - 'README.md'
     branches:
       - main
   pull_request:
