@@ -1,0 +1,22 @@
+name: C++ Windows VS2022 Build
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  build:
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
+
+      - name: Set Up Build Tools
+        uses: microsoft/vs-build-tools@latest
+      
+      - name: Generate VS2022 Solution
+        run: Scripts/BuildProjectWin.bat
+
+      - name: Build Solution
+        run: msbuild /p:Configurations=Debug;Release;Dist /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
