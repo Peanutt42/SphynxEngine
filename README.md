@@ -1,3 +1,5 @@
+![example workflow](https://github.com/Peanutt42/SphynxEngine/actions/workflows/cpp-win-vs2022-build.yml/badge.svg)
+
 # SphynxEngine
 Why 'Sphynx'? Because I love cats and this game engine is kind of meant to be bare bones
 
