@@ -7,7 +7,7 @@ struct GLFWwindow;
 namespace Sphynx::Rendering {
 	class SE_API Window {
 	public:
-		Window(const std::string_view title, uint32_t width, uint32_t height, bool fullscreen = false);
+		Window(const std::string_view title, bool maximized = true, bool fullscreen = false);
 		~Window();
 
 		Window(const Window&) = delete;

@@ -12,8 +12,8 @@ namespace Sphynx::Rendering {
 		SE_ERR(Logging::Rendering, "[GLFW]: ({}): {}", error, description);
 	}
 
-	Window::Window(const std::string_view title, uint32_t width, uint32_t height, bool fullscreen)
-		: m_Title(title), m_Width(width), m_Height(height)
+	Window::Window(const std::string_view title, bool maximized, bool fullscreen)
+		: m_Title(title), m_Maximized(maximized)
 	{
 		SE_PROFILE_FUNCTION();
 
@@ -26,7 +26,7 @@ namespace Sphynx::Rendering {
 
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_SAMPLES, 0);
-		glfwWindowHint(GLFW_MAXIMIZED, fullscreen);
+		glfwWindowHint(GLFW_MAXIMIZED, m_Maximized);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		// ImGui implements custom titlebar
@@ -39,6 +39,13 @@ namespace Sphynx::Rendering {
 			const GLFWvidmode* videoMode = glfwGetVideoMode(monitor);
 			m_Width = videoMode->width;
 			m_Height = videoMode->height;
+		}
+		else {
+			GLFWmonitor* primaryMonitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* primaryVideoMode = glfwGetVideoMode(primaryMonitor);
+			// if maximized, width and height don't matter till the window is restored again
+			m_Width = primaryVideoMode->width / 2;
+			m_Height = primaryVideoMode->height / 2;
 		}
 
 		m_Window = glfwCreateWindow((int)m_Width, (int)m_Height, m_Title.c_str(), monitor, nullptr);
@@ -195,9 +202,20 @@ namespace Sphynx::Rendering {
 
 	void Window::_WindowMaximizeCallback(GLFWwindow* window, int maximized) {
 		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-		if (_window) {
-			_window->m_Maximized = maximized == 1;
-			_window->m_Minimized = maximized == 0;
+		if (_window)
+			_window->m_Maximized = (bool)maximized;
+
+		// Center Window position on restore
+		if (maximized == 0) {
+			GLFWmonitor* windowMonitor = glfwGetWindowMonitor(window);
+			if (!windowMonitor)
+				windowMonitor = glfwGetPrimaryMonitor();
+			const GLFWvidmode* vidMode = glfwGetVideoMode(windowMonitor);
+			int windowWidth = 0, windowHeight = 0;
+			glfwGetWindowSize(window, &windowWidth, &windowHeight);
+			int centeredPosX = (vidMode->width - windowWidth) / 2;
+			int centeredPosY = (vidMode->height - windowHeight) / 2;
+			glfwSetWindowPos(window, centeredPosX, centeredPosY);
 		}
 	}
 
