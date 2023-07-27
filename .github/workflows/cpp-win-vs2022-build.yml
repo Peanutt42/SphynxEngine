@@ -11,9 +11,6 @@ jobs:
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v2
-
-      - name: Set Up Build Tools
-        uses: microsoft/vs-build-tools@latest
       
       - name: Generate VS2022 Solution
         run: Scripts/BuildProjectWin.bat
