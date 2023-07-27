@@ -1,9 +1,8 @@
 # SphynxEngine
 Why 'Sphynx'? Because I love cats and this game engine is kind of meant to be bare bones
 
-## Prerequisites
-- Vulkan SDK
-  - Download and install from here: https://vulkan.lunarg.com/sdk/home#windows
+## Prerequisites (Optional)
+- Vulkan SDK: only needed for Vulkan Debugging (validation layers) -> https://vulkan.lunarg.com/sdk/home
 
 ## Building
 Run premake5 for your operating system

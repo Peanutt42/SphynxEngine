@@ -47,10 +47,13 @@ project "Engine"
 		"SE_EXPORT"
 	}
 
+	prebuildcommands {
+		"call " .. EngineDir .. "Engine\\Resources\\Shaders\\CompileShaders.bat"
+	}
+
 	postbuildcommands {
 		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\Editor\\\" /Y",
-		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\EngineRuntime\\\" /Y",
-		"call " .. EngineDir .. "Engine\\Resources\\Shaders\\CompileShaders.bat"
+		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\EngineRuntime\\\" /Y"
 	}
 
 	
