@@ -19,7 +19,7 @@ namespace Sphynx::Rendering {
 		static void EndSceneRenderpass();
 		static void BeginLastRenderpass();
 		static void EndLastRenderpass();
-		static void Submit();
+		static void Finish();
 
 		static void WaitBeforeClose();
 

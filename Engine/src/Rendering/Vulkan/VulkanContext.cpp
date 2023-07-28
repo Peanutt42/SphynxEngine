@@ -163,10 +163,10 @@ namespace Sphynx::Rendering {
 		CommandPool->EndRecording(CurrentFrame);
 	}
 
-	void VulkanContext::Submit() {
+	void VulkanContext::Finish() {
 		// Submit
 		{
-			SE_PROFILE_SCOPE("Sphynx::Rendering::VulkanContext::Submit");
+			SE_PROFILE_SCOPE("Submit");
 
 			VkSubmitInfo submitInfo{};
 			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -187,7 +187,7 @@ namespace Sphynx::Rendering {
 
 		// Present
 		{
-			SE_PROFILE_SCOPE("Sphynx::Rendering::VulkanContext::Submit");
+			SE_PROFILE_SCOPE("Present");
 
 			VkPresentInfoKHR presentInfo{};
 			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

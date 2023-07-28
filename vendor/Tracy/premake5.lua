@@ -19,7 +19,8 @@ project "Tracy"
 
 	defines {
         "TRACY_ENABLE",
-		"TRACY_EXPORTS"
+		"TRACY_EXPORTS",
+		"TRACY_ON_DEMAND"
 	}
 
 	filter { "configurations:Debug" }

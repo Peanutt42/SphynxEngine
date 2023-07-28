@@ -94,7 +94,7 @@ namespace Sphynx {
 			float updateTime = s_UpdateTimer.ElapsedSeconds();
 			float timeLeft = (1.f / s_Settings.MaxFPS) - updateTime;
 			if (timeLeft > 0.f) {
-				SE_PROFILE_SCOPE("Sphynx::Engine::MaxFpsCap");
+				SE_PROFILE_SCOPE("MaxFpsCap");
 				Time::MicroSleep((uint64_t)(floor(timeLeft * 1000 * 1000))); // Wait for microseconds
 			}
 		}

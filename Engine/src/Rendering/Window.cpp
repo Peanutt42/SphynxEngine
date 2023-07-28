@@ -18,7 +18,7 @@ namespace Sphynx::Rendering {
 		SE_PROFILE_FUNCTION();
 
 		if (s_WindowCount == 0) {
-			SE_PROFILE_SCOPE("Sphynx::Rendering::Window::InitGLFW");
+			SE_PROFILE_SCOPE("InitGLFW");
 			SE_ASSERT(glfwInit(), Logging::Rendering, "Failed to initialize GLFW");
 			glfwSetErrorCallback(GLFWErrorCallback);
 		}
@@ -90,11 +90,19 @@ namespace Sphynx::Rendering {
 	void Window::Update() {
 		SE_PROFILE_FUNCTION();
 
-		for (auto& callback : m_PendingMainThreadCallbacks)
-			callback();
-		m_PendingMainThreadCallbacks.clear();
+		{
+			SE_PROFILE_SCOPE("CallPendingCallbacks");
+
+			for (auto& callback : m_PendingMainThreadCallbacks)
+				callback();
+			m_PendingMainThreadCallbacks.clear();
+		}
 		
-		glfwPollEvents();
+		{
+			SE_PROFILE_SCOPE("PollEvents");
+
+			glfwPollEvents();
+		}
 
 		m_Minimized = glfwGetWindowAttrib(m_Window, GLFW_ICONIFIED);
 		m_Maximized = glfwGetWindowAttrib(m_Window, GLFW_MAXIMIZED);

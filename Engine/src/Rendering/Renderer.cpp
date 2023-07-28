@@ -59,7 +59,7 @@ namespace Sphynx::Rendering {
 
 		VulkanContext::EndLastRenderpass();
 
-		VulkanContext::Submit();
+		VulkanContext::Finish();
 	}
 
 	void Renderer::WaitBeforeClose() {
