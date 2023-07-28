@@ -14,8 +14,11 @@ namespace Sphynx::Scripting {
 
 			outFile << "#include \"Core/CoreInclude.hpp\"\n";
 			outFile << "#include \"" << engineDir << "/Programs/ReflectionGenerator/src/ReflectionInfo.hpp\"\n";
-			for (const std::string& filename : filenames)
-				outFile << "#include \"" << filename << "\"\n";
+			outFile << "#include \"" << engineDir << "/Engine/src/Scene/Scene.hpp\"\n";
+			for (const std::string& filename : filenames) {
+				std::string relativeFilepath = std::filesystem::relative(filename, filepath.parent_path()).string();
+				outFile << "#include \"" << relativeFilepath << "\"\n";
+			}
 			outFile << '\n';
 
 			outFile << "extern \"C\" {\n";
@@ -90,7 +93,7 @@ namespace Sphynx::Scripting {
 					outFile << "\t\t\t{\n";
 					outFile << "\t\t\t\t" << nextTypeID << ",\n";
 					outFile << "\t\t\t\t\"" << system.FullName << "\",\n";
-					outFile << "\t\t\t\t[](void* scene) { " << system.FullName << "::Update(*(Sphynx::ECS::Scene*)scene); }\n";
+					outFile << "\t\t\t\t[](void* scene) { " << system.FullName << "::Update(*(Sphynx::Scene*)scene); }\n";
 					outFile << "\t\t\t},\n";
 					nextTypeID++;
 				}

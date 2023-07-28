@@ -47,7 +47,8 @@ project "Engine"
 	}
 
 	prebuildcommands {
-		"call " .. EngineDir .. "Engine\\Resources\\Shaders\\CompileShaders.bat"
+		"cd " .. EngineDir .. "Engine\\Resources\\Shaders",
+		"call CompileShaders.bat"
 	}
 
 	postbuildcommands {
