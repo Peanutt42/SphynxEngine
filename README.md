@@ -1,7 +1,7 @@
 ![example workflow](https://github.com/Peanutt42/SphynxEngine/actions/workflows/cpp-win-vs2022-build.yml/badge.svg)
 
 # SphynxEngine
-Why 'Sphynx'? Because I love cats and this game engine is kind of meant to be bare bones
+Why 'Sphynx'? Because I love cats and this game engine isn't here to replace UE5
 
 ## Prerequisites (Optional)
 - Vulkan SDK: only needed for Vulkan Debugging (validation layers) -> https://vulkan.lunarg.com/sdk/home
