@@ -22,8 +22,10 @@ namespace Sphynx {
 		void ParseConfigFile(const std::filesystem::path& filepath) {
 			std::string filepathStr = filepath.string();
 
-			YAML::Node data = YAML::LoadFile(filepathStr);
-			MaxFPS = data["MaxFPS"].as<float>();
+			YAML::Node data;
+			if (YAMLSerializer::LoadFile(filepathStr, data)) {
+				MaxFPS = data["MaxFPS"].as<float>();
+			}
 		}
 	};
 

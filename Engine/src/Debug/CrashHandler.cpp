@@ -94,7 +94,7 @@ namespace Sphynx {
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
-		Serialization::SaveYamlToFile("Programs/CrashReporter/CrashReport.txt", out);
+		YAMLSerializer::SaveFile("Programs/CrashReporter/CrashReport.txt", out);
 
 		std::cin.get();
 

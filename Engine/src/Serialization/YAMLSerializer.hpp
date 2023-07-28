@@ -42,9 +42,9 @@ namespace YAML {
 }
 
 namespace Sphynx {
-	class SE_API Serialization {
+	class SE_API YAMLSerializer {
 	public:
-		static bool SaveYamlToFile(const std::filesystem::path& filepath, const YAML::Emitter& emitter) {
+		static bool SaveFile(const std::filesystem::path& filepath, const YAML::Emitter& emitter) {
 			std::ofstream fout(filepath);
 			if (!fout) {
 				SE_ERR("Failed to save file '{}'", filepath.string());
@@ -53,6 +53,22 @@ namespace Sphynx {
 
 			fout << emitter.c_str();
 			fout.close();
+			return true;
+		}
+
+		static bool LoadFile(const std::filesystem::path& filepath, YAML::Node& outData) {
+			if (!std::filesystem::exists(filepath)) {
+				SE_ERR(Logging::Serialization, "{} doesn't exist!", filepath.string());
+				return false;
+			}
+			
+			try {
+				outData = YAML::LoadFile(filepath.string());
+			}
+			catch (const YAML::Exception& e) {
+				SE_ERR(Logging::Serialization, "Failed to open yaml file {},\n    yaml exception: {}", filepath.string(), e.what());
+				return false;
+			}
 			return true;
 		}
 	};

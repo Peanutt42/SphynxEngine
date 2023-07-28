@@ -31,7 +31,7 @@ namespace Sphynx {
 
 			out << YAML::EndMap;
 
-			Serialization::SaveYamlToFile(filepath, out);
+			YAMLSerializer::SaveFile(filepath, out);
 		}
 
 
@@ -44,7 +44,8 @@ namespace Sphynx {
 		static void Deserialize(const std::filesystem::path& filepath, Scene& outScene) {
 			std::string filepathStr = filepath.string();
 			
-			YAML::Node data = YAML::LoadFile(filepathStr.c_str());
+			YAML::Node data;
+			SE_ASSERT(YAMLSerializer::LoadFile(filepathStr.c_str(), data), Logging::Serialization, "Failed to open scene file {}", filepathStr);
 
 			outScene.SetName(data["Name"].as<std::string>());
 

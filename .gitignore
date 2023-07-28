@@ -18,6 +18,7 @@
 *.out
 *.app
 /bin
+TestProject/Binaries
 Programs/ReflectionGenerator/bin
 Programs/CrashReporter/bin
 
