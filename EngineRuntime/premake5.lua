@@ -39,20 +39,17 @@ project "EngineRuntime"
 		"Engine",
 		"yaml",
 		"stb_image",
-		"tracy",
 		"imgui",
 		"%{Libaries.Vulkan}"
-	}
-
-	postbuildcommands {
-		"%{CopyBinaryCmds.Tracy}"
 	}
 	
 	-- Config dependent links
 	filter { "configurations:Debug" }
-		links { "%{Libaries.spirv_cross_Debug}" }
+		links { "%{Libaries.spirv_cross_Debug}", "Tracy" }
+		postbuildcommands { "%{CopyBinaryCmds.Tracy}" }
 	filter { "configurations:Release" }
-		links { "%{Libaries.spirv_cross_Release}" }
+		links { "%{Libaries.spirv_cross_Release}", "Tracy" }
+		postbuildcommands { "%{CopyBinaryCmds.Tracy}" }
 	filter { "configurations:Dist" }
 		links { "%{Libaries.spirv_cross_Dist}" }
 

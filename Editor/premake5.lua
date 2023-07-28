@@ -41,24 +41,22 @@ project "Editor"
 		"Engine",
 		"yaml",
 		"stb_image",
-		"tracy",
 		"imgui",
 		"%{Libaries.Vulkan}",
 		"%{Libaries.assimp}"
 	}
 
 	postbuildcommands {
-		"%{CopyBinaryCmds.Tracy}",
 		"%{CopyBinaryCmds.assimp}"
 	}
 	
 	-- Config dependent links
 	filter { "configurations:Debug" }
-		links { "%{Libaries.shaderc_Debug}", "%{Libaries.spirv_cross_Debug}" }
-		postbuildcommands { "%{CopyBinaryCmds.shaderc_Debug}" }
+		links { "%{Libaries.shaderc_Debug}", "%{Libaries.spirv_cross_Debug}", "Tracy" }
+		postbuildcommands { "%{CopyBinaryCmds.shaderc_Debug}", "%{CopyBinaryCmds.Tracy}" }
 	filter { "configurations:Release" }
-		links { "%{Libaries.shaderc_Release}", "%{Libaries.spirv_cross_Release}" }
-		postbuildcommands { "%{CopyBinaryCmds.shaderc_Release}" }
+		links { "%{Libaries.shaderc_Release}", "%{Libaries.spirv_cross_Release}", "Tracy" }
+		postbuildcommands { "%{CopyBinaryCmds.shaderc_Release}", "%{CopyBinaryCmds.Tracy}" }
 	filter { "configurations:Dist" }
 		links { "%{Libaries.shaderc_Dist}", "%{Libaries.spirv_cross_Dist}" }
 		postbuildcommands { "%{CopyBinaryCmds.shaderc_Dist}" }
