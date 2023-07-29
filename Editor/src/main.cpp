@@ -26,9 +26,6 @@ int main(int argc, const char** argv) {
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
 	SE_ASSERT(project->EngineVersion == Sphynx::Engine::Version, "The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version);
 
-	// Create application
-	std::shared_ptr<Sphynx::Editor::EditorApplication> application = std::make_unique<Sphynx::Editor::EditorApplication>();
-
 	Sphynx::ConsoleArguments arguments(argc, argv);
 
 	Sphynx::EngineSettings engineSettings;
@@ -42,7 +39,7 @@ int main(int argc, const char** argv) {
 	Sphynx::EngineInitInfo initInfo {
 		.Settings = engineSettings,
 		.Project = project,
-		.Application = application
+		.Application = std::make_shared<Sphynx::Editor::EditorApplication>()
 	};
 
 	Sphynx::Engine::Init(initInfo);

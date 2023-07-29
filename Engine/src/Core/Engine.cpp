@@ -41,6 +41,7 @@ namespace Sphynx {
 
 	void Engine::Shutdown() {
 		s_Application->OnDestroy();
+		s_Application.reset();
 
 		if (!s_Settings.Headless)
 			s_Renderer->WaitBeforeClose();

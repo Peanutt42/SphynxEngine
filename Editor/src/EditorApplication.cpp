@@ -42,6 +42,8 @@ namespace Sphynx::Editor {
 		SE_PROFILE_FUNCTION();
 
 		m_Windows.clear();
+		m_EditingScene.reset();
+		m_GameScene.reset();
 	}
 	
 	void EditorApplication::Update() {

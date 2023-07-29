@@ -62,12 +62,12 @@ namespace Sphynx::ECS {
 		}
 
 		template<typename T>
-		T& AddComponent(const EntityId entity, const T& component) {
+		T& AddComponent(const EntityId entity, T&& component) {
 			if (!IsValid(entity))
 				return *(T*)nullptr;
 
 			Storage& storage = CreateStorage<T>();
-			return storage.Add<T>(entity, component);
+			return storage.Add<T>(entity, std::move(component));
 		}
 
 		template<typename T>
@@ -119,9 +119,9 @@ namespace Sphynx::ECS {
 		}
 
 		template<typename T>
-		T& Replace(const EntityId entity, const T& component) {
+		T& Replace(const EntityId entity, T&& component) {
 			Storage& storage = CreateStorage<T>();
-			return storage.Replace<T>(entity, component);
+			return storage.Replace<T>(entity, std::move(component));
 		}
 
 		bool IsValid(const EntityId entity) const {
@@ -257,8 +257,12 @@ namespace Sphynx::ECS {
 			if (storage)
 				return *storage;
 
-			CopyFunc copyFunc = [](void* ptr, const void* src) { std::construct_at(static_cast<T*>(ptr), *static_cast<const T*>(src)); };
-			DestroyFunc destroyFunc = [](void* ptr) { std::destroy_at(static_cast<T*>(ptr)); };
+			CopyFunc copyFunc = [](void* ptr, void* src) {
+				std::construct_at(static_cast<T*>(ptr), std::move(*static_cast<T*>(src)));
+			};
+			DestroyFunc destroyFunc = [](void* ptr) {
+				std::destroy_at(static_cast<T*>(ptr));
+			};
 			m_Storages[id] = Storage(
 				sizeof(T),
 				copyFunc,

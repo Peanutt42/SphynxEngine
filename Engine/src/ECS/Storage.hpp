@@ -9,7 +9,8 @@ namespace Sphynx::ECS {
 	using ComponentIndex = uint32_t;
 	constexpr ComponentIndex InvalidComponentIndex = (ComponentIndex)-1;
 
-	using CopyFunc = void(*)(void* ptr, const void* src);
+	// technically a move func
+	using CopyFunc = void(*)(void* ptr, void* src);
 	using DestroyFunc = void(*)(void* ptr);
 
 	class Storage {
@@ -26,11 +27,11 @@ namespace Sphynx::ECS {
 		}
 
 		template<typename T>
-		T& Add(const EntityId entity, const T& srcComponent) {
+		T& Add(const EntityId entity, T&& srcComponent) {
 			return *static_cast<T*>(AddRaw(entity, &srcComponent));
 		}
 
-		void* AddRaw(const EntityId entity, const void* srcComponent) {
+		void* AddRaw(const EntityId entity, void* srcComponent) {
 			if (Has(entity))
 				return GetRaw(entity);
 
@@ -91,11 +92,11 @@ namespace Sphynx::ECS {
 		}
 
 		template<typename T>
-		T& Replace(const EntityId entity, const T& srcComponent) {
+		T& Replace(const EntityId entity, T&& srcComponent) {
 			return *static_cast<T*>(ReplaceRaw(entity, &srcComponent));
 		}
 
-		void* ReplaceRaw(const EntityId entity, const void* srcComponent) {
+		void* ReplaceRaw(const EntityId entity, void* srcComponent) {
 			if (!Has(entity))
 				return AddRaw(entity, srcComponent);
 
