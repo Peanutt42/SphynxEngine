@@ -257,7 +257,7 @@ namespace Sphynx::ECS {
 			if (storage)
 				return *storage;
 
-			CopyFunc copyFunc = [](const void* src, void* dst) { std::construct_at(static_cast<T*>(dst), *static_cast<const T*>(src)); };
+			CopyFunc copyFunc = [](void* ptr, const void* src) { std::construct_at(static_cast<T*>(ptr), *static_cast<const T*>(src)); };
 			DestroyFunc destroyFunc = [](void* ptr) { std::destroy_at(static_cast<T*>(ptr)); };
 			m_Storages[id] = Storage(
 				sizeof(T),

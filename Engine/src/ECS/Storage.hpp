@@ -9,7 +9,7 @@ namespace Sphynx::ECS {
 	using ComponentIndex = uint32_t;
 	constexpr ComponentIndex InvalidComponentIndex = (ComponentIndex)-1;
 
-	using CopyFunc = void(*)(const void* src, void* dst);
+	using CopyFunc = void(*)(void* ptr, const void* src);
 	using DestroyFunc = void(*)(void* ptr);
 
 	class Storage {
@@ -44,7 +44,7 @@ namespace Sphynx::ECS {
 
 			m_ComponentIndexes[entity] = index;
 			void* componentPtr = &m_Data[index];
-			m_CopyFunc(srcComponent, componentPtr);
+			m_CopyFunc(componentPtr, srcComponent);
 			return componentPtr;
 		}
 
