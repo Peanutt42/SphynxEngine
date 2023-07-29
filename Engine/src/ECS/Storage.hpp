@@ -19,6 +19,12 @@ namespace Sphynx::ECS {
 		Storage(size_t elementSize, CopyFunc copyFunc, DestroyFunc destroyFunc)
 			: m_ElementSize(elementSize), m_CopyFunc(copyFunc), m_DestroyFunc(destroyFunc) {}
 
+		~Storage() {
+			for (EntityId entity = 0; entity < (EntityId)m_ComponentIndexes.size(); entity++) {
+				Remove(entity);
+			}
+		}
+
 		template<typename T>
 		T& Add(const EntityId entity, const T& srcComponent) {
 			return *static_cast<T*>(AddRaw(entity, &srcComponent));

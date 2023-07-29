@@ -40,8 +40,6 @@ namespace Sphynx {
 	}
 
 	void Engine::Shutdown() {
-		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
-
 		s_Application->OnDestroy();
 
 		if (!s_Settings.Headless)
@@ -58,6 +56,8 @@ namespace Sphynx {
 			delete s_Renderer;
 			delete s_Window;
 		}
+
+		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
 
 		Logging::Shutdown();
 	}
