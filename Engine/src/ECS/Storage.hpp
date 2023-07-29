@@ -55,18 +55,9 @@ namespace Sphynx::ECS {
 			return m_ComponentIndexes[entity] != InvalidComponentIndex;
 		}
 
-		void* TryGet(const EntityId entity) {
-			if (entity >= m_ComponentIndexes.size())
-				return nullptr;
-			const ComponentIndex index = m_ComponentIndexes[entity];
-			if (index == InvalidComponentIndex)
-				return nullptr;
-			return &m_Data[index];
-		}
-
 		template<typename T>
-		T& Get(const EntityId entity) {
-			return *static_cast<T*>(GetRaw(entity));
+		T* Get(const EntityId entity) {
+			return static_cast<T*>(GetRaw(entity));
 		}
 
 		void* GetRaw(const EntityId entity) {

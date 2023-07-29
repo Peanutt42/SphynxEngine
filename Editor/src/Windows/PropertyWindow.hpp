@@ -16,7 +16,7 @@ namespace Sphynx::Editor {
 			if (!scene.IsValid(entity))
 				return;
 
-			ImGui::InputText("Name", &scene.GetComponent<ECS::NameComponent>(entity).Name);
+			ImGui::InputText("Name", &scene.GetComponent<ECS::NameComponent>(entity)->Name);
 		}
 	};
 }

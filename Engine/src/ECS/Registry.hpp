@@ -1,13 +1,9 @@
 #pragma once
 
+#include "Core/CoreInclude.hpp"
 #include "ComponentId.hpp"
 #include "Storage.hpp"
 #include "EntityId.hpp"
-#include <memory>
-#include <unordered_map>
-#include <functional>
-#include <array>
-#include <cassert>
 
 namespace Sphynx::ECS {
 	class Registry {
@@ -54,7 +50,7 @@ namespace Sphynx::ECS {
 		EntityId Dublicate(const EntityId entity) {
 			const EntityId dublicate = Create();
 			for (auto& [componentId, storage] : m_Storages) {
-				void* srcComponent = storage.TryGet(entity);
+				void* srcComponent = storage.GetRaw(entity);
 				if (srcComponent)
 					storage.AddRaw(dublicate, srcComponent);
 			}
@@ -83,27 +79,15 @@ namespace Sphynx::ECS {
 		}
 
 		template<typename T>
-		T& GetComponent(const EntityId entity) {
+		T* GetComponent(const EntityId entity) {
 			if (!IsValid(entity))
-				return *(T*)nullptr;
+				return nullptr;
 
 			Storage* storage = FindStorage<T>();
 			if (!storage)
-				return *(T*)nullptr;
+				return nullptr;
 
 			return storage->Get<T>(entity);
-		}
-
-		template<typename T>
-		T* TryGetComponent(const EntityId entity) {
-			if (!IsValid(entity))
-				return nullptr;
-
-			Storage* storage = FindStorage<T>();
-			if (!storage)
-				return nullptr;
-
-			return storage->TryGet<T>(entity);
 		}
 
 		template<typename T>
@@ -219,7 +203,7 @@ namespace Sphynx::ECS {
 			}
 
 			T& Get(const EntityId entity) {
-				return m_Storage->Get<T>(entity);
+				return *m_Storage->Get<T>(entity);
 			}
 
 		private:

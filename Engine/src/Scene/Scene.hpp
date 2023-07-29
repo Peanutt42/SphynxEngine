@@ -26,7 +26,7 @@ namespace Sphynx {
 			return m_Registry.HasComponent<T>(entity);
 		}
 		template<typename T>
-		T& GetComponent(ECS::EntityId entity) {
+		T* GetComponent(ECS::EntityId entity) {
 			return m_Registry.GetComponent<T>(entity);
 		}
 		template<typename T>

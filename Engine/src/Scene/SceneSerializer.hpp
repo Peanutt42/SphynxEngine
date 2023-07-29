@@ -10,8 +10,8 @@ namespace Sphynx {
 	public:
 		static void SerializeEntity(Scene& scene, ECS::EntityId entity, YAML::Emitter& out) {
 			out << YAML::BeginMap;
-			out << YAML::Key << "Entity" << YAML::Value << scene.GetComponent<ECS::UUIDComponent>(entity).uuid;
-			out << YAML::Key << "Name" << YAML::Value << scene.GetComponent<ECS::NameComponent>(entity).Name;
+			out << YAML::Key << "Entity" << YAML::Value << scene.GetComponent<ECS::UUIDComponent>(entity)->uuid;
+			out << YAML::Key << "Name" << YAML::Value << scene.GetComponent<ECS::NameComponent>(entity)->Name;
 
 			out << YAML::EndMap;
 		}
@@ -38,7 +38,7 @@ namespace Sphynx {
 		static void DeserializeEntity(Scene& scene, const YAML::Node& entityNode) {
 			UUID uuid = entityNode["Entity"].as<UUID>();
 			ECS::EntityId entity = scene.CreateEntity(uuid);
-			scene.GetComponent<ECS::NameComponent>(entity).Name = entityNode["Name"].as<std::string>();
+			scene.GetComponent<ECS::NameComponent>(entity)->Name = entityNode["Name"].as<std::string>();
 		}
 
 		static void Deserialize(const std::filesystem::path& filepath, Scene& outScene) {
