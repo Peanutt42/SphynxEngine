@@ -26,7 +26,7 @@ namespace Sphynx::ECS {
 
 		void* AddRaw(const EntityId entity, const void* srcComponent) {
 			if (Has(entity))
-				return Get(entity);
+				return GetRaw(entity);
 
 			if (entity >= m_ComponentIndexes.size())
 				m_ComponentIndexes.resize((size_t)entity + 1, InvalidComponentIndex);
@@ -48,22 +48,21 @@ namespace Sphynx::ECS {
 			return m_ComponentIndexes[entity] != InvalidComponentIndex;
 		}
 
-		bool TryGet(const EntityId entity, void** out) {
+		void* TryGet(const EntityId entity) {
 			if (entity >= m_ComponentIndexes.size())
-				return false;
+				return nullptr;
 			const ComponentIndex index = m_ComponentIndexes[entity];
 			if (index == InvalidComponentIndex)
-				return false;
-			*out = &m_Data[index];
-			return true;
+				return nullptr;
+			return &m_Data[index];
 		}
 
 		template<typename T>
 		T& Get(const EntityId entity) {
-			return *static_cast<T*>(Get(entity));
+			return *static_cast<T*>(GetRaw(entity));
 		}
 
-		void* Get(const EntityId entity) {
+		void* GetRaw(const EntityId entity) {
 			if (entity >= m_ComponentIndexes.size())
 				return nullptr;
 			const ComponentIndex index = m_ComponentIndexes[entity];
@@ -83,6 +82,22 @@ namespace Sphynx::ECS {
 			m_DestroyFunc(componentPtr);
 			std::memset(componentPtr, 0, m_ElementSize);
 			return true;
+		}
+
+		template<typename T>
+		T& Replace(const EntityId entity, const T& srcComponent) {
+			return *static_cast<T*>(ReplaceRaw(entity, &srcComponent));
+		}
+
+		void* ReplaceRaw(const EntityId entity, const void* srcComponent) {
+			if (!Has(entity))
+				return AddRaw(entity, srcComponent);
+
+			const ComponentIndex index = m_ComponentIndexes[entity];
+			void* componentPtr = &m_Data[index];
+			m_DestroyFunc(componentPtr);
+			m_CopyFunc(componentPtr, &srcComponent);
+			return componentPtr;
 		}
 
 		size_t Size() const {

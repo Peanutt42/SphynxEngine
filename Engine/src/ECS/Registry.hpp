@@ -54,8 +54,8 @@ namespace Sphynx::ECS {
 		EntityId Dublicate(const EntityId entity) {
 			const EntityId dublicate = Create();
 			for (auto& [componentId, storage] : m_Storages) {
-				void* srcComponent = nullptr;
-				if (storage.TryGet(entity, &srcComponent))
+				void* srcComponent = storage.TryGet(entity);
+				if (srcComponent)
 					storage.AddRaw(dublicate, srcComponent);
 			}
 			return dublicate;
@@ -87,8 +87,23 @@ namespace Sphynx::ECS {
 			if (!IsValid(entity))
 				return *(T*)nullptr;
 
-			Storage& storage = CreateStorage<T>();
-			return storage.Get<T>(entity);
+			Storage* storage = FindStorage<T>();
+			if (!storage)
+				return *(T*)nullptr;
+
+			return storage->Get<T>(entity);
+		}
+
+		template<typename T>
+		T* TryGetComponent(const EntityId entity) {
+			if (!IsValid(entity))
+				return nullptr;
+
+			Storage* storage = FindStorage<T>();
+			if (!storage)
+				return nullptr;
+
+			return storage->TryGet<T>(entity);
 		}
 
 		template<typename T>
@@ -96,20 +111,17 @@ namespace Sphynx::ECS {
 			if (!IsValid(entity))
 				return false;
 
-			Storage& storage = CreateStorage<T>();
-			return storage.Remove(entity);
+			const Storage* storage = FindStorage<T>();
+			if (!storage)
+				return false;
+
+			return storage->Remove(entity);
 		}
 
-		template<typename T, typename... Args>
-		T& AddOrReplace(const EntityId entity, Args&&... args) {
+		template<typename T>
+		T& Replace(const EntityId entity, const T& component) {
 			Storage& storage = CreateStorage<T>();
-			T* ptr = nullptr;
-			if (storage.TryGet(entity, &ptr)) {
-				std::construct_at(ptr, std::forward<Args>(args)...);
-				return *ptr;
-			}
-			else
-				return storage.Add<T>(entity);
+			return storage.Replace<T>(entity, component);
 		}
 
 		bool IsValid(const EntityId entity) const {
