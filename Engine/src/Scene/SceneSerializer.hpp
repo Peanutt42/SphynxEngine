@@ -13,6 +13,17 @@ namespace Sphynx {
 			out << YAML::Key << "Entity" << YAML::Value << scene.GetComponent<ECS::UUIDComponent>(entity)->uuid;
 			out << YAML::Key << "Name" << YAML::Value << scene.GetComponent<ECS::NameComponent>(entity)->Name;
 
+			if (scene.HasComponent<ECS::TransformComponent>(entity)) {
+				out << YAML::Key << "Transform" << YAML::BeginMap;
+
+				ECS::TransformComponent* transform = scene.GetComponent<ECS::TransformComponent>(entity);
+				out << YAML::Key << "Position" << YAML::Value << transform->Position;
+				out << YAML::Key << "Rotation" << YAML::Value << transform->Rotation;
+				out << YAML::Key << "Scale" << YAML::Value << transform->Scale;
+
+				out << YAML::EndMap;
+			}
+
 			out << YAML::EndMap;
 		}
 
@@ -34,11 +45,19 @@ namespace Sphynx {
 			YAMLSerializer::SaveFile(filepath, out);
 		}
 
-
+#
 		static void DeserializeEntity(Scene& scene, const YAML::Node& entityNode) {
 			UUID uuid = entityNode["Entity"].as<UUID>();
 			ECS::EntityId entity = scene.CreateEntity(uuid);
 			scene.GetComponent<ECS::NameComponent>(entity)->Name = entityNode["Name"].as<std::string>();
+			
+			YAML::Node transformNode = entityNode["Transform"];
+			if (transformNode) {
+				ECS::TransformComponent* transform = scene.GetComponent<ECS::TransformComponent>(entity);
+				transform->Position = transformNode["Position"].as<glm::vec3>();
+				transform->Rotation = transformNode["Rotation"].as<glm::vec3>();
+				transform->Scale = transformNode["Scale"].as<glm::vec3>();
+			}
 		}
 
 		static void Deserialize(const std::filesystem::path& filepath, Scene& outScene) {

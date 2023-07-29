@@ -95,7 +95,7 @@ namespace Sphynx::ECS {
 			if (!IsValid(entity))
 				return false;
 
-			const Storage* storage = FindStorage<T>();
+			Storage* storage = FindStorage<T>();
 			if (!storage)
 				return false;
 

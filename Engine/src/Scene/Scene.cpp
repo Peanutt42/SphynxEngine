@@ -14,6 +14,7 @@ namespace Sphynx {
 
 		m_Registry.AddComponent(entity, ECS::NameComponent{"Noname"});
 		m_Registry.AddComponent(entity, ECS::UUIDComponent{ uuid });
+		m_Registry.AddComponent(entity, ECS::TransformComponent{});
 
 		return entity;
 	}
