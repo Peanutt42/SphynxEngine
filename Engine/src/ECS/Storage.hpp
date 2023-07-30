@@ -10,7 +10,7 @@ namespace Sphynx::ECS {
 	constexpr ComponentIndex InvalidComponentIndex = (ComponentIndex)-1;
 
 	// technically a move func
-	using CopyFunc = void(*)(void* ptr, void* src);
+	using CopyFunc = void(*)(void* ptr, const void* src);
 	using DestroyFunc = void(*)(void* ptr);
 
 	class Storage {
@@ -26,12 +26,30 @@ namespace Sphynx::ECS {
 			}
 		}
 
+		Storage(const Storage& other) { *this = other; }
+
+		Storage& operator=(const Storage& other) {
+			m_ElementSize = other.m_ElementSize;
+			m_CopyFunc = other.m_CopyFunc;
+			m_DestroyFunc = other.m_DestroyFunc;
+			m_NextComponentIndex = other.m_NextComponentIndex;
+			m_Data = other.m_Data;
+			m_ComponentIndexes = other.m_ComponentIndexes;
+			// Copy Components
+			for (EntityId entity = 0; entity < (EntityId)m_ComponentIndexes.size(); entity++) {
+				ComponentIndex index = m_ComponentIndexes[entity];
+				if (index != InvalidComponentIndex)
+					m_CopyFunc(&m_Data[index], &other.m_Data[index]);
+			}
+			return *this;
+		}
+
 		template<typename T>
-		T& Add(const EntityId entity, T&& srcComponent) {
+		T& Add(const EntityId entity, const T& srcComponent) {
 			return *static_cast<T*>(AddRaw(entity, &srcComponent));
 		}
 
-		void* AddRaw(const EntityId entity, void* srcComponent) {
+		void* AddRaw(const EntityId entity, const void* srcComponent) {
 			if (Has(entity))
 				return GetRaw(entity);
 
@@ -83,11 +101,11 @@ namespace Sphynx::ECS {
 		}
 
 		template<typename T>
-		T& Replace(const EntityId entity, T&& srcComponent) {
+		T& Replace(const EntityId entity, const T& srcComponent) {
 			return *static_cast<T*>(ReplaceRaw(entity, &srcComponent));
 		}
 
-		void* ReplaceRaw(const EntityId entity, void* srcComponent) {
+		void* ReplaceRaw(const EntityId entity, const void* srcComponent) {
 			if (!Has(entity))
 				return AddRaw(entity, srcComponent);
 
