@@ -7,11 +7,13 @@ namespace Sphynx::Editor {
 	public:
 		LoggingOutputWindow() {
 			Name = "Logging Output";
-			Logging::RegisterOnLogCallback([this](Logging::Verbosity verbosity, Logging::Category category, const std::string& msg) {
-				if (this)
-					m_Logs.emplace_back(msg, verbosity, category);
-			});
-			m_Logs.reserve(1024);
+			if (!s_LogCallbackAttatched) {
+				Logging::RegisterOnLogCallback([](Logging::Verbosity verbosity, Logging::Category category, const std::string& msg) {
+					s_Logs.emplace_back(msg, verbosity, category);
+				});
+				s_Logs.reserve(1024);
+				s_LogCallbackAttatched = true;
+			}
 			SE_INFO(Logging::Editor, "This is a test");
 			SE_WARN(Logging::Editor, "This is a test");
 			SE_ERR(Logging::Editor, "This is a test");
@@ -19,16 +21,16 @@ namespace Sphynx::Editor {
 
 		virtual void Draw() override {
 			if (ImGui::Button("Clear")) {
-				m_Logs.clear();
-				m_Logs.reserve(1024);
+				s_Logs.clear();
+				s_Logs.reserve(1024);
 			}
 
 			if (ImGui::BeginChild("scrolling", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar)) {
 				ImGuiListClipper clipper;
-				clipper.Begin((int)m_Logs.size());
+				clipper.Begin((int)s_Logs.size());
 				while (clipper.Step()) {
 					for (int i = clipper.DisplayStart; i < clipper.DisplayEnd; i++) {
-						switch (m_Logs[i].Verbosity) {
+						switch (s_Logs[i].Verbosity) {
 						case Logging::Verbosity::Trace:
 						case Logging::Verbosity::Info:
 							ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.f, 1.f, 1.f, 1.f});
@@ -41,9 +43,9 @@ namespace Sphynx::Editor {
 							ImGui::PushStyleColor(ImGuiCol_Text, ImVec4{1.f, 0.f, 0.f, 1.f});
 							break;
 						}
-						ImGui::TextUnformatted(Logging::CategoryToString(m_Logs[i].Category));
+						ImGui::TextUnformatted(Logging::CategoryToString(s_Logs[i].Category));
 						ImGui::SameLine();
-						ImGui::TextUnformatted(m_Logs[i].Msg.c_str());
+						ImGui::TextUnformatted(s_Logs[i].Msg.c_str());
 						ImGui::PopStyleColor();
 					}
 				}
@@ -62,6 +64,7 @@ namespace Sphynx::Editor {
 			Logging::Verbosity Verbosity;
 			Logging::Category Category;
 		};
-		std::vector<LogEntry> m_Logs;
+		inline static std::vector<LogEntry> s_Logs;
+		inline static bool s_LogCallbackAttatched = false;
 	};
 }
