@@ -2,6 +2,7 @@
 
 #include "Core/CoreInclude.hpp"
 #include "Rendering/Image.hpp"
+#include "Fonts.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -42,29 +43,32 @@ namespace Sphynx::UI {
 	}
 
 
-	bool BeginMenubar(const ImRect& bar);
-	void EndMenubar();
+	SE_API bool BeginMenubar(const ImRect& bar);
+	SE_API void EndMenubar();
 
 
-	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+	SE_API void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
 		ImVec2 rectMin, ImVec2 rectMax);
 
-	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+	SE_API void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
 		ImRect rectangle);
 
-	void DrawButtonImage(Rendering::Image& image,
+	SE_API void DrawButtonImage(Rendering::Image& image,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
 		ImVec2 rectMin, ImVec2 rectMax);
 
-	void DrawButtonImage(Rendering::Image& image,
+	SE_API void DrawButtonImage(Rendering::Image& image,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
 		ImRect rectangle);
 
-	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+	SE_API void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
 
-	void DrawButtonImage(Rendering::Image& image,
+	SE_API void DrawButtonImage(Rendering::Image& image,
 		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
+
+
+	SE_API bool Vec3(std::string_view label, glm::vec3& v, float resetValue = 0.f, float columnWidth = 100.f);
 }

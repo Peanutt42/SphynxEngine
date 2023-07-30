@@ -2,7 +2,19 @@ Name: New
 Entities:
   - Entity: 11624051516532224898
     Name: 1.
+    Transform:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 17324187834077041472
     Name: 2.
+    Transform:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
   - Entity: 4262648916456273196
     Name: 3.
+    Transform:
+      Position: [0, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
