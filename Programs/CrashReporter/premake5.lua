@@ -38,18 +38,15 @@ project "CrashReporter"
 	}
 
 	filter { "configurations:Debug" }
-		buildoptions "/MDd"
 		runtime "Debug"
 		optimize "off"
 		symbols "on"
 		
 	filter { "configurations:Release" }
-		buildoptions "/MD"
 		runtime "Release"
 		optimize "Full"
 	
 	filter { "configurations:Dist" }
-		buildoptions "/MD"
 		runtime "Release"
 		optimize "Full"
 		
