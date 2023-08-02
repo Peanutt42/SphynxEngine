@@ -16,9 +16,9 @@ namespace Sphynx::Scripting {
 		const std::vector<SystemReflectionInfo>& GetSystems() const { return *m_Systems; }
 
 	private:
-		using GetComponentsFunc = std::vector<ComponentReflectionInfo>* (*)();
-		using GetConfigsFunc = std::vector<ConfigReflectionInfo>* (*)();
-		using GetSystemsFunc = std::vector<SystemReflectionInfo>* (*)();
+		using GetComponentsFunc = std::vector<ComponentReflectionInfo>*(*)();
+		using GetConfigsFunc = std::vector<ConfigReflectionInfo>*(*)();
+		using GetSystemsFunc = std::vector<SystemReflectionInfo>*(*)();
 
 	private:
 		std::unique_ptr<Platform::DynamicLinkLibary> m_Module;

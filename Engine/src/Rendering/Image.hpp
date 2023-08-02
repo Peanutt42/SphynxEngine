@@ -3,6 +3,8 @@
 #include "Core/CoreInclude.hpp"
 
 namespace Sphynx::Rendering {
+	class VulkanTexture;
+
 	class SE_API Image {
 	public:
 		Image(const uint8_t* data, size_t size);
@@ -19,7 +21,6 @@ namespace Sphynx::Rendering {
 		Image& operator=(const Image&) = delete;
 
 	private:
-		struct ImplData;
-		ImplData* m_Data = nullptr;
+		VulkanTexture* m_Texture = nullptr;
 	};
 }

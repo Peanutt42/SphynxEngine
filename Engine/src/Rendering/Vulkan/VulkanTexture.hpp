@@ -34,6 +34,8 @@ namespace Sphynx::Rendering {
 
 		VkImageView GetImageView() { return m_View; }
 
+		VkDescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
+
 	private:
 		uint32_t m_Width = 0, m_Height = 0;
 		std::vector<uint8_t> m_Data;
@@ -42,5 +44,8 @@ namespace Sphynx::Rendering {
 		VkImage m_Image = VK_NULL_HANDLE;
 		VkImageView m_View = VK_NULL_HANDLE;
 		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+
+		VkSampler m_Sampler = VK_NULL_HANDLE;
+		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
 	};
 }

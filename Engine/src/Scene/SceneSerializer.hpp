@@ -60,21 +60,28 @@ namespace Sphynx {
 			}
 		}
 
-		static void Deserialize(const std::filesystem::path& filepath, Scene& outScene) {
+		static bool Deserialize(const std::filesystem::path& filepath, Scene& outScene, std::string& outErrorMsg) {
 			std::string filepathStr = filepath.string();
 			
 			YAML::Node data;
 			if (!YAMLSerializer::LoadFile(filepathStr.c_str(), data)) {
-				SE_ERR(Logging::Serialization, "Failed to open scene file {}", filepathStr);
-				return;
+				outErrorMsg = std::format("Failed to open scene file {}", filepathStr);
+				return false;
 			}
 
-			outScene.SetName(data["Name"].as<std::string>());
+			try {
+				outScene.SetName(data["Name"].as<std::string>());
 
-			auto entitiesNode = data["Entities"];
-			for (const YAML::Node& entityNode : entitiesNode) {
-				DeserializeEntity(outScene, entityNode);
+				auto entitiesNode = data["Entities"];
+				for (const YAML::Node& entityNode : entitiesNode) {
+					DeserializeEntity(outScene, entityNode);
+				}
 			}
+			catch (const std::exception& e) {
+				outErrorMsg = e.what();
+				return false;
+			}
+			return true;
 		}
 	};
 }

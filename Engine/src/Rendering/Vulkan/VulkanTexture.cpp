@@ -3,6 +3,7 @@
 #include "VulkanBuffer.hpp"
 #include "VulkanContext.hpp"
 
+#include <backends/imgui_impl_vulkan.h>
 
 namespace Sphynx::Rendering {
 	size_t GetVkFormatSize(VkFormat format) {
@@ -58,6 +59,9 @@ namespace Sphynx::Rendering {
 		
 		vkFreeMemory(VulkanContext::LogicalDevice, m_Memory, nullptr);
 		m_Memory = nullptr;
+
+		vkDestroySampler(VulkanContext::LogicalDevice, m_Sampler, nullptr);
+		m_Sampler = VK_NULL_HANDLE;
 	}
 
 	void VulkanTexture::UploadToGPU() {
@@ -75,6 +79,10 @@ namespace Sphynx::Rendering {
 		VulkanContext::CommandPool->EndSingleUseCommandbuffer(commandBuffer);
 
 		m_View = CreateImageView(m_Image, m_VulkanFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+	
+		m_Sampler = VulkanTexture::CreateSampler();
+
+		m_DescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_Sampler, m_View, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 
