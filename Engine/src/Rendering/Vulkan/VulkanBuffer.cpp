@@ -53,7 +53,7 @@ namespace Sphynx::Rendering {
 		Memory = VK_NULL_HANDLE;
 	}
 
-	std::unique_ptr<VulkanBuffer> VulkanBuffer::CreateWithStaging(BufferView data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
+	VulkanBuffer* VulkanBuffer::CreateWithStaging(BufferView data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties) {
 		SE_PROFILE_FUNCTION();
 
 		VulkanBuffer stagingBuffer(data.Size, VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -65,7 +65,7 @@ namespace Sphynx::Rendering {
 		if (!(properties & VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT))
 			properties |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
 
-		std::unique_ptr<VulkanBuffer> result = std::make_unique<VulkanBuffer>(data.Size, usage, properties);
+		VulkanBuffer* result = new VulkanBuffer(data.Size, usage, properties);
 		VkCommandBuffer commandBuffer = VulkanContext::CommandPool->BeginSingleUseCommandbuffer();
 		stagingBuffer.Copy(commandBuffer, result->Buffer);
 		VulkanContext::CommandPool->EndSingleUseCommandbuffer(commandBuffer);

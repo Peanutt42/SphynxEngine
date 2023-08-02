@@ -2,26 +2,9 @@
 #include "Mesh.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanContext.hpp"
+#include "Vulkan/VulkanBuffer.hpp"
 
 namespace Sphynx::Rendering {
-	VertexInput Vertex::GetInputDescription() {
-		VertexInput input;
-		input.Description.binding = 0;
-		input.Description.stride = sizeof(Vertex);
-		input.Description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		VulkanVertexAttributeBuilder builder;
-		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Position));
-		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Normal));
-		builder.Add(AttributeFormat::Float2, offsetof(Vertex, UV));
-		// Note: set the binding to 1 for per instance data
-
-		input.Attributes = builder.GetAttributes();
-		
-		return input;
-	}
-	
-	
 	void MeshData::LoadMesh(const std::filesystem::path& filepath) {
 		SE_ASSERT(filepath.extension() == L".semesh", Logging::Rendering, "Can't load any other file format than .semesh!");
 
@@ -53,8 +36,8 @@ namespace Sphynx::Rendering {
 
 	Mesh::~Mesh() {
 		if (m_IndexBuffer)
-			m_IndexBuffer.reset();
-		m_VertexBuffer.reset();
+			delete m_IndexBuffer;
+		delete m_VertexBuffer;
 	}
 
 	void Mesh::Draw(uint32_t instanceCount) {

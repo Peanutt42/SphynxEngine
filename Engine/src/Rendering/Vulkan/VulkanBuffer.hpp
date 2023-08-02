@@ -15,7 +15,7 @@ namespace Sphynx::Rendering {
 		VulkanBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
 		~VulkanBuffer();
 
-		static std::unique_ptr<VulkanBuffer> CreateWithStaging(BufferView data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties = 0);
+		static VulkanBuffer* CreateWithStaging(BufferView data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties = 0);
 
 		void Set(BufferView data);
 		void Get(std::vector<uint8_t>& outData);

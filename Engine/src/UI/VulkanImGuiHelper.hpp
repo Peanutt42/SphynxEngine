@@ -2,7 +2,6 @@
 
 #include "Core/CoreInclude.hpp"
 #include "Rendering/Image.hpp"
-#include "Rendering/Vulkan/VulkanContext.hpp"
 #include <imgui.h>
 
 namespace Sphynx::UI {

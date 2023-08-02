@@ -1,7 +1,6 @@
 #pragma once
 
 #include "EditorApplication.hpp"
-#include "Rendering/Vulkan/VulkanShader.hpp"
 
 namespace Sphynx::Editor {
 	class ShaderImporter {
