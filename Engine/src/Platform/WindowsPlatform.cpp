@@ -246,10 +246,10 @@ namespace Sphynx {
 	Platform::DynamicLinkLibary::DynamicLinkLibary(const std::filesystem::path& filepath) {
 		m_PlatformData = new DLLPlatformData();
 
-		SE_ASSERT(std::filesystem::exists(filepath), Logging::Scripting, "{} doesn't exist!", filepath.string());
+		SE_ASSERT(std::filesystem::exists(filepath), "{} doesn't exist!", filepath.string());
 
 		m_PlatformData->Module = LoadLibraryW(filepath.native().c_str());
-		SE_ASSERT(m_PlatformData->Module, Logging::Scripting, "Failed to open {}", filepath.string());
+		SE_ASSERT(m_PlatformData->Module, "Failed to open {}", filepath.string());
 	}
 
 	Platform::DynamicLinkLibary::~DynamicLinkLibary() {

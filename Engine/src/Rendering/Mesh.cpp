@@ -6,7 +6,10 @@
 
 namespace Sphynx::Rendering {
 	void MeshData::LoadMesh(const std::filesystem::path& filepath) {
-		SE_ASSERT(filepath.extension() == L".semesh", Logging::Rendering, "Can't load any other file format than .semesh!");
+		if (filepath.extension() != L".semesh") {
+			SE_ERR(Logging::Rendering, "Can't load any other file format than .semesh!");
+			return;
+		}
 
 		FileStreamReader in(filepath);
 		in.ReadArray(Vertices);
@@ -14,7 +17,10 @@ namespace Sphynx::Rendering {
 	}
 
 	void MeshData::SaveMesh(const std::filesystem::path& filepath) {
-		SE_ASSERT(filepath.extension() == L".semesh", Logging::Rendering, "Can't save any other file format than .semesh!");
+		if (filepath.extension() != L".semesh") {
+			SE_ERR(Logging::Rendering, "Can't save any other file format than .semesh!");
+			return;
+		}
 
 		FileStreamWriter out(filepath);
 		out.WriteArray(Vertices);

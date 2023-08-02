@@ -169,14 +169,16 @@ namespace Sphynx::Rendering {
 	}
 
 	void Window::SetIcon(const std::filesystem::path& filepath) {
-		m_PendingMainThreadCallbacks.push_back([this, filepath]() {
-			std::string filepathStr = filepath.string();
-
-			int w, h, channels;
-			SE_ASSERT(std::filesystem::exists(filepath), Logging::Rendering, "IconFile '{}' doesn't exist!", filepathStr);
-			stbi_set_flip_vertically_on_load(filepathStr.ends_with(".jpg"));
-			unsigned char* pixels = stbi_load(filepathStr.c_str(), &w, &h, &channels, 4);
-			GLFWimage image{ w, h, pixels };
+		if (!std::filesystem::exists(filepath)) {
+			SE_ERR(Logging::Rendering, "IconFile '{}' doesn't exist!", filepath.string());
+			return;
+		}
+		int w, h, channels;
+		std::string filepathStr = filepath.string();
+		stbi_set_flip_vertically_on_load(filepathStr.ends_with(".jpg"));
+		unsigned char* pixels = stbi_load(filepathStr.c_str(), &w, &h, &channels, 4);
+		GLFWimage image{ w, h, pixels };
+		m_PendingMainThreadCallbacks.push_back([this, pixels, image]() {
 			glfwSetWindowIcon(m_Window, 1, &image);
 			stbi_image_free(pixels);
 		});

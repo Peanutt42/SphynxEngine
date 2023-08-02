@@ -47,24 +47,34 @@ namespace Sphynx::Editor {
         return true;
     }
 
-    void SeperateVertexAndFragmentShaderCode(const std::string& fileContents, std::string& vertexCode, std::string& fragmentCode) {
+    bool SeperateVertexAndFragmentShaderCode(const std::string& fileContents, std::string& vertexCode, std::string& fragmentCode, std::string& errorMsg) {
         const char* typeToken = "#type";
         size_t typeTokenLength = strlen(typeToken);
         size_t pos = fileContents.find(typeToken, 0); //Start of shader type declaration line
         while (pos != std::string::npos) {
             size_t eol = fileContents.find_first_of('\n', pos); //End of shader type declaration line
-            SE_ASSERT(eol != std::string::npos, Logging::Rendering, "Syntax error");
+            if (eol == std::string::npos) {
+                errorMsg = "Syntax error";
+                return false;
+            }
             size_t begin = pos + typeTokenLength + 1; //Start of shader type name (after "#type " keyword)
             std::string type = fileContents.substr(begin, eol - begin);
 
             size_t nextLinePos = fileContents.find_first_not_of('\n', eol); //Start of shader code after shader type declaration line
-            SE_ASSERT(nextLinePos != std::string::npos, Logging::Rendering, "Syntax error");
+            if (nextLinePos == std::string::npos) {
+                errorMsg = "Syntax error";
+                return false;
+            }
             pos = fileContents.find(typeToken, nextLinePos); //Start of next shader type declaration line
 
             if (type == "vertex") vertexCode = (pos == std::string::npos) ? fileContents.substr(nextLinePos) : fileContents.substr(nextLinePos, pos - nextLinePos);
             else if (type == "fragment") fragmentCode = (pos == std::string::npos) ? fileContents.substr(nextLinePos) : fileContents.substr(nextLinePos, pos - nextLinePos);
-            else SE_ERR(Logging::Rendering, "Unkown shader type {}", type);
+            else {
+                errorMsg = "Unkown shader type " + type;
+                return false;
+            }
         }
+        return true;
     }
 
 	void ShaderImporter::Import(const std::filesystem::path& filepath, std::vector<uint32_t>& outVertexCode, std::vector<uint32_t>& outFragmentCode) {
@@ -85,8 +95,12 @@ namespace Sphynx::Editor {
             std::string shaderName = filepath.filename().string();
 
             std::string vertexCode, fragmentCode;
-            SeperateVertexAndFragmentShaderCode(shaderCode, vertexCode, fragmentCode);
-
+            std::string errorMsg;
+            if (!SeperateVertexAndFragmentShaderCode(shaderCode, vertexCode, fragmentCode, errorMsg)) {
+                SE_ERR(Logging::Rendering, "Failed to seperate shader code: {}", errorMsg);
+                return;
+            }
+                
             CompileShader(vertexCode, shaderc_vertex_shader, shaderName, outVertexCode);
             CompileShader(fragmentCode, shaderc_fragment_shader, shaderName, outFragmentCode);
 

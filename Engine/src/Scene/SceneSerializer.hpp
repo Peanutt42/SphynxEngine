@@ -64,7 +64,10 @@ namespace Sphynx {
 			std::string filepathStr = filepath.string();
 			
 			YAML::Node data;
-			SE_ASSERT(YAMLSerializer::LoadFile(filepathStr.c_str(), data), Logging::Serialization, "Failed to open scene file {}", filepathStr);
+			if (!YAMLSerializer::LoadFile(filepathStr.c_str(), data)) {
+				SE_ERR(Logging::Serialization, "Failed to open scene file {}", filepathStr);
+				return;
+			}
 
 			outScene.SetName(data["Name"].as<std::string>());
 
