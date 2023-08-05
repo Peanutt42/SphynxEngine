@@ -11,7 +11,5 @@ namespace Sphynx {
 		size_t SourceLine = 0;
 	};
 
-	struct StackTrace {
-		std::vector<StackTraceEntry> Entries;
-	};
+	using StackTrace = std::vector<StackTraceEntry>;
 }
