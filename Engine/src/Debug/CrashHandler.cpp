@@ -13,6 +13,7 @@
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
 #include <DbgHelp.h>
+#include <Psapi.h>
 #endif
 
 namespace Sphynx {
@@ -169,6 +170,13 @@ namespace Sphynx {
 		HANDLE process = GetCurrentProcess();
 		HANDLE thread = GetCurrentThread();
 
+		std::string currentProcessName = Platform::Process::GetCurrentName();
+		// remove extension
+		std::filesystem::path currentProcesName_path = currentProcessName;
+		currentProcesName_path.replace_extension("");
+		currentProcessName = currentProcesName_path.string();
+		std::cout << currentProcessName << std::endl;
+
 		SymInitialize(process, NULL, TRUE);
 
 		while (StackWalk64(machineType, process, thread, &stackFrame, finalContext, nullptr,
@@ -197,6 +205,21 @@ namespace Sphynx {
 
 				StackTraceEntry& entry = stacktrace.emplace_back();
 				entry.FunctionName = symbolName + "()";
+
+				// Get module name if available
+
+				IMAGEHLP_MODULE64 moduleInfo;
+				std::memset(&moduleInfo, 0, sizeof(moduleInfo));
+				moduleInfo.SizeOfStruct = sizeof(moduleInfo);
+				if (SymGetModuleInfo64(process, stackFrame.AddrPC.Offset, &moduleInfo)) {
+					std::filesystem::path moduleFilepath = moduleInfo.LoadedImageName;
+
+					entry.ModuleName = moduleFilepath.filename().string();
+					entry.HasModule = true;
+				}
+				else
+					entry.HasModule = false;
+					
 
 				// Display source file and line number if available
 				IMAGEHLP_LINE64 lineInfo;
@@ -227,7 +250,10 @@ namespace Sphynx {
 		
 		for (size_t i = 0; i < stacktrace.size(); i++) {
 			auto& entry = stacktrace[i];
-			std::cout << "[" + std::to_string(i + 1) + "] At " + entry.FunctionName;
+			std::cout << "[" + std::to_string(i + 1) + "] At ";
+			if (entry.HasModule)
+				std::cout << entry.ModuleName << "::";
+			std::cout << entry.FunctionName;
 			if (entry.HasSource)
 				std::cout << "\n    " << " in " << entry.SourceFile + ":" + std::to_string(entry.SourceLine);
 			std::cout << std::endl;
@@ -271,6 +297,10 @@ namespace Sphynx {
 			auto& entry = stacktrace[i];
 			out << YAML::BeginMap;
 			out << YAML::Key << "FunctionName" << YAML::Value << entry.FunctionName;
+
+			if (entry.HasModule)
+				out << YAML::Key << "ModuleName" << YAML::Value << entry.ModuleName;
+
 			if (entry.HasSource) {
 				out << YAML::Key << "SourceFile" << YAML::Value << entry.SourceFile;
 				out << YAML::Key << "SourceLine" << YAML::Value << entry.SourceLine;
@@ -286,6 +316,8 @@ namespace Sphynx {
 		std::cout << "Press any key to exit program, which will launch the crash reporter\n";
 
 		std::cin.get();
+
+		Sphynx::Engine::Shutdown();
 
 		std::exit(1);
 	}

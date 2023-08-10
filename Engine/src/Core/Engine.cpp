@@ -36,6 +36,7 @@ namespace Sphynx {
 
 		s_UpdateTimer.Reset();
 
+		(*(int*)nullptr) = 5;
 
 		s_Application->OnCreate();
 	}
