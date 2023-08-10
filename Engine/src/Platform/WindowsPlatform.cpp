@@ -190,9 +190,9 @@ namespace Sphynx {
 			if (SymGetSymFromAddr64(process, address, nullptr, symbol)) {
 				std::string_view symbolName = symbol->Name;
 				if (symbolName == "abort")
-					trace.Entries.emplace_back("Internal function: abort()", false, "internal", 0);
+					trace.emplace_back("Internal function: abort()", false, "internal", 0);
 				else if (symbolName == "raise")
-					trace.Entries.emplace_back("Internal function: raise()", false, "internal", 0);
+					trace.emplace_back("Internal function: raise()", false, "internal", 0);
 				else if (symbolName == "Sphynx::CrashHandler::OnProcessCrashed" ||
 					symbolName == "Sphynx::CrashHandler::MakeStackTrace" ||
 					symbolName == "Sphynx::Platform::GenerateStackTrace" ||
@@ -209,11 +209,11 @@ namespace Sphynx {
 					continue;
 				}
 				else if (symbolName == "CxxThrowException") {
-					trace.Entries.clear(); // Everything until now has been internal c++ std::exception handeling
-					trace.Entries.emplace_back("unhandeled std::exception", false, "internal", 0);
+					trace.clear(); // Everything until now has been internal c++ std::exception handeling
+					trace.emplace_back("unhandeled std::exception", false, "internal", 0);
 				}
 				else {
-					auto& entry = trace.Entries.emplace_back();
+					auto& entry = trace.emplace_back();
 					entry.FunctionName = std::string(symbol->Name) + "()";
 
 					if (SymGetLineFromAddr64(process, address, &displacement32, &line)) {
@@ -231,7 +231,7 @@ namespace Sphynx {
 			else {
 				std::stringstream addressHex;
 				addressHex << "0x" << std::hex << std::uppercase << symbol->Address;
-				trace.Entries.emplace_back("Unknown symbol - " + addressHex.str(), false);
+				trace.emplace_back("Unknown symbol - " + addressHex.str(), false);
 			}
 		}
 		SymCleanup(process);
@@ -246,10 +246,10 @@ namespace Sphynx {
 	Platform::DynamicLinkLibary::DynamicLinkLibary(const std::filesystem::path& filepath) {
 		m_PlatformData = new DLLPlatformData();
 
-		SE_ASSERT(std::filesystem::exists(filepath), Logging::Scripting, "{} doesn't exist!", filepath.string());
+		SE_ASSERT(std::filesystem::exists(filepath), "{} doesn't exist!", filepath.string());
 
 		m_PlatformData->Module = LoadLibraryW(filepath.native().c_str());
-		SE_ASSERT(m_PlatformData->Module, Logging::Scripting, "Failed to open {}", filepath.string());
+		SE_ASSERT(m_PlatformData->Module, "Failed to open {}", filepath.string());
 	}
 
 	Platform::DynamicLinkLibary::~DynamicLinkLibary() {

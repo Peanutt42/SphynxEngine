@@ -3,6 +3,7 @@
 #include "Core/Engine.hpp"
 #include "Renderer.hpp"
 
+#include "Vulkan/VulkanTexture.hpp"
 #include "Vulkan/VulkanContext.hpp"
 
 #include <stb_image.h>
@@ -26,16 +27,15 @@ namespace Sphynx::Rendering {
 		std::memcpy(spec.Data.data(), stbi_data, spec.Data.size());
 		stbi_image_free(stbi_data);
 
-		m_Texture = std::make_unique<VulkanTexture>(spec);
+		m_Texture = new VulkanTexture(spec);
 		m_Texture->UploadToGPU();
-
-		m_Sampler = VulkanTexture::CreateSampler();
-
-		m_DescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_Sampler, m_Texture->GetImageView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 	Image::~Image() {
-		vkDestroySampler(VulkanContext::LogicalDevice, m_Sampler, nullptr);
-		m_Sampler = VK_NULL_HANDLE;
+		delete m_Texture;
 	}
+
+	uint32_t Image::GetWidth() const { return m_Texture->GetWidth(); }
+	uint32_t Image::GetHeight() const { return m_Texture->GetHeight(); }
+	void* Image::GetDescriptorSet() { return m_Texture->GetDescriptorSet(); }
 }

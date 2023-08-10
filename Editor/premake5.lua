@@ -23,26 +23,22 @@ project "Editor"
 		"src",
 		EngineDir .. "Engine/src",
 		"%{IncludeDirs.yaml}",
-		"%{IncludeDirs.stbi}",
 		"%{IncludeDirs.glm}",
-		"%{IncludeDirs.glfw}",
-		"%{IncludeDirs.Vulkan}",
 		"%{IncludeDirs.Tracy}",
 		"%{IncludeDirs.imgui}",
-		"%{IncludeDirs.assimp}"
+		"%{IncludeDirs.assimp}",
+		"%{IncludeDirs.Vulkan}"
 	}
 
 	libdirs {
-		"%{LibaryDirs.Vulkan}",
-		"%{LibaryDirs.assimp}"
+		"%{LibaryDirs.assimp}",
+		"%{LibaryDirs.Vulkan}"
 	}
 
 	links {
 		"Engine",
 		"yaml",
-		"stb_image",
 		"imgui",
-		"%{Libaries.Vulkan}",
 		"%{Libaries.assimp}"
 	}
 
@@ -52,13 +48,13 @@ project "Editor"
 	
 	-- Config dependent links
 	filter { "configurations:Debug" }
-		links { "%{Libaries.shaderc_Debug}", "%{Libaries.spirv_cross_Debug}", "Tracy" }
+		links { "%{Libaries.shaderc_Debug}", "Tracy" }
 		postbuildcommands { "%{CopyBinaryCmds.shaderc_Debug}", "%{CopyBinaryCmds.Tracy}" }
 	filter { "configurations:Release" }
-		links { "%{Libaries.shaderc_Release}", "%{Libaries.spirv_cross_Release}", "Tracy" }
+		links { "%{Libaries.shaderc_Release}", "Tracy" }
 		postbuildcommands { "%{CopyBinaryCmds.shaderc_Release}", "%{CopyBinaryCmds.Tracy}" }
 	filter { "configurations:Dist" }
-		links { "%{Libaries.shaderc_Dist}", "%{Libaries.spirv_cross_Dist}" }
+		links { "%{Libaries.shaderc_Dist}" }
 		postbuildcommands { "%{CopyBinaryCmds.shaderc_Dist}" }
 
 

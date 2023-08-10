@@ -31,8 +31,8 @@ namespace Sphynx {
 		}
 
 		StackTrace stackTrace = Platform::GenerateStackTrace();
-		for (size_t i = 0; i < stackTrace.Entries.size(); i++) {
-			auto& entry = stackTrace.Entries[i];
+		for (size_t i = 0; i < stackTrace.size(); i++) {
+			auto& entry = stackTrace[i];
 			std::cout << "[" + std::to_string(i + 1) + "] At " + entry.FunctionName << " in ";
 			std::cout << (entry.HasSource ? entry.SourceFile + ":" + std::to_string(entry.SourceLine) : "???");
 			std::cout << std::endl;
@@ -79,11 +79,10 @@ namespace Sphynx {
 
 		out << YAML::Key << "Stacktrace" << YAML::Value;
 		out << YAML::BeginSeq;
-		for (size_t i = 0; i < stackTrace.Entries.size(); i++) {
-			auto& entry = stackTrace.Entries[i];
+		for (size_t i = 0; i < stackTrace.size(); i++) {
+			auto& entry = stackTrace[i];
 			out << YAML::BeginMap;
 			out << YAML::Key << "FunctionName" << YAML::Value << entry.FunctionName;
-			out << YAML::Key << "HasSource" << YAML::Value << entry.HasSource;
 			if (entry.HasSource) {
 				out << YAML::Key << "SourceFile" << YAML::Value << entry.SourceFile;
 				out << YAML::Key << "SourceLine" << YAML::Value << entry.SourceLine;

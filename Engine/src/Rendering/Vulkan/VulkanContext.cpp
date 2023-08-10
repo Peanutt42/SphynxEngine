@@ -27,7 +27,7 @@ namespace Sphynx::Rendering {
 		SE_INFO(Logging::Rendering, "Chosen GPU: {}", VulkanPhysicalDevice::GetName(PhysicalDevice));
 		
 		VulkanQueueFamilyIndices indices(PhysicalDevice);
-		SharingMode = indices.GraphicsFamily == indices.PresentFamily ? VK_SHARING_MODE_EXCLUSIVE : VK_SHARING_MODE_CONCURRENT;
+		SharingMode = indices.GraphicsFamily == indices.PresentFamily ? vk::SharingMode::eExclusive : vk::SharingMode::eConcurrent;
 
 		VulkanSwapChain::SupportDetails swapChainSupport = VulkanSwapChain::GetSupport(PhysicalDevice);
 		MaxFramesInFlight = swapChainSupport.Capabilities.minImageCount + 1;
@@ -55,26 +55,28 @@ namespace Sphynx::Rendering {
 		SceneRenderpass->CreateFramebuffers(SceneWidth, SceneHeight, SwapChain->GetFormat());
 
 		// ImGui DescriptorPool
-		std::array<VkDescriptorPoolSize, 11> poolSizes = {
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1000 },
-				VkDescriptorPoolSize{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT, 1000 }
+		// TODO: Change tutorial sizes to more acurate ones
+		// NOTE: you can change these values at runtime
+		std::array<vk::DescriptorPoolSize, 11> poolSizes = {
+			vk::DescriptorPoolSize{ vk::DescriptorType::eSampler, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eCombinedImageSampler, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eSampledImage, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eStorageImage, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eUniformTexelBuffer, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eStorageTexelBuffer, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eUniformBuffer, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eStorageBuffer, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eUniformBufferDynamic, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eStorageBufferDynamic, 1000 },
+			vk::DescriptorPoolSize{ vk::DescriptorType::eInputAttachment, 1000 }
 		};
-		VkDescriptorPoolCreateInfo pool_info{};
-		pool_info.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-		pool_info.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		vk::DescriptorPoolCreateInfo pool_info{};
+		pool_info.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
 		pool_info.maxSets = 1000;
 		pool_info.poolSizeCount = (uint32_t)poolSizes.size();
 		pool_info.pPoolSizes = poolSizes.data();
-		vkCreateDescriptorPool(LogicalDevice, &pool_info, nullptr, &ImGuiDescriptorPool);
+		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &ImGuiDescriptorPool);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create imgui descriptor pool");
 	}
 
 	void VulkanContext::Shutdown() {
@@ -90,13 +92,13 @@ namespace Sphynx::Rendering {
 
 		SwapChain.reset();
 
-		if (ImGuiDescriptorPool != VK_NULL_HANDLE)
-			vkDestroyDescriptorPool(LogicalDevice, ImGuiDescriptorPool, nullptr);
+		if (ImGuiDescriptorPool)
+			LogicalDevice.destroyDescriptorPool(ImGuiDescriptorPool, nullptr);
 
-		vkDestroyDevice(LogicalDevice, nullptr);
+		LogicalDevice.destroy(nullptr);
 		LogicalDevice = VK_NULL_HANDLE;
 
-		vkDestroySurfaceKHR(Instance->Instance, Surface, nullptr);
+		Instance->Instance.destroySurfaceKHR(Surface, nullptr);
 		Surface = VK_NULL_HANDLE;
 
 		Instance.reset();
@@ -105,19 +107,21 @@ namespace Sphynx::Rendering {
 	void VulkanContext::BeginSceneRenderpass() {
 		SE_PROFILE_FUNCTION();
 
-		vkWaitForFences(LogicalDevice, 1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX);
+		vk::Result result = LogicalDevice.waitForFences(1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to wait for inFlightFence");
 
-		VkResult result = vkAcquireNextImageKHR(LogicalDevice, SwapChain->GetHandle(), UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &CurrentImage);
+		result = LogicalDevice.acquireNextImageKHR(SwapChain->GetHandle(), UINT64_MAX, ImageAvailableSemaphores[CurrentFrame], VK_NULL_HANDLE, &CurrentImage);
 
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+		if (result == vk::Result::eErrorOutOfDateKHR) {
 			SwapChain->Recreate(Renderpass->GetHandle());
 			return;
 		}
-		else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR)
+		else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
 			SE_FATAL(Logging::Rendering, "Failed to acquire swapchain image!");
 
 		// only reset if we are submitting work
-		vkResetFences(LogicalDevice, 1, &InFlightFences[CurrentFrame]);
+		result = LogicalDevice.resetFences(1, &InFlightFences[CurrentFrame]);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to reset inFlightFence");
 
 		CommandBuffer = CommandPool->BeginRecording(CurrentFrame);
 
@@ -168,19 +172,18 @@ namespace Sphynx::Rendering {
 		{
 			SE_PROFILE_SCOPE("Submit");
 
-			VkSubmitInfo submitInfo{};
-			submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			vk::SubmitInfo submitInfo{};
 			submitInfo.waitSemaphoreCount = 1;
 			submitInfo.pWaitSemaphores = &ImageAvailableSemaphores[CurrentFrame];
-			VkPipelineStageFlags waitDstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			vk::PipelineStageFlags waitDstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 			submitInfo.pWaitDstStageMask = &waitDstStageMask;
 			submitInfo.signalSemaphoreCount = 1;
 			submitInfo.pSignalSemaphores = &RenderFinishedSemaphores[CurrentFrame];
 			submitInfo.commandBufferCount = 1;
 			submitInfo.pCommandBuffers = &CommandBuffer;
 
-			VkResult result = vkQueueSubmit(GraphicsQueue, 1, &submitInfo, InFlightFences[CurrentFrame]);
-			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to submit commandBuffer");
+			vk::Result result = GraphicsQueue.submit(1, &submitInfo, InFlightFences[CurrentFrame]);
+			SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to submit commandBuffer");
 
 			CommandBuffer = VK_NULL_HANDLE;
 		}
@@ -189,23 +192,25 @@ namespace Sphynx::Rendering {
 		{
 			SE_PROFILE_SCOPE("Present");
 
-			VkPresentInfoKHR presentInfo{};
-			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			vk::PresentInfoKHR presentInfo{};
 			presentInfo.waitSemaphoreCount = 1;
 			presentInfo.pWaitSemaphores = &RenderFinishedSemaphores[CurrentFrame];
 
 			presentInfo.swapchainCount = 1;
-			VkSwapchainKHR swapchain = SwapChain->GetHandle();
+			vk::SwapchainKHR swapchain = SwapChain->GetHandle();
 			presentInfo.pSwapchains = &swapchain;
 			presentInfo.pImageIndices = &CurrentImage;
-			presentInfo.pResults = nullptr; // Optional
+			presentInfo.pResults = nullptr;
 
-			VkResult result = vkQueuePresentKHR(PresentQueue, &presentInfo);
-			if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || FramebufferResized) {
+			vk::Result result = PresentQueue.presentKHR(&presentInfo);
+			if (result == vk::Result::eErrorOutOfDateKHR ||
+				result == vk::Result::eSuboptimalKHR ||
+				FramebufferResized)
+			{
 				FramebufferResized = false;
 				SwapChain->Recreate(Renderpass->GetHandle());
 			}
-			else if (result != VK_SUCCESS)
+			else if (result != vk::Result::eSuccess)
 				SE_FATAL(Logging::Rendering, "Failed to present swapchain image!");
 		}
 
@@ -222,26 +227,24 @@ namespace Sphynx::Rendering {
 		InFlightFences.resize(MaxFramesInFlight, VK_NULL_HANDLE);
 
 		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
-			VkSemaphoreCreateInfo semaphoreInfo{};
-			semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-			VkResult result = vkCreateSemaphore(LogicalDevice, &semaphoreInfo, nullptr, &ImageAvailableSemaphores[frameIndex]);
-			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create semaphore");
-			result = vkCreateSemaphore(LogicalDevice, &semaphoreInfo, nullptr, &RenderFinishedSemaphores[frameIndex]);
-			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create semaphore");
+			vk::SemaphoreCreateInfo semaphoreInfo{};
+			vk::Result result = LogicalDevice.createSemaphore(&semaphoreInfo, nullptr, &ImageAvailableSemaphores[frameIndex]);
+			SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create semaphore");
+			result = LogicalDevice.createSemaphore(&semaphoreInfo, nullptr, &RenderFinishedSemaphores[frameIndex]);
+			SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create semaphore");
 
-			VkFenceCreateInfo fenceInfo{};
-			fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-			fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-			result = vkCreateFence(LogicalDevice, &fenceInfo, nullptr, &InFlightFences[frameIndex]);
-			SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create inFlightFence");
+			vk::FenceCreateInfo fenceInfo{};
+			fenceInfo.flags = vk::FenceCreateFlagBits::eSignaled;
+			result = LogicalDevice.createFence(&fenceInfo, nullptr, &InFlightFences[frameIndex]);
+			SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create inFlightFence");
 		}
 	}
 
 	void VulkanContext::_DestroySyncObjects() {
 		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
-			vkDestroySemaphore(LogicalDevice, ImageAvailableSemaphores[frameIndex], nullptr);
-			vkDestroySemaphore(LogicalDevice, RenderFinishedSemaphores[frameIndex], nullptr);
-			vkDestroyFence(LogicalDevice, InFlightFences[frameIndex], nullptr);
+			LogicalDevice.destroySemaphore(ImageAvailableSemaphores[frameIndex], nullptr);
+			LogicalDevice.destroySemaphore(RenderFinishedSemaphores[frameIndex], nullptr);
+			LogicalDevice.destroyFence(InFlightFences[frameIndex], nullptr);
 		}
 	}
 }

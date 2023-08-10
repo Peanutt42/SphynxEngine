@@ -2,12 +2,14 @@
 
 #include "Core/CoreInclude.hpp"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 namespace Sphynx::Rendering {
+	inline static vk::DispatchLoaderDynamic s_DispatchLoader;
+
 	class VulkanInstance {
 	public:
-		VkInstance Instance = VK_NULL_HANDLE;
+		vk::Instance Instance;
 
 		bool Validation = false;
 		std::vector<const char*> ValidationLayers;
@@ -17,19 +19,17 @@ namespace Sphynx::Rendering {
 
 
 	private:
-		void _ConfigureExtensions(VkInstanceCreateInfo& createInfo);
+		void _ConfigureExtensions(vk::InstanceCreateInfo& createInfo);
 
 		// Returns if validation layers are usable (local VulkanSDK installation is required for validation layers!)
-		bool _ConfigureValidationLayers(VkInstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers);
+		bool _ConfigureValidationLayers(vk::InstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers);
 
-		void _ConfigureDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo);
-		void _CreateDebugMessenger(const VkDebugUtilsMessengerCreateInfoEXT& createInfo), _DestroyDebugMessenger();
+		void _ConfigureDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
+		void _CreateDebugMessenger(const vk::DebugUtilsMessengerCreateInfoEXT& createInfo), _DestroyDebugMessenger();
 
 	private:
-
-		VkDebugUtilsMessengerEXT m_DebugMessenger = VK_NULL_HANDLE;
-
-		std::vector<VkExtensionProperties> m_SupportedExtensionProperties;
+		vk::DebugUtilsMessengerEXT m_DebugMessenger;
+		std::vector<vk::ExtensionProperties> m_SupportedExtensionProperties;
 		std::vector<const char*> m_RequiredExtensions;
 	};
 }

@@ -17,14 +17,14 @@ namespace Sphynx::Rendering {
 
 			for (size_t i = 0; i < Buffers.size(); i++) {
 				Buffers[i] = std::make_shared<VulkanBuffer>(sizeof(T), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-				vkMapMemory(VulkanContext::LogicalDevice, Buffers[i]->Memory, 0, sizeof(T), 0, &MappedMemories[i]);
+				VulkanContext::LogicalDevice.mapMemory(Buffers[i]->Memory, 0, sizeof(T), 0, &MappedMemories[i]);
 			}
 		}
 
 		~VulkanUniformBuffer() {
-			for (size_t i = 0; i < Buffers.size(); i++) {
-				vkUnmapMemory(VulkanContext::LogicalDevice, Buffers[i]->Memory);
-			}
+			for (size_t i = 0; i < Buffers.size(); i++)
+				VulkanContext::LogicalDevice.unmapMemory(Buffers[i]->Memory);
+			
 			MappedMemories.clear();
 			Buffers.clear();
 		}

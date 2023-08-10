@@ -8,6 +8,7 @@
 #include "Windows/HierarchyWindow.hpp"
 #include "Windows/PropertyWindow.hpp"
 #include "Windows/ProfilingWindow.hpp"
+#include "Windows/ECSSystemManagerWindow.hpp"
 
 namespace Sphynx::Editor {
 	EditorApplication::EditorApplication() {
@@ -30,12 +31,21 @@ namespace Sphynx::Editor {
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
 		m_Windows.push_back(std::make_unique<PropertyWindow>());
 		m_Windows.push_back(std::make_unique<ProfilingWindow>());
+		m_Windows.push_back(std::make_unique<ECSSystemManagerWindow>());
 
 		EditorAssetManager::LoadAssets();
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
 		m_SceneFilepath = Engine::GetProject()->StartSceneFilepath;
-		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene);
+		std::string loadSceneError;
+		if (!SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene, loadSceneError))
+			SE_ERR(Logging::Editor, "Failed to load scene {}: {}", m_SceneFilepath.string(), loadSceneError);
+
+		// TODO: Save it in a config
+		// TODO: Do this also in code reloading (copy old, create new from updated systems
+		//		 and set old settings to new map while keeping new systems active by default
+		for (const auto& system : Engine::Scripting().GetSystems())
+			m_GameECSSystemActiveMap[system.FullName] = true;
 	}
 
 	void EditorApplication::OnDestroy() {
@@ -64,6 +74,10 @@ namespace Sphynx::Editor {
 			}
 			if (Input::IsKeyPressed(KeyCode::O))
 				OpenScene();
+		}
+
+		if (m_GameRunning) {
+			UpdateGame();
 		}
 	}
 
@@ -116,6 +130,22 @@ namespace Sphynx::Editor {
 		}
 	}
 
+	void EditorApplication::UpdateGame() {
+		// Update ECS-Systems
+		const std::vector<Scripting::SystemReflectionInfo>& systems = Engine::Scripting().GetSystems();
+		for (const auto& [name, active] : m_GameECSSystemActiveMap) {
+			if (!active)
+				continue;
+
+			auto findSystem = std::ranges::find_if(systems, [name](const auto& info) { return info.FullName == name; });
+			if (findSystem == systems.end())
+				SE_WARN(Logging::Scripting, "Can't find systems '{}'", name);
+			else {
+				findSystem->Update(m_GameScene.get());
+			}
+		}
+	}
+
 
 	void EditorApplication::CreateNewScene() {
 		if (m_SceneDirty)
@@ -136,7 +166,9 @@ namespace Sphynx::Editor {
 			return;
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
-		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene);
+		std::string loadDErrorMsg;
+		if (!SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene, loadDErrorMsg))
+			SE_ERR(Logging::Editor, "Failed to open scene {}: {}", m_SceneFilepath.string(), loadDErrorMsg);
 	}
 
 	void EditorApplication::SaveCurrentScene() {

@@ -38,14 +38,22 @@ int main(int argc, const char** argv) {
 	if (argc >= 2)
 		projectFilepath = argv[1];
 	
-	if (!std::filesystem::exists(projectFilepath))
+	while (true) {
 		projectFilepath = Sphynx::Platform::FileDialogs::OpenFile("Sphynx Engine Project", "*.seproj");
-	
-	SE_ASSERT(std::filesystem::exists(projectFilepath), "Provided project file '{}' doesn't exist", projectFilepath.string());
-	
+		if (std::filesystem::exists(projectFilepath))
+			break;
+
+		bool answer = Sphynx::Platform::MessagePrompts::YesNo("Open Project", "Do you want to try again?");
+		if (answer == false)
+			return 0;
+	}
+
 	// Load project
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
-	SE_ASSERT(project->EngineVersion == Sphynx::Engine::Version, "The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version);
+	if (project->EngineVersion != Sphynx::Engine::Version) {
+		Sphynx::Platform::MessagePrompts::Error("Project's engine version", std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version));
+		return 0;
+	}
 
 	// Create application
 	std::shared_ptr<Sphynx::RuntimeApplication> application = std::make_unique<Sphynx::RuntimeApplication>();

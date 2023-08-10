@@ -23,35 +23,24 @@ project "EngineRuntime"
 		"src",
 		EngineDir .. "Engine/src",
 		"%{IncludeDirs.yaml}",
-		"%{IncludeDirs.stbi}",
 		"%{IncludeDirs.glm}",
-		"%{IncludeDirs.glfw}",
-		"%{IncludeDirs.Vulkan}",
 		"%{IncludeDirs.Tracy}",
 		"%{IncludeDirs.imgui}"
-	}
-
-	libdirs {
-		"%{LibaryDirs.Vulkan}"
 	}
 
 	links {
 		"Engine",
 		"yaml",
-		"stb_image",
-		"imgui",
-		"%{Libaries.Vulkan}"
+		"imgui"
 	}
 	
 	-- Config dependent links
 	filter { "configurations:Debug" }
-		links { "%{Libaries.spirv_cross_Debug}", "Tracy" }
+		links { "Tracy" }
 		postbuildcommands { "%{CopyBinaryCmds.Tracy}" }
 	filter { "configurations:Release" }
-		links { "%{Libaries.spirv_cross_Release}", "Tracy" }
+		links { "Tracy" }
 		postbuildcommands { "%{CopyBinaryCmds.Tracy}" }
-	filter { "configurations:Dist" }
-		links { "%{Libaries.spirv_cross_Dist}" }
 
 
 	filter { "configurations:Debug" }

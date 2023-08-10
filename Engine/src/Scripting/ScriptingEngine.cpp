@@ -5,9 +5,15 @@
 namespace Sphynx::Scripting {
 	ScriptingEngine::ScriptingEngine() {
 		m_Module = std::make_unique<Platform::DynamicLinkLibary>(Engine::GetProject()->Folderpath / "Binaries/" / (Engine::GetProject()->Name + ".dll"));
-		m_Components = m_Module->LoadFunction<GetComponentsFunc>("GetComponents")();
-		m_Configs = m_Module->LoadFunction<GetConfigsFunc>("GetConfigs")();
-		m_Systems = m_Module->LoadFunction<GetSystemsFunc>("GetSystems")();
+		auto getComponentsFunc = m_Module->LoadFunction<GetComponentsFunc>("GetComponents");
+		SE_ASSERT(getComponentsFunc, Logging::Scripting, "Can't find 'GetComponents' function");
+		m_Components = getComponentsFunc();
+		auto getConfigs = m_Module->LoadFunction<GetConfigsFunc>("GetConfigs");
+		SE_ASSERT(getConfigs, Logging::Scripting, "Can't find 'GetConfigs' function");
+		m_Configs = getConfigs();
+		auto getSystems = m_Module->LoadFunction<GetSystemsFunc>("GetSystems");
+		SE_ASSERT(getSystems, Logging::Scripting, "Can't find 'GetSystems' function");
+		m_Systems = getSystems();
 
 		// Testing
 		for (const ComponentReflectionInfo& info : *m_Components) {
@@ -23,5 +29,5 @@ namespace Sphynx::Scripting {
 		SE_PROFILE_FUNCTION();
 
 		m_Module->LoadFunction<void(*)()>("TestInput")();
-	}
+	}		
 }

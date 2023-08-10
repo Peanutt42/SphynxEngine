@@ -27,33 +27,33 @@ namespace Sphynx::Rendering {
 		inline static Rendering::Window* Window = nullptr;
 
 		inline static std::unique_ptr<VulkanInstance> Instance;
-		inline static VkSurfaceKHR Surface = VK_NULL_HANDLE;
-		inline static VkPhysicalDevice PhysicalDevice = VK_NULL_HANDLE;
-		inline static VkDevice LogicalDevice = VK_NULL_HANDLE;
-		inline static VkQueue GraphicsQueue = VK_NULL_HANDLE;
-		inline static VkQueue PresentQueue = VK_NULL_HANDLE;
+		inline static vk::SurfaceKHR Surface;
+		inline static vk::PhysicalDevice PhysicalDevice;
+		inline static vk::Device LogicalDevice;
+		inline static vk::Queue GraphicsQueue;
+		inline static vk::Queue PresentQueue;
 		inline static std::unique_ptr<VulkanSwapChain> SwapChain;
 		inline static std::unique_ptr<VulkanRenderpass> Renderpass;
 		inline static std::unique_ptr<VulkanCommandPool> CommandPool;
 
-		inline static std::vector<VkSemaphore> ImageAvailableSemaphores;
-		inline static std::vector<VkSemaphore> RenderFinishedSemaphores;
-		inline static std::vector<VkFence> InFlightFences;
+		inline static std::vector<vk::Semaphore> ImageAvailableSemaphores;
+		inline static std::vector<vk::Semaphore> RenderFinishedSemaphores;
+		inline static std::vector<vk::Fence> InFlightFences;
 
-		inline static VkCommandBuffer CommandBuffer = VK_NULL_HANDLE;
+		inline static vk::CommandBuffer CommandBuffer;
 
 		inline static std::unique_ptr<VulkanRenderpass> SceneRenderpass;
 		inline static uint32_t SceneWidth = 1920;
 		inline static uint32_t SceneHeight = 1080;
 
-		inline static VkSharingMode SharingMode = VK_SHARING_MODE_MAX_ENUM;
+		inline static vk::SharingMode SharingMode;
 
 		inline static uint32_t MaxFramesInFlight = 2;
 		inline static uint32_t CurrentFrame = 0;
 		inline static uint32_t CurrentImage = 0;
 		inline static bool FramebufferResized = false;
 
-		inline static VkDescriptorPool ImGuiDescriptorPool = VK_NULL_HANDLE;
+		inline static vk::DescriptorPool ImGuiDescriptorPool;
 
 	private:
 		static void _CreateSyncObjects();

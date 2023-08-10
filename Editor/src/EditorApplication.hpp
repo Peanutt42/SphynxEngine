@@ -24,10 +24,20 @@ namespace Sphynx::Editor {
 		virtual void DrawUI() override;
 		void OnDrawMenubar();
 
+		void UpdateGame();
+
 		static Scene& GetEditingScene() { return *s_Instance->m_EditingScene; }
 		static Scene& GetGameScene() { return *s_Instance->m_GameScene; }
 		static Scene& GetCurrentScene() { return s_Instance->m_State == EditorState::Editing ? GetEditingScene() : GetGameScene(); }
 		static void SetSceneDirty(bool dirty) { s_Instance->m_SceneDirty = dirty; }
+
+		static void SetECSSystemActive(const std::string& name, bool active) { s_Instance->m_GameECSSystemActiveMap[name] = active; }
+		static bool GetECSSystemActive(const std::string& name) {
+			auto find = s_Instance->m_GameECSSystemActiveMap.find(name);
+			if (find == s_Instance->m_GameECSSystemActiveMap.end())
+				return false;
+			return find->second;
+		}
 
 		void CreateNewScene();
 		void OpenScene();
@@ -45,5 +55,6 @@ namespace Sphynx::Editor {
 		bool m_SceneDirty = false;
 		bool m_GameRunning = false;
 		std::unique_ptr<Scene> m_GameScene;
+		std::unordered_map<std::string, bool> m_GameECSSystemActiveMap;
 	};
 }

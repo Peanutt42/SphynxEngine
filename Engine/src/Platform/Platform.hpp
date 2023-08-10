@@ -53,7 +53,7 @@ namespace Sphynx {
 			DynamicLinkLibary(const DynamicLinkLibary&) = delete;
 
 			template<typename Func>
-			auto LoadFunction(const std::string_view name) {
+			Func LoadFunction(const std::string_view name) {
 				Func function = (Func)_GetFuncAddress(name.data());
 				SE_ASSERT(function, Logging::Scripting, "Failed to get function '{}'", name);
 				return function;

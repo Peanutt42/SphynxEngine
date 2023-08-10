@@ -2,28 +2,14 @@
 #include "Mesh.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanContext.hpp"
+#include "Vulkan/VulkanBuffer.hpp"
 
 namespace Sphynx::Rendering {
-	VertexInput Vertex::GetInputDescription() {
-		VertexInput input;
-		input.Description.binding = 0;
-		input.Description.stride = sizeof(Vertex);
-		input.Description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-
-		VulkanVertexAttributeBuilder builder;
-		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Position));
-		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Normal));
-		builder.Add(AttributeFormat::Float2, offsetof(Vertex, UV));
-		// Note: set the binding to 1 for per instance data
-
-		input.Attributes = builder.GetAttributes();
-		
-		return input;
-	}
-	
-	
 	void MeshData::LoadMesh(const std::filesystem::path& filepath) {
-		SE_ASSERT(filepath.extension() == L".semesh", Logging::Rendering, "Can't load any other file format than .semesh!");
+		if (filepath.extension() != L".semesh") {
+			SE_ERR(Logging::Rendering, "Can't load any other file format than .semesh!");
+			return;
+		}
 
 		FileStreamReader in(filepath);
 		in.ReadArray(Vertices);
@@ -31,7 +17,10 @@ namespace Sphynx::Rendering {
 	}
 
 	void MeshData::SaveMesh(const std::filesystem::path& filepath) {
-		SE_ASSERT(filepath.extension() == L".semesh", Logging::Rendering, "Can't save any other file format than .semesh!");
+		if (filepath.extension() != L".semesh") {
+			SE_ERR(Logging::Rendering, "Can't save any other file format than .semesh!");
+			return;
+		}
 
 		FileStreamWriter out(filepath);
 		out.WriteArray(Vertices);
@@ -45,30 +34,30 @@ namespace Sphynx::Rendering {
 
 	Mesh::Mesh(BufferView vertices, uint32_t vertexCount, const std::vector<uint32_t>& indices) {
 		m_VertexCount = vertexCount;
-		m_VertexBuffer = VulkanBuffer::CreateWithStaging(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		m_VertexBuffer = VulkanBuffer::CreateWithStaging(vertices, vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 		m_IndicesCount = (uint32_t)indices.size();
 		if (m_IndicesCount > 0)
-			m_IndexBuffer = VulkanBuffer::CreateWithStaging(BufferView(indices), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			m_IndexBuffer = VulkanBuffer::CreateWithStaging(BufferView(indices), vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 	}
 
 	Mesh::~Mesh() {
 		if (m_IndexBuffer)
-			m_IndexBuffer.reset();
-		m_VertexBuffer.reset();
+			delete m_IndexBuffer;
+		delete m_VertexBuffer;
 	}
 
 	void Mesh::Draw(uint32_t instanceCount) {
-		VkCommandBuffer cmd = VulkanContext::CommandBuffer;
+		vk::CommandBuffer& cmd = VulkanContext::CommandBuffer;
 		
-		VkDeviceSize offset = 0;
-		vkCmdBindVertexBuffers(cmd, 0, 1, &m_VertexBuffer->Buffer, &offset);
+		vk::DeviceSize offset = 0;
+		cmd.bindVertexBuffers(0, 1, &m_VertexBuffer->Buffer, &offset);
 
 		if (m_IndicesCount > 0) {
-			vkCmdBindIndexBuffer(cmd, m_IndexBuffer->Buffer, 0, VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(cmd, m_IndicesCount, instanceCount, 0, 0, 0);
+			cmd.bindIndexBuffer(m_IndexBuffer->Buffer, 0, vk::IndexType::eUint32);
+			cmd.drawIndexed(m_IndicesCount, instanceCount, 0, 0, 0);
 		}
 		else {
-			vkCmdDraw(cmd, m_VertexCount, instanceCount, 0, 0);
+			cmd.draw(m_VertexCount, instanceCount, 0, 0);
 		}
 	}
 }

@@ -4,14 +4,33 @@
 #include "Vulkan/VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	Shader::Shader(BufferView vertexCode, BufferView fragmentCode) {
-		m_CreateInfo.VertexCode.resize(vertexCode.Size / sizeof(uint32_t));
-		std::memcpy(m_CreateInfo.VertexCode.data(), vertexCode.As<uint32_t>(), vertexCode.Size);
+	VertexInput GetVertexInputDescription() {
+		VertexInput input;
+		input.Description.binding = 0;
+		input.Description.stride = sizeof(Vertex);
+		input.Description.inputRate = vk::VertexInputRate::eVertex;
 
-		m_CreateInfo.FragmentCode.resize(fragmentCode.Size / sizeof(uint32_t));
-		std::memcpy(m_CreateInfo.FragmentCode.data(), fragmentCode.As<uint32_t>(), fragmentCode.Size);
-		
-		m_CreateInfo.VertexInput = Vertex::GetInputDescription();
+		VulkanVertexAttributeBuilder builder;
+		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Position));
+		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Normal));
+		builder.Add(AttributeFormat::Float2, offsetof(Vertex, UV));
+		// Note: set the binding to 1 for per instance data
+
+		input.Attributes = builder.GetAttributes();
+
+		return input;
+	}
+
+	Shader::Shader(BufferView vertexCode, BufferView fragmentCode) {
+		m_VertexSpirv.resize(vertexCode.Size / sizeof(uint32_t));
+		std::memcpy(m_VertexSpirv.data(), vertexCode.As<uint32_t>(), vertexCode.Size);
+
+		m_FragmentSpirv.resize(fragmentCode.Size / sizeof(uint32_t));
+		std::memcpy(m_FragmentSpirv.data(), fragmentCode.As<uint32_t>(), fragmentCode.Size);
+	}
+
+	Shader::~Shader() {
+		delete m_VulkanShader;
 	}
 
 	void Shader::Bind() {
@@ -19,6 +38,11 @@ namespace Sphynx::Rendering {
 	}
 	
 	void Shader::UploadToGPU() {
-		m_VulkanShader = std::make_unique<VulkanShader>(m_CreateInfo, *VulkanContext::SceneRenderpass);
+		ShaderCreateInfo info{
+			.VertexCode = std::move(m_VertexSpirv),
+			.FragmentCode = std::move(m_FragmentSpirv),
+			.VertexInput = GetVertexInputDescription()
+		};
+		m_VulkanShader = new VulkanShader(info, *VulkanContext::SceneRenderpass);
 	}
 }
