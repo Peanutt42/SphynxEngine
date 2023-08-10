@@ -7,19 +7,16 @@
 namespace Sphynx::Rendering {
 	VulkanInstance::VulkanInstance(bool validation)
 		: Validation(validation)
-	{
-		VkApplicationInfo appInfo{};
-		appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
+	{		
+		vk::ApplicationInfo appInfo{};
 		appInfo.pApplicationName = "Sphynx Engine";
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Sphynx Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(Engine::Version.Major, Engine::Version.Minor, Engine::Version.Patch);
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
-		VkInstanceCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
+		vk::InstanceCreateInfo createInfo{};
 		createInfo.pApplicationInfo = &appInfo;
-
 
 		m_RequiredExtensions.emplace_back(VK_EXT_DEBUG_UTILS_EXTENSION_NAME);
 		_ConfigureExtensions(createInfo);
@@ -31,7 +28,7 @@ namespace Sphynx::Rendering {
 		if (wantedValidation && !Validation)													// validation layers only work on locally installed VulkanSDK!
 			SE_WARN(Logging::Rendering, "Couldn't enable vulkan validation layers.\n    -> Fix: Install VulkanSDK locally from https://vulkan.lunarg.com/sdk/home");
 
-		VkDebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
+		vk::DebugUtilsMessengerCreateInfoEXT debugMessengerCreateInfo{};
 		if (Validation) {
 			_ConfigureDebugMessengerCreateInfo(debugMessengerCreateInfo);
 			createInfo.pNext = (VkDebugUtilsMessengerCreateInfoEXT*)&debugMessengerCreateInfo;
@@ -39,9 +36,12 @@ namespace Sphynx::Rendering {
 		else
 			createInfo.pNext = nullptr;
 
+		vk::Result result = vk::createInstance(&createInfo, nullptr, &Instance);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create vulkan instance");
 
-		VkResult result = vkCreateInstance(&createInfo, nullptr, &Instance);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create vulkan instance");
+
+		s_DispatchLoader.init(Instance, vkGetInstanceProcAddr);
+
 
 		if (Validation)
 			_CreateDebugMessenger(debugMessengerCreateInfo);
@@ -51,21 +51,18 @@ namespace Sphynx::Rendering {
 		if (Validation)
 			_DestroyDebugMessenger();
 
-		vkDestroyInstance(Instance, nullptr);
-		Instance = VK_NULL_HANDLE;
+		Instance.destroy();
 	}
 
 
-	void VulkanInstance::_ConfigureExtensions(VkInstanceCreateInfo& createInfo) {
-		// Get supported extensions
-		uint32_t supportedExtensionCount = 0;
-		vkEnumerateInstanceExtensionProperties(nullptr, &supportedExtensionCount, nullptr);
-		m_SupportedExtensionProperties.resize(supportedExtensionCount);
-		vkEnumerateInstanceExtensionProperties(nullptr, &supportedExtensionCount, m_SupportedExtensionProperties.data());
+	void VulkanInstance::_ConfigureExtensions(vk::InstanceCreateInfo& createInfo) {
+		m_SupportedExtensionProperties = vk::enumerateInstanceExtensionProperties(nullptr);
 
+		SE_ASSERT(glfwVulkanSupported(), Logging::Rendering, "GLFW doesn't support Vulkan on this platform");
 		// Add glfw extensions
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
+		SE_ASSERT(glfwExtensions, Logging::Rendering, "GLFW doesn't support Vulkan surface creation");
 		for (uint32_t i = 0; i < glfwExtensionCount; i++)
 			m_RequiredExtensions.emplace_back(glfwExtensions[i]);
 
@@ -74,8 +71,8 @@ namespace Sphynx::Rendering {
 		for (const char* extension : m_RequiredExtensions) {
 			bool foundExtension = false;
 			std::string_view extensionStr(extension);
-			for (const VkExtensionProperties& extensionProps : m_SupportedExtensionProperties) {
-				if (std::string_view(extensionProps.extensionName) == extensionStr) {
+			for (const vk::ExtensionProperties& extensionProps : m_SupportedExtensionProperties) {
+				if (std::string_view(extensionProps.extensionName.data()) == extensionStr) {
 					foundExtension = true;
 					break;
 				}
@@ -94,18 +91,14 @@ namespace Sphynx::Rendering {
 	}
 
 
-	bool VulkanInstance::_ConfigureValidationLayers(VkInstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers) {
-		// Get supported validation layers
-		uint32_t supportedLayerCount = 0;
-		vkEnumerateInstanceLayerProperties(&supportedLayerCount, nullptr);
-		std::vector<VkLayerProperties> supportedLayers(supportedLayerCount);
-		vkEnumerateInstanceLayerProperties(&supportedLayerCount, supportedLayers.data());
+	bool VulkanInstance::_ConfigureValidationLayers(vk::InstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers) {
+		std::vector<vk::LayerProperties> supportedLayers = vk::enumerateInstanceLayerProperties();
 
 		size_t unsupportedValidationLayerCount = 0;
 		for (const char* layer : validationLayers) {
 			bool foundLayer = false;
 			std::string_view layerStr = layer;
-			for (const VkLayerProperties& supportedLayerProp : supportedLayers) {
+			for (const vk::LayerProperties& supportedLayerProp : supportedLayers) {
 				if (std::string_view(supportedLayerProp.layerName) == layerStr) {
 					foundLayer = true;
 					break;
@@ -118,7 +111,7 @@ namespace Sphynx::Rendering {
 		}
 		if (unsupportedValidationLayerCount != 0)
 			return false;
-
+		
 		if (Validation) {
 			createInfo.enabledLayerCount = (uint32_t)validationLayers.size();
 			createInfo.ppEnabledLayerNames = validationLayers.data();
@@ -126,40 +119,25 @@ namespace Sphynx::Rendering {
 		return Validation;
 	}
 
-	static VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT messageType, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/)
-	{
-
-		if (messageSeverity >= VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT &&
-			messageType != VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT)
-		{
-			SE_ERR(Logging::Rendering, "[Validation Layer]: {}", pCallbackData->pMessage);
-		}
-
+	VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/, VkDebugUtilsMessageTypeFlagsEXT /*messageType*/, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/) {
+		SE_ERR(Logging::Rendering, "[Validation Layer]: {}", pCallbackData->pMessage);
+		
 		return VK_FALSE;
 	}
-	void VulkanInstance::_ConfigureDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
-		createInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		createInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		createInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+	void VulkanInstance::_ConfigureDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo) {
+		createInfo.messageSeverity = vk::DebugUtilsMessageSeverityFlagBitsEXT::eWarning |
+									 vk::DebugUtilsMessageSeverityFlagBitsEXT::eError;
+		createInfo.messageType = vk::DebugUtilsMessageTypeFlagBitsEXT::eGeneral |
+								 vk::DebugUtilsMessageTypeFlagBitsEXT::eValidation;
 		createInfo.pfnUserCallback = debugCallback;
-		createInfo.pUserData = nullptr; // Optional
 	}
-	VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, const VkDebugUtilsMessengerCreateInfoEXT* pCreateInfo, const VkAllocationCallbacks* pAllocator, VkDebugUtilsMessengerEXT* pDebugMessenger) {
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
-		if (func)
-			return func(instance, pCreateInfo, pAllocator, pDebugMessenger);
-		return VK_ERROR_EXTENSION_NOT_PRESENT;
-	}
-	void VulkanInstance::_CreateDebugMessenger(const VkDebugUtilsMessengerCreateInfoEXT& createInfo) {
-		VkResult result = CreateDebugUtilsMessengerEXT(Instance, &createInfo, nullptr, &m_DebugMessenger);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create debug messenger");
+	
+	void VulkanInstance::_CreateDebugMessenger(const vk::DebugUtilsMessengerCreateInfoEXT& createInfo) {
+		vk::Result result = Instance.createDebugUtilsMessengerEXT(&createInfo, nullptr, &m_DebugMessenger, s_DispatchLoader);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create debug messenger");
 	}
 
 	void VulkanInstance::_DestroyDebugMessenger() {
-		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(Instance, "vkDestroyDebugUtilsMessengerEXT");
-		if (func) {
-			func(Instance, m_DebugMessenger, nullptr);
-			m_DebugMessenger = VK_NULL_HANDLE;
-		}
+		Instance.destroyDebugUtilsMessengerEXT(m_DebugMessenger, nullptr, s_DispatchLoader);
 	}
 }

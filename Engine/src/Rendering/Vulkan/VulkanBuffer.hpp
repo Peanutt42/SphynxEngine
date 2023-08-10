@@ -4,21 +4,21 @@
 #include "VulkanCommandPool.hpp"
 
 namespace Sphynx::Rendering {
-	uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+	std::optional<uint32_t> FindMemoryTypeIndex(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
 
 	class SE_API VulkanBuffer {
 	public:
-		VkBuffer Buffer;
-		VkDeviceMemory Memory;
-		VkDeviceSize Size;
+		vk::Buffer Buffer;
+		vk::DeviceMemory Memory;
+		vk::DeviceSize Size;
 
-		VulkanBuffer(VkDeviceSize size, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties);
+		VulkanBuffer(vk::DeviceSize size, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties);
 		~VulkanBuffer();
 
-		static VulkanBuffer* CreateWithStaging(BufferView data, VkBufferUsageFlags usage, VkMemoryPropertyFlags properties = 0);
+		static VulkanBuffer* CreateWithStaging(BufferView data, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties = (vk::MemoryPropertyFlags)0);
 
 		void Set(BufferView data);
 		void Get(std::vector<uint8_t>& outData);
-		void Copy(VkCommandBuffer commandBuffer, VkBuffer dst);
+		void Copy(vk::CommandBuffer commandBuffer, vk::Buffer dst);
 	};
 }

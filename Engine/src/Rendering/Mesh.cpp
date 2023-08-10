@@ -34,10 +34,10 @@ namespace Sphynx::Rendering {
 
 	Mesh::Mesh(BufferView vertices, uint32_t vertexCount, const std::vector<uint32_t>& indices) {
 		m_VertexCount = vertexCount;
-		m_VertexBuffer = VulkanBuffer::CreateWithStaging(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+		m_VertexBuffer = VulkanBuffer::CreateWithStaging(vertices, vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 		m_IndicesCount = (uint32_t)indices.size();
 		if (m_IndicesCount > 0)
-			m_IndexBuffer = VulkanBuffer::CreateWithStaging(BufferView(indices), VK_BUFFER_USAGE_INDEX_BUFFER_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+			m_IndexBuffer = VulkanBuffer::CreateWithStaging(BufferView(indices), vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 	}
 
 	Mesh::~Mesh() {
@@ -47,17 +47,17 @@ namespace Sphynx::Rendering {
 	}
 
 	void Mesh::Draw(uint32_t instanceCount) {
-		VkCommandBuffer cmd = VulkanContext::CommandBuffer;
+		vk::CommandBuffer& cmd = VulkanContext::CommandBuffer;
 		
-		VkDeviceSize offset = 0;
-		vkCmdBindVertexBuffers(cmd, 0, 1, &m_VertexBuffer->Buffer, &offset);
+		vk::DeviceSize offset = 0;
+		cmd.bindVertexBuffers(0, 1, &m_VertexBuffer->Buffer, &offset);
 
 		if (m_IndicesCount > 0) {
-			vkCmdBindIndexBuffer(cmd, m_IndexBuffer->Buffer, 0, VK_INDEX_TYPE_UINT32);
-			vkCmdDrawIndexed(cmd, m_IndicesCount, instanceCount, 0, 0, 0);
+			cmd.bindIndexBuffer(m_IndexBuffer->Buffer, 0, vk::IndexType::eUint32);
+			cmd.drawIndexed(m_IndicesCount, instanceCount, 0, 0, 0);
 		}
 		else {
-			vkCmdDraw(cmd, m_VertexCount, instanceCount, 0, 0);
+			cmd.draw(m_VertexCount, instanceCount, 0, 0);
 		}
 	}
 }

@@ -9,42 +9,39 @@ namespace Sphynx::Rendering {
 
 		VulkanQueueFamilyIndices queueFamilyIndices(VulkanContext::PhysicalDevice);
 
-		VkCommandPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		vk::CommandPoolCreateInfo poolInfo{};
+		poolInfo.flags = vk::CommandPoolCreateFlagBits::eResetCommandBuffer;
 		poolInfo.queueFamilyIndex = queueFamilyIndices.GraphicsFamily.value();
 
-		VkResult result = vkCreateCommandPool(VulkanContext::LogicalDevice, &poolInfo, nullptr, &m_Pool);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create commandPool");
+		vk::Result result = VulkanContext::LogicalDevice.createCommandPool(&poolInfo, nullptr, &m_Pool);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create commandPool");
 		
 
-		VkCommandBufferAllocateInfo commandBufferAllocInfo{};
-		commandBufferAllocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		vk::CommandBufferAllocateInfo commandBufferAllocInfo{};
 		commandBufferAllocInfo.commandPool = m_Pool;
-		commandBufferAllocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		commandBufferAllocInfo.level = vk::CommandBufferLevel::ePrimary;
 		commandBufferAllocInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
 
-		result = vkAllocateCommandBuffers(VulkanContext::LogicalDevice, &commandBufferAllocInfo, m_CommandBuffers.data());
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to allocate commandBuffers");
+		result = VulkanContext::LogicalDevice.allocateCommandBuffers(&commandBufferAllocInfo, m_CommandBuffers.data());
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to allocate commandBuffers");
 	}
 
 	VulkanCommandPool::~VulkanCommandPool() {
-		vkDestroyCommandPool(VulkanContext::LogicalDevice, m_Pool, nullptr);
+		VulkanContext::LogicalDevice.destroyCommandPool(m_Pool, nullptr);
 		m_Pool = VK_NULL_HANDLE;
 	}
 
-	VkCommandBuffer VulkanCommandPool::BeginRecording(uint32_t frameIndex) {
+	vk::CommandBuffer VulkanCommandPool::BeginRecording(uint32_t frameIndex) {
 		SE_ASSERT(frameIndex <= m_CommandBuffers.size(), Logging::Rendering, "Invalid frameIndex");
 
-		vkResetCommandBuffer(m_CommandBuffers[frameIndex], 0);
+		m_CommandBuffers[frameIndex].reset();
 
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = 0; // Optional
+		vk::CommandBufferBeginInfo beginInfo{};
+		beginInfo.flags = {}; // Optional
 		beginInfo.pInheritanceInfo = nullptr; // Optional
 
-		VkResult result = vkBeginCommandBuffer(m_CommandBuffers[frameIndex], &beginInfo);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to begin recording commandBuffer");
+		vk::Result result = m_CommandBuffers[frameIndex].begin(&beginInfo);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to begin recording commandBuffer");
 
 		return m_CommandBuffers[frameIndex];
 	}
@@ -56,36 +53,33 @@ namespace Sphynx::Rendering {
 		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to end recording commandBuffer");
 	}
 
-	VkCommandBuffer VulkanCommandPool::BeginSingleUseCommandbuffer() {
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+	vk::CommandBuffer VulkanCommandPool::BeginSingleUseCommandbuffer() {
+		vk::CommandBufferAllocateInfo allocInfo{};
+		allocInfo.level = vk::CommandBufferLevel::ePrimary;
 		allocInfo.commandPool = m_Pool;
 		allocInfo.commandBufferCount = 1;
 
-		VkCommandBuffer commandBuffer;
-		vkAllocateCommandBuffers(VulkanContext::LogicalDevice, &allocInfo, &commandBuffer);
+		vk::CommandBuffer commandBuffer;
+		VulkanContext::LogicalDevice.allocateCommandBuffers(&allocInfo, &commandBuffer);
 
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+		vk::CommandBufferBeginInfo beginInfo{};
+		beginInfo.flags = vk::CommandBufferUsageFlagBits::eOneTimeSubmit;
 
-		vkBeginCommandBuffer(commandBuffer, &beginInfo);
+		commandBuffer.begin(&beginInfo);
 
 		return commandBuffer;
 	}
 
-	void VulkanCommandPool::EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer) {
-		vkEndCommandBuffer(commandbuffer);
+	void VulkanCommandPool::EndSingleUseCommandbuffer(vk::CommandBuffer commandbuffer) {
+		commandbuffer.end();
 
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		vk::SubmitInfo submitInfo{};
 		submitInfo.commandBufferCount = 1;
 		submitInfo.pCommandBuffers = &commandbuffer;
 
-		vkQueueSubmit(VulkanContext::GraphicsQueue, 1, &submitInfo, VK_NULL_HANDLE);
-		vkQueueWaitIdle(VulkanContext::GraphicsQueue);
+		VulkanContext::GraphicsQueue.submit(1, &submitInfo, VK_NULL_HANDLE);
+		VulkanContext::GraphicsQueue.waitIdle();
 
-		vkFreeCommandBuffers(VulkanContext::LogicalDevice, m_Pool, 1, &commandbuffer);
+		VulkanContext::LogicalDevice.freeCommandBuffers(m_Pool, 1, &commandbuffer);
 	}
 }
