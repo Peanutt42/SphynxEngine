@@ -13,7 +13,8 @@ namespace Sphynx::Rendering {
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Sphynx Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(Engine::Version.Major, Engine::Version.Minor, Engine::Version.Patch);
-		appInfo.apiVersion = VK_API_VERSION_1_1;
+		// NOTE: On a old laptop of mine, in order to use renderdoc, you need at least VK_API_VERSION_1_1 or it crashes when enumerating the gpu devices
+		appInfo.apiVersion = VK_API_VERSION_1_0;
 
 		vk::InstanceCreateInfo createInfo{};
 		createInfo.pApplicationInfo = &appInfo;

@@ -102,6 +102,9 @@ namespace Sphynx {
 	}
 
 	void CrashHandler::StartCrashReporter() {
+		if (Platform::IsDebuggerAttached())
+			return;
+
 		Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
 	}
 
