@@ -51,12 +51,20 @@ namespace Sphynx {
 				for (auto stackTraceEntryNode : stackTraceNode) {
 					auto& entry = m_CrashData.StackTrace.emplace_back();
 					entry.FunctionName = stackTraceEntryNode["FunctionName"].as<std::string>();
+
+					auto moduleNameNode = stackTraceEntryNode["ModuleName"];
+					entry.HasModule = (bool)moduleNameNode;
+					if (entry.HasModule)
+						entry.ModuleName = moduleNameNode.as<std::string>();
+
 					auto sourceFileNode = stackTraceEntryNode["SourceFile"];
 					if (sourceFileNode)
 						entry.SourceFile = sourceFileNode.as<std::string>();
+					
 					auto sourceLineNode = stackTraceEntryNode["SourceLine"];
 					if (sourceLineNode)
 						entry.SourceLine = sourceLineNode.as<size_t>();
+
 					entry.HasSource = sourceFileNode || sourceLineNode;
 				}
 
@@ -86,9 +94,10 @@ namespace Sphynx {
 
 				ImGui::Text("StackTrace");
 				static ImGuiTableFlags flags = ImGuiTableFlags_Resizable | ImGuiTableFlags_ScrollY | ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_Hideable | ImGuiTableFlags_NoSavedSettings;
-				if (ImGui::BeginTable("StackTrace", 3, flags, { 0.f, ImGui::GetContentRegionAvail().y / 1.5f })) {
+				if (ImGui::BeginTable("StackTrace", 4, flags, { 0.f, ImGui::GetContentRegionAvail().y / 1.5f })) {
 					ImGui::TableSetupColumn("Index");
 					ImGui::TableSetupColumn("Function");
+					ImGui::TableSetupColumn("Module");
 					ImGui::TableSetupColumn("Source");
 					ImGui::TableHeadersRow();
 					for (size_t i = 0; i < m_CrashData.StackTrace.size(); i++) {
@@ -108,7 +117,12 @@ namespace Sphynx {
 							ImGui::OpenPopup("StackTraceEntry Menu");
 
 						ImGui::TableSetColumnIndex(2);
-						ImGui::Text("%s", entry.HasSource ? (entry.SourceFile + ":" + std::to_string(entry.SourceLine)).c_str() : "???");
+
+						ImGui::Text("%s", entry.HasModule ? entry.ModuleName.c_str() : "???");
+
+						ImGui::TableSetColumnIndex(3);
+						std::string sourceStr = entry.SourceFile + ":" + std::to_string(entry.SourceLine);
+						ImGui::Text("%s", entry.HasSource ? sourceStr.c_str() : "???");
 
 						if (ImGui::BeginPopup("StackTraceEntry Menu", ImGuiWindowFlags_NoMove)) {
 							if (m_CrashData.StackTrace[i].HasSource) {
