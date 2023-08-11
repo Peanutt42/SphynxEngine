@@ -1,4 +1,4 @@
-name: C++ Windows VS2022 Build
+name: Windows Build
 on:
   push:
     paths-ignore:
@@ -33,3 +33,9 @@ jobs:
         run: msbuild /p:Configurations=Release /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
       - name: Build Dist Solution
         run: msbuild /p:Configurations=Dist /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
+  test:
+    needs: build
+    runs-on: windows-latest
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v2
