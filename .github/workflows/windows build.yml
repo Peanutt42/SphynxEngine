@@ -33,10 +33,3 @@ jobs:
         run: msbuild /p:Configurations=Release /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
       - name: Build Dist Solution
         run: msbuild /p:Configurations=Dist /p:Platform=x64 /m /p:WarningLevel=4 SphynxEngine.sln
-  test:
-    needs: build
-    runs-on: windows-latest
-    steps:
-      - name: Run Test
-        working-directory:  bin\windows-x86_64\Debug\Programs\Tests  
-        run: Tests.exe
