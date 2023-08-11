@@ -65,4 +65,12 @@ namespace Sphynx::Rendering {
 	void Renderer::WaitBeforeClose() {
 		VulkanContext::WaitBeforeClose();
 	}
+
+	void* Renderer::GetSceneTextureID() {
+		if (!m_GeneratedSceneTextureDescriptorSets) {
+			VulkanContext::GenerateSceneTextureDescriptorSets();
+			m_GeneratedSceneTextureDescriptorSets = true;
+		}
+		return (void*)VulkanContext::SceneTextureDescriptorSets[VulkanContext::CurrentImage];
+	}
 }

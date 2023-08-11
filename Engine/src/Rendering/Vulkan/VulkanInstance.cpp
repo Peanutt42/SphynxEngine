@@ -13,7 +13,7 @@ namespace Sphynx::Rendering {
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Sphynx Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(Engine::Version.Major, Engine::Version.Minor, Engine::Version.Patch);
-		appInfo.apiVersion = VK_API_VERSION_1_0;
+		appInfo.apiVersion = VK_API_VERSION_1_1;
 
 		vk::InstanceCreateInfo createInfo{};
 		createInfo.pApplicationInfo = &appInfo;
@@ -38,8 +38,7 @@ namespace Sphynx::Rendering {
 
 		vk::Result result = vk::createInstance(&createInfo, nullptr, &Instance);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create vulkan instance");
-
-
+		
 		s_DispatchLoader.init(Instance, vkGetInstanceProcAddr);
 
 

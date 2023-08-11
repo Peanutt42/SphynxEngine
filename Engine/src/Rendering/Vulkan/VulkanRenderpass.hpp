@@ -19,9 +19,11 @@ namespace Sphynx::Rendering {
 		vk::RenderPass GetHandle() { return m_Renderpass; }
 
 		// Isn't needed for the swapchain renderpass
-		void CreateFramebuffers(uint32_t width, uint32_t height, vk::Format format);
+		void CreateFramebuffers(uint32_t width, uint32_t height, vk::Format format, bool sampled);
 
-		vk::Framebuffer GetFramebuffer(uint32_t currentImageIndex);
+		vk::Framebuffer GetFramebuffer(uint32_t imageIndex);
+		vk::Image GetImage(uint32_t imageIndex);
+		vk::ImageView GetImageView(uint32_t imageIndex);
 
 		void Begin(vk::Framebuffer framebuffer, vk::CommandBuffer commandBuffer, vk::Extent2D extent);
 		void End(vk::CommandBuffer commandBuffer);

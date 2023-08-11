@@ -16,9 +16,14 @@ namespace Sphynx::Rendering {
 
 		void WaitBeforeClose();
 
+		// ImTextureID
+		void* GetSceneTextureID();
+
 	private:
 		Window& m_Window;
 		std::unique_ptr<Mesh> m_CubeMesh;
 		std::unique_ptr<Shader> m_DefaultShader;
+
+		bool m_GeneratedSceneTextureDescriptorSets = false;
 	};
 }

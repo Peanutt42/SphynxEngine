@@ -23,6 +23,8 @@ namespace Sphynx::Rendering {
 
 		static void WaitBeforeClose();
 
+		static void GenerateSceneTextureDescriptorSets();
+
 
 		inline static Rendering::Window* Window = nullptr;
 
@@ -45,6 +47,9 @@ namespace Sphynx::Rendering {
 		inline static std::unique_ptr<VulkanRenderpass> SceneRenderpass;
 		inline static uint32_t SceneWidth = 1920;
 		inline static uint32_t SceneHeight = 1080;
+		inline static std::vector<vk::DescriptorSet> SceneTextureDescriptorSets;
+
+		inline static vk::Sampler DefaultSampler;
 
 		inline static vk::SharingMode SharingMode;
 
