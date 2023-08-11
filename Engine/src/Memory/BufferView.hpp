@@ -23,6 +23,10 @@ namespace Sphynx {
 			: Data((const uint8_t*)data.data()), Size(data.size() * sizeof(T)) {}
 
 		template<typename T, size_t N>
+		BufferView(const std::array<T, N>& data)
+			: Data((const uint8_t*)data.data()), Size(data.size() * sizeof(T)) {}
+
+		template<typename T, size_t N>
 		BufferView(const T(&data)[N])
 			: Data((const uint8_t*)data), Size(N * sizeof(T)) {}
 
@@ -37,6 +41,12 @@ namespace Sphynx {
 		template<typename T>
 		const T* As() const {
 			return (const T*)Data;
+		}
+
+		// Get the number of elements in this buffer given a elementType T
+		template<typename T>
+		size_t GetSize() const {
+			return Size / sizeof(T);
 		}
 	};
 }

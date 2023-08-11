@@ -31,6 +31,7 @@ group "Core"
 group "Programs"
 	include "Programs/ReflectionGenerator"
 	include "Programs/CrashReporter"
+	include "Programs/Tests"
 
 group "Dependencies"
 	include "vendor/yaml"
@@ -39,6 +40,7 @@ group "Dependencies"
 	include "vendor/imgui"
 	include "vendor/glad"
 	include "vendor/glfw"
+	include "vendor/gtest"
 	
 newaction {
 	trigger = "clean",

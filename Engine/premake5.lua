@@ -53,7 +53,8 @@ project "Engine"
 
 	postbuildcommands {
 		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\Editor\\\" /Y",
-		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\EngineRuntime\\\" /Y"
+		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\EngineRuntime\\\" /Y",
+		"xcopy \"" .. EngineDir .. "bin\\" .. outputdir .. "\\Engine\\Engine.dll\"  \"" .. EngineDir .. "bin\\" .. outputdir ..  "\\Programs\\Tests\\\" /Y"
 	}
 
 	
