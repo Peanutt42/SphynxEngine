@@ -23,29 +23,29 @@ namespace Sphynx::Rendering {
 
 		void UploadToGPU();
 
-		static void CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& memory, VkImageCreateFlags flags = 0, uint32_t arrayLayers = 1);
-		static void TransitionImageLayout(VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout, VkImage image);
-		static void CopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height);
-		static VkImageView CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType type = VK_IMAGE_VIEW_TYPE_2D, uint32_t layerCount = 1);
-		static VkSampler CreateSampler();
+		static void CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage,vk::MemoryPropertyFlags properties, vk::Image& image,vk::DeviceMemory& memory, vk::ImageCreateFlags flags = (vk::ImageCreateFlags)0, uint32_t arrayLayers = 1);
+		static void TransitionImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::Image image);
+		static void CopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height);
+		static vk::ImageView CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, vk::ImageViewType type = vk::ImageViewType::e2D, uint32_t layerCount = 1);
+		static vk::Sampler CreateSampler();
 
 		uint32_t GetWidth() const { return m_Width; }
 		uint32_t GetHeight() const { return m_Height; }
 
-		VkImageView GetImageView() { return m_View; }
+		vk::ImageView GetImageView() { return m_View; }
 
-		VkDescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
+		vk::DescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
 
 	private:
 		uint32_t m_Width = 0, m_Height = 0;
 		std::vector<uint8_t> m_Data;
-		VkFormat m_VulkanFormat = VK_FORMAT_UNDEFINED;
+		vk::Format m_VulkanFormat = vk::Format::eUndefined;
 
-		VkImage m_Image = VK_NULL_HANDLE;
-		VkImageView m_View = VK_NULL_HANDLE;
-		VkDeviceMemory m_Memory = VK_NULL_HANDLE;
+		vk::Image m_Image;
+		vk::ImageView m_View;
+		vk::DeviceMemory m_Memory;
 
-		VkSampler m_Sampler = VK_NULL_HANDLE;
-		VkDescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
+		vk::Sampler m_Sampler;
+		vk::DescriptorSet m_DescriptorSet;
 	};
 }

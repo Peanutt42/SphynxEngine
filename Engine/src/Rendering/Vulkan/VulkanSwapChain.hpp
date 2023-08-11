@@ -3,49 +3,49 @@
 #include "pch.hpp"
 #include "Rendering/Window.hpp"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 namespace Sphynx::Rendering {
 	class VulkanSwapChain {
 	public:
 		struct SupportDetails {
-			VkSurfaceCapabilitiesKHR Capabilities{};
-			std::vector<VkSurfaceFormatKHR> Formats;
-			std::vector<VkPresentModeKHR> PresentModes;
+			vk::SurfaceCapabilitiesKHR Capabilities{};
+			std::vector<vk::SurfaceFormatKHR> Formats;
+			std::vector<vk::PresentModeKHR> PresentModes;
 		};
 
-		static SupportDetails GetSupport(VkPhysicalDevice device);
+		static SupportDetails GetSupport(vk::PhysicalDevice device);
 
 		VulkanSwapChain();
 		~VulkanSwapChain();
 
-		void Recreate(VkRenderPass renderpass);
+		void Recreate(vk::RenderPass renderpass);
 
-		void CreateFramebuffers(VkRenderPass renderpass);
+		void CreateFramebuffers(vk::RenderPass renderpass);
 
-		const VkExtent2D& GetExtent() const { return m_Extent; }
-		VkFormat GetFormat() const { return m_Format; }
-		VkFramebuffer GetFramebuffer(uint32_t index);
-		VkSwapchainKHR GetHandle() { return m_SwapChain; }
+		const vk::Extent2D& GetExtent() const { return m_Extent; }
+		vk::Format GetFormat() const { return m_Format; }
+		vk::Framebuffer GetFramebuffer(uint32_t index);
+		vk::SwapchainKHR GetHandle() { return m_SwapChain; }
 
 	private:
 		void Create();
 		void Cleanup();
 
 
-		static std::optional<VkSurfaceFormatKHR> ChooseFormat(const std::vector<VkSurfaceFormatKHR>& formats);
+		static std::optional<vk::SurfaceFormatKHR> ChooseFormat(const std::vector<vk::SurfaceFormatKHR>& formats);
 	
-		static VkPresentModeKHR ChoosePresentMode(const std::vector<VkPresentModeKHR>& presentModes);
+		static vk::PresentModeKHR ChoosePresentMode(const std::vector<vk::PresentModeKHR>& presentModes);
 
-		static VkExtent2D ChooseExtent(const VkSurfaceCapabilitiesKHR& capabilities, GLFWwindow* window);
+		static vk::Extent2D ChooseExtent(const vk::SurfaceCapabilitiesKHR& capabilities, GLFWwindow* window);
 	
 	private:
-		VkSwapchainKHR m_SwapChain = VK_NULL_HANDLE;
+		vk::SwapchainKHR m_SwapChain;
 
-		std::vector<VkImage> m_Images;
-		std::vector<VkImageView> m_ImageViews;
-		std::vector<VkFramebuffer> m_Framebuffers;
-		VkFormat m_Format;
-		VkExtent2D m_Extent;
+		std::vector<vk::Image> m_Images;
+		std::vector<vk::ImageView> m_ImageViews;
+		std::vector<vk::Framebuffer> m_Framebuffers;
+		vk::Format m_Format = vk::Format::eUndefined;
+		vk::Extent2D m_Extent;
 	};
 }

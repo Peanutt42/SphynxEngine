@@ -3,98 +3,96 @@
 #include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	VulkanRenderpass::VulkanRenderpass(RenderPassUsage usage, VkFormat format) {
-		VkImageLayout initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-		VkImageLayout finalLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+	VulkanRenderpass::VulkanRenderpass(RenderPassUsage usage, vk::Format format) {
+		vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined;
+		vk::ImageLayout finalLayout = vk::ImageLayout::eUndefined;
 		switch (usage) {
 		default: break;
 		case RenderPassUsage::Single:
-			initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			initialLayout = vk::ImageLayout::eUndefined;
+			finalLayout = vk::ImageLayout::ePresentSrcKHR;
 			break;
 		case RenderPassUsage::First:
-			initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			initialLayout = vk::ImageLayout::eUndefined;
+			finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 			break;
 		case RenderPassUsage::Middle:
-			initialLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-			finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+			initialLayout = vk::ImageLayout::eColorAttachmentOptimal;
+			finalLayout = vk::ImageLayout::eColorAttachmentOptimal;
 			break;
 		case RenderPassUsage::Last:
-			initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-			finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+			initialLayout = vk::ImageLayout::eUndefined;
+			finalLayout = vk::ImageLayout::ePresentSrcKHR;
 			break;
 		}
 
-		VkAttachmentDescription colorAttachment{};
+		vk::AttachmentDescription colorAttachment{};
 		colorAttachment.format = format;
-		colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-		colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-		colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-		colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-		colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+		colorAttachment.samples = vk::SampleCountFlagBits::e1;
+		colorAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+		colorAttachment.storeOp = vk::AttachmentStoreOp::eStore;
+		colorAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+		colorAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
 		colorAttachment.initialLayout = initialLayout;
 		colorAttachment.finalLayout = finalLayout;
 
-		VkAttachmentReference colorAttachmentRef{};
+		vk::AttachmentReference colorAttachmentRef{};
 		colorAttachmentRef.attachment = 0;
-		colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+		colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
-		VkSubpassDescription subpass{};
-		subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+		vk::SubpassDescription subpass{};
+		subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
 
-		VkRenderPassCreateInfo createInfo{};
-		createInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+		vk::RenderPassCreateInfo createInfo{};
 		createInfo.attachmentCount = 1;
 		createInfo.pAttachments = &colorAttachment;
 		createInfo.subpassCount = 1;
 		createInfo.pSubpasses = &subpass;
 
-		VkSubpassDependency dependency{};
+		vk::SubpassDependency dependency{};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependency.dstSubpass = 0;
-		dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.srcAccessMask = 0;
-		dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-		dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		dependency.srcAccessMask = (vk::AccessFlags)0;
+		dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
 
 		createInfo.dependencyCount = 1;
 		createInfo.pDependencies = &dependency;
 
-		VkResult result = vkCreateRenderPass(VulkanContext::LogicalDevice, &createInfo, nullptr, &m_Renderpass);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create renderpass");
+		vk::Result result = VulkanContext::LogicalDevice.createRenderPass(&createInfo, nullptr, &m_Renderpass);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create renderpass");
 	}
 
 	VulkanRenderpass::~VulkanRenderpass() {
 		for (auto sceneFramebuffer : m_Framebuffers)
-			vkDestroyFramebuffer(VulkanContext::LogicalDevice, sceneFramebuffer, nullptr);
+			VulkanContext::LogicalDevice.destroyFramebuffer(sceneFramebuffer, nullptr);
 
 		for (auto imageView : m_FramebufferImageViews)
-			vkDestroyImageView(VulkanContext::LogicalDevice, imageView, nullptr);
+			VulkanContext::LogicalDevice.destroyImageView(imageView, nullptr);
 		for (auto image : m_FramebufferImages)
-			vkDestroyImage(VulkanContext::LogicalDevice, image, nullptr);
+			VulkanContext::LogicalDevice.destroyImage(image, nullptr);
 		for (auto memory : m_FramebufferImageMemories)
-			vkFreeMemory(VulkanContext::LogicalDevice, memory, nullptr);
+			VulkanContext::LogicalDevice.freeMemory(memory, nullptr);
 
-		vkDestroyRenderPass(VulkanContext::LogicalDevice, m_Renderpass, nullptr);
+		VulkanContext::LogicalDevice.destroyRenderPass(m_Renderpass, nullptr);
 		m_Renderpass = VK_NULL_HANDLE;
 	}
 
-	void VulkanRenderpass::CreateFramebuffers(uint32_t width, uint32_t height, VkFormat format) {
+	void VulkanRenderpass::CreateFramebuffers(uint32_t width, uint32_t height, vk::Format format) {
 		m_FramebufferImages.resize(VulkanContext::MaxFramesInFlight);
 		m_FramebufferImageMemories.resize(VulkanContext::MaxFramesInFlight);
 		m_FramebufferImageViews.resize(VulkanContext::MaxFramesInFlight);
 		for (size_t i = 0; i < VulkanContext::MaxFramesInFlight; i++) {
-			VulkanTexture::CreateImage(width, height, format, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
-			m_FramebufferImageViews[i] = VulkanTexture::CreateImageView(m_FramebufferImages[i], format, VK_IMAGE_ASPECT_COLOR_BIT);
+			VulkanTexture::CreateImage(width, height, format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
+			m_FramebufferImageViews[i] = VulkanTexture::CreateImageView(m_FramebufferImages[i], format, vk::ImageAspectFlagBits::eColor);
 		}
 
 		m_Framebuffers.resize(VulkanContext::MaxFramesInFlight);
 		for (size_t i = 0; i < VulkanContext::MaxFramesInFlight; i++) {
-			VkFramebufferCreateInfo framebufferInfo{};
-			framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+			vk::FramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.renderPass = m_Renderpass;
 			framebufferInfo.attachmentCount = 1;
 			framebufferInfo.pAttachments = &m_FramebufferImageViews[i];
@@ -102,49 +100,49 @@ namespace Sphynx::Rendering {
 			framebufferInfo.height = height;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(VulkanContext::LogicalDevice, &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS)
-				SE_ERR(Logging::Rendering, "Failed to create scene framebuffer {}", i);
+			vk::Result result = VulkanContext::LogicalDevice.createFramebuffer(&framebufferInfo, nullptr, &m_Framebuffers[i]);
+			SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create scene framebuffer {}", i);
 		}
 	}
 
-	VkFramebuffer VulkanRenderpass::GetFramebuffer(uint32_t currentImageIndex) {
+	vk::Framebuffer VulkanRenderpass::GetFramebuffer(uint32_t currentImageIndex) {
 		if (currentImageIndex < m_Framebuffers.size())
 			return m_Framebuffers[currentImageIndex];
 		else
 			return VK_NULL_HANDLE;
 	}
 
-	void VulkanRenderpass::Begin(VkFramebuffer framebuffer, VkCommandBuffer commandBuffer, VkExtent2D extent) {
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+	void VulkanRenderpass::Begin(vk::Framebuffer framebuffer, vk::CommandBuffer commandBuffer, vk::Extent2D extent) {
+		vk::RenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.renderPass = m_Renderpass;
 		renderPassInfo.framebuffer = framebuffer;
-		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.offset = vk::Offset2D{ 0, 0 };
 		renderPassInfo.renderArea.extent = extent;
 
-		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+		vk::ClearValue clearColor;
+		clearColor.color = vk::ClearColorValue(0.f, 0.f, 0.f, 1.f);
 		renderPassInfo.clearValueCount = 1;
 		renderPassInfo.pClearValues = &clearColor;
+		
+		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-
-		VkViewport viewport{};
+		vk::Viewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
 		viewport.width = static_cast<float>(extent.width);
 		viewport.height = static_cast<float>(extent.height);
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+		commandBuffer.setViewport(0, 1, &viewport);
 
-		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
+		vk::Rect2D scissor{};
+		scissor.offset = vk::Offset2D{ 0, 0 };
 		scissor.extent = extent;
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+		commandBuffer.setScissor(0, 1, &scissor);
 	}
 
-	void VulkanRenderpass::End(VkCommandBuffer commandBuffer) {
-		vkCmdEndRenderPass(commandBuffer);
+	void VulkanRenderpass::End(vk::CommandBuffer commandBuffer) {
+		commandBuffer.endRenderPass();
 	}
 }

@@ -6,12 +6,12 @@
 #include <backends/imgui_impl_vulkan.h>
 
 namespace Sphynx::Rendering {
-	size_t GetVkFormatSize(VkFormat format) {
+	size_t GetVkFormatSize(vk::Format format) {
 		switch (format) {
 		default:
 			SE_FATAL(Logging::Rendering, "Unsupported texture format");
-		case VK_FORMAT_R8G8B8A8_SRGB: return 4;
-		case VK_FORMAT_R8G8B8_SRGB: return 3;
+		case vk::Format::eR8G8B8A8Srgb: return 4;
+		case vk::Format::eR8G8B8Srgb: return 3;
 		}
 	}
 
@@ -23,7 +23,7 @@ namespace Sphynx::Rendering {
 		default:
 		case TextureFormat::RGBA:
 		case TextureFormat::RGB:
-			m_VulkanFormat = VK_FORMAT_R8G8B8A8_SRGB;
+			m_VulkanFormat = vk::Format::eR8G8B8A8Srgb;
 			break;
 		}
 
@@ -32,7 +32,7 @@ namespace Sphynx::Rendering {
 
 		// Convert RBG to RGBA (RGB isn't supported hardwarewise)
 		if (spec.Format == TextureFormat::RGB) {
-			size_t suppliedPixelSize = GetVkFormatSize(VK_FORMAT_R8G8B8_SRGB);
+			size_t suppliedPixelSize = GetVkFormatSize(vk::Format::eR8G8B8Srgb);
 			size_t expectedSuppliedDataSize = (size_t)m_Width * (size_t)m_Height * suppliedPixelSize;
 			SE_ASSERT(expectedSuppliedDataSize == spec.Data.size(), Logging::Rendering, "Wrong data size!");
 
@@ -51,34 +51,34 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanTexture::~VulkanTexture() {
-		vkDestroyImageView(VulkanContext::LogicalDevice, m_View, nullptr);
+		VulkanContext::LogicalDevice.destroyImageView(m_View, nullptr);
 		m_View = nullptr;
 		
-		vkDestroyImage(VulkanContext::LogicalDevice, m_Image, nullptr);
+		VulkanContext::LogicalDevice.destroyImage(m_Image, nullptr);
 		m_Image = nullptr;
 		
-		vkFreeMemory(VulkanContext::LogicalDevice, m_Memory, nullptr);
+		VulkanContext::LogicalDevice.freeMemory(m_Memory, nullptr);
 		m_Memory = nullptr;
 
-		vkDestroySampler(VulkanContext::LogicalDevice, m_Sampler, nullptr);
+		VulkanContext::LogicalDevice.destroySampler(m_Sampler, nullptr);
 		m_Sampler = VK_NULL_HANDLE;
 	}
 
 	void VulkanTexture::UploadToGPU() {
-		VulkanBuffer stagingBuffer(m_Data.size(), VK_BUFFER_USAGE_TRANSFER_SRC_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		VulkanBuffer stagingBuffer(m_Data.size(), vk::BufferUsageFlagBits::eTransferSrc, vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);
 		stagingBuffer.Set(BufferView(m_Data));
 
 		m_Data.clear();
 
-		CreateImage(m_Width, m_Height, m_VulkanFormat, VK_IMAGE_TILING_OPTIMAL, VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_Image, m_Memory);
+		CreateImage(m_Width, m_Height, m_VulkanFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eTransferDst | vk::ImageUsageFlagBits::eSampled, vk::MemoryPropertyFlagBits::eDeviceLocal, m_Image, m_Memory);
 
-		VkCommandBuffer commandBuffer = VulkanContext::CommandPool->BeginSingleUseCommandbuffer();
-		TransitionImageLayout(commandBuffer, VK_IMAGE_LAYOUT_UNDEFINED, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, m_Image);
+		vk::CommandBuffer commandBuffer = VulkanContext::CommandPool->BeginSingleUseCommandbuffer();
+		TransitionImageLayout(commandBuffer, vk::ImageLayout::eUndefined, vk::ImageLayout::eTransferDstOptimal, m_Image);
 		CopyBufferToImage(commandBuffer, stagingBuffer.Buffer, m_Image, m_Width, m_Height);
-		TransitionImageLayout(commandBuffer, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL, m_Image);
+		TransitionImageLayout(commandBuffer, vk::ImageLayout::eTransferDstOptimal, vk::ImageLayout::eShaderReadOnlyOptimal, m_Image);
 		VulkanContext::CommandPool->EndSingleUseCommandbuffer(commandBuffer);
 
-		m_View = CreateImageView(m_Image, m_VulkanFormat, VK_IMAGE_ASPECT_COLOR_BIT);
+		m_View = CreateImageView(m_Image, m_VulkanFormat, vk::ImageAspectFlagBits::eColor);
 	
 		m_Sampler = VulkanTexture::CreateSampler();
 
@@ -86,10 +86,9 @@ namespace Sphynx::Rendering {
 	}
 
 
-	void VulkanTexture::CreateImage(uint32_t width, uint32_t height, VkFormat format, VkImageTiling tiling, VkImageUsageFlags usage, VkMemoryPropertyFlags properties, VkImage& image, VkDeviceMemory& memory, VkImageCreateFlags flags, uint32_t arrayLayers) {
-		VkImageCreateInfo imageInfo{};
-		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
-		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+	void VulkanTexture::CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image, vk::DeviceMemory& memory, vk::ImageCreateFlags flags, uint32_t arrayLayers) {
+		vk::ImageCreateInfo imageInfo{};
+		imageInfo.imageType = vk::ImageType::e2D;
 		imageInfo.extent.width = width;
 		imageInfo.extent.height = height;
 		imageInfo.extent.depth = 1;
@@ -97,110 +96,108 @@ namespace Sphynx::Rendering {
 		imageInfo.arrayLayers = arrayLayers;
 		imageInfo.format = format;
 		imageInfo.tiling = tiling;
-		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.initialLayout = vk::ImageLayout::eUndefined;
 		imageInfo.usage = usage;
-		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.samples = vk::SampleCountFlagBits::e1;
 		imageInfo.sharingMode = VulkanContext::SharingMode;
 		imageInfo.flags = flags;
 
-		VkResult result = vkCreateImage(VulkanContext::LogicalDevice, &imageInfo, nullptr, &image);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create image");
+		vk::Result result = VulkanContext::LogicalDevice.createImage(&imageInfo, nullptr, &image);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create image");
 
-		VkMemoryRequirements memRequirements;
-		vkGetImageMemoryRequirements(VulkanContext::LogicalDevice, image, &memRequirements);
+		vk::MemoryRequirements memRequirements;
+		VulkanContext::LogicalDevice.getImageMemoryRequirements(image, &memRequirements);
 
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		vk::MemoryAllocateInfo allocInfo{};
 		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = FindMemoryType(memRequirements.memoryTypeBits, properties);
+		std::optional<uint32_t> memoryTypeIndex = FindMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
+		SE_ASSERT(memoryTypeIndex.has_value(), Logging::Rendering, "Failed to get memory type index");
+		allocInfo.memoryTypeIndex = *memoryTypeIndex;
 
-		result = vkAllocateMemory(VulkanContext::LogicalDevice, &allocInfo, nullptr, &memory);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to allocate memory for image");
+		result = VulkanContext::LogicalDevice.allocateMemory(&allocInfo, nullptr, &memory);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to allocate memory for image");
 
-		vkBindImageMemory(VulkanContext::LogicalDevice, image, memory, 0);
+		VulkanContext::LogicalDevice.bindImageMemory(image, memory, 0);
 	}
 
-	void VulkanTexture::TransitionImageLayout(VkCommandBuffer commandBuffer, VkImageLayout oldLayout, VkImageLayout newLayout, VkImage image) {
-		VkImageMemoryBarrier barrier{};
-		barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+	void VulkanTexture::TransitionImageLayout(vk::CommandBuffer commandBuffer, vk::ImageLayout oldLayout, vk::ImageLayout newLayout, vk::Image image) {
+		vk::ImageMemoryBarrier barrier{};
 		barrier.oldLayout = oldLayout;
 		barrier.newLayout = newLayout;
 		barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 		barrier.image = image;
-		barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
 		barrier.subresourceRange.baseMipLevel = 0;
 		barrier.subresourceRange.levelCount = 1;
 		barrier.subresourceRange.baseArrayLayer = 0;
 		barrier.subresourceRange.layerCount = 1;
 
-		VkPipelineStageFlags sourceStage;
-		VkPipelineStageFlags destinationStage;
+		vk::PipelineStageFlags sourceStage;
+		vk::PipelineStageFlags destinationStage;
 
-		if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL) {
-			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+		if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eTransferDstOptimal) {
+			barrier.srcAccessMask = (vk::AccessFlagBits)0;
+			barrier.dstAccessMask = vk::AccessFlagBits::eTransferWrite;
 
-			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+			destinationStage = vk::PipelineStageFlagBits::eTransfer;
 		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL) {
-			barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+		else if (oldLayout == vk::ImageLayout::eTransferDstOptimal && newLayout == vk::ImageLayout::eShaderReadOnlyOptimal) {
+			barrier.srcAccessMask = vk::AccessFlagBits::eTransferWrite;
+			barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
 
-			sourceStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
-			destinationStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+			sourceStage = vk::PipelineStageFlagBits::eTransfer;
+			destinationStage = vk::PipelineStageFlagBits::eFragmentShader;
 		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_UNDEFINED && newLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL) {
-			barrier.srcAccessMask = 0;
-			barrier.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+		else if (oldLayout == vk::ImageLayout::eUndefined && newLayout == vk::ImageLayout::eColorAttachmentOptimal) {
+			barrier.srcAccessMask = (vk::AccessFlagBits)0;
+			barrier.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
 
-			sourceStage = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
-			destinationStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+			sourceStage = vk::PipelineStageFlagBits::eTopOfPipe;
+			destinationStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
 		}
-		else if (oldLayout == VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL && newLayout == VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL) {
-			barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-			barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+		else if (oldLayout == vk::ImageLayout::eColorAttachmentOptimal&& newLayout == vk::ImageLayout::eTransferSrcOptimal) {
+			barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+			barrier.dstAccessMask = vk::AccessFlagBits::eTransferRead;
 
-			sourceStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-			destinationStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+			sourceStage = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+			destinationStage = vk::PipelineStageFlagBits::eTransfer;
 		}
 		else {
 			throw std::invalid_argument("unsupported layout transition!");
 		}
 
-		vkCmdPipelineBarrier(
-			commandBuffer,
+		commandBuffer.pipelineBarrier(
 			sourceStage, destinationStage,
-			0,
+			(vk::DependencyFlags)0,
 			0, nullptr,
 			0, nullptr,
 			1, &barrier
 		);
 	}
 
-	void VulkanTexture::CopyBufferToImage(VkCommandBuffer commandBuffer, VkBuffer buffer, VkImage image, uint32_t width, uint32_t height) {
-		VkBufferImageCopy region{};
+	void VulkanTexture::CopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height) {
+		vk::BufferImageCopy region{};
 		region.bufferOffset = 0;
 		region.bufferRowLength = 0;
 		region.bufferImageHeight = 0;
-		region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		region.imageSubresource.aspectMask = vk::ImageAspectFlagBits::eColor;
 		region.imageSubresource.mipLevel = 0;
 		region.imageSubresource.baseArrayLayer = 0;
 		region.imageSubresource.layerCount = 1;
-		region.imageOffset = { 0, 0, 0 };
-		region.imageExtent = {
+		region.imageOffset = vk::Offset3D{ 0, 0, 0 };
+		region.imageExtent = vk::Extent3D{
 			width,
 			height,
 			1
 		};
 
-		vkCmdCopyBufferToImage(commandBuffer, buffer, image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+		commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
 	}
 
-	VkImageView VulkanTexture::CreateImageView(VkImage image, VkFormat format, VkImageAspectFlags aspectFlags, VkImageViewType type, uint32_t layerCount) {
-		VkImageViewCreateInfo viewInfo{};
-		viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+	vk::ImageView VulkanTexture::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, vk::ImageViewType type, uint32_t layerCount) {
+		vk::ImageViewCreateInfo viewInfo{};
 		viewInfo.image = image;
 		viewInfo.viewType = type;
 		viewInfo.format = format;
@@ -209,34 +206,33 @@ namespace Sphynx::Rendering {
 		viewInfo.subresourceRange.baseArrayLayer = 0;
 		viewInfo.subresourceRange.levelCount = 1;
 		viewInfo.subresourceRange.layerCount = layerCount;
-		VkImageView imageView;
-		VkResult result = vkCreateImageView(VulkanContext::LogicalDevice, &viewInfo, nullptr, &imageView);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create image view!");
+		vk::ImageView imageView;
+		vk::Result result = VulkanContext::LogicalDevice.createImageView(&viewInfo, nullptr, &imageView);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create image view!");
 		return imageView;
 	}
 
-	VkSampler VulkanTexture::CreateSampler() {
-		VkSamplerCreateInfo samplerInfo{};
-		samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-		samplerInfo.magFilter = VK_FILTER_LINEAR;
-		samplerInfo.minFilter = VK_FILTER_LINEAR;
-		samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-		samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+	vk::Sampler VulkanTexture::CreateSampler() {
+		vk::SamplerCreateInfo samplerInfo{};
+		samplerInfo.magFilter = vk::Filter::eLinear;
+		samplerInfo.minFilter = vk::Filter::eLinear;
+		samplerInfo.addressModeU = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.addressModeV = vk::SamplerAddressMode::eRepeat;
+		samplerInfo.addressModeW = vk::SamplerAddressMode::eRepeat;
 		samplerInfo.anisotropyEnable = VK_TRUE;
 		samplerInfo.maxAnisotropy = 1.f;
-		samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+		samplerInfo.borderColor = vk::BorderColor::eIntOpaqueBlack;
 		samplerInfo.unnormalizedCoordinates = VK_FALSE;
 		samplerInfo.compareEnable = VK_FALSE;
-		samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-		samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		samplerInfo.compareOp = vk::CompareOp::eAlways;
+		samplerInfo.mipmapMode = vk::SamplerMipmapMode::eLinear;
 		samplerInfo.mipLodBias = 0.0f;
 		samplerInfo.minLod = 0.0f;
 		samplerInfo.maxLod = 0.0f;
 
-		VkSampler sampler;
-		VkResult result = vkCreateSampler(VulkanContext::LogicalDevice, &samplerInfo, nullptr, &sampler);
-		SE_ASSERT(result == VK_SUCCESS, Logging::Rendering, "Failed to create image sampler");
+		vk::Sampler sampler;
+		vk::Result result = VulkanContext::LogicalDevice.createSampler(&samplerInfo, nullptr, &sampler);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create image sampler");
 		return sampler;
 	}
 }

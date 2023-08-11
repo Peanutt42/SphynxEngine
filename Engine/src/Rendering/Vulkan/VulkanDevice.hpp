@@ -2,14 +2,14 @@
 
 #include "pch.hpp"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 namespace Sphynx::Rendering {
 	struct VulkanQueueFamilyIndices {
 		std::optional<uint32_t> GraphicsFamily;
 		std::optional<uint32_t> PresentFamily;
 
-		VulkanQueueFamilyIndices(VkPhysicalDevice device);
+		VulkanQueueFamilyIndices(vk::PhysicalDevice device);
 
 		bool IsComplete() const {
 			return GraphicsFamily.has_value() && PresentFamily.has_value();
@@ -18,19 +18,19 @@ namespace Sphynx::Rendering {
 
 	class VulkanPhysicalDevice {
 	public:
-		static bool IsDeviceSupported(VkPhysicalDevice device, const std::vector<const char*>& deviceExtensions, std::vector<const char*>& outUnsupportedExtensions);
+		static bool IsDeviceSupported(vk::PhysicalDevice device, const std::vector<const char*>& deviceExtensions, std::vector<const char*>& outUnsupportedExtensions);
 
-		static VkPhysicalDevice Pick(const std::vector<const char*>& deviceExtensions);
+		static vk::PhysicalDevice Pick(const std::vector<const char*>& deviceExtensions);
 
-		static std::string GetName(VkPhysicalDevice device);
+		static std::string GetName(vk::PhysicalDevice device);
 	};
 
 	class VulkanLogicalDevice {
 	public:
 		struct CreateResult {
-			VkDevice Device = VK_NULL_HANDLE;
-			VkQueue GraphicsQueue = VK_NULL_HANDLE;
-			VkQueue PresentQueue = VK_NULL_HANDLE;
+			vk::Device Device;
+			vk::Queue GraphicsQueue;
+			vk::Queue PresentQueue;
 		};
 
 		static CreateResult Create(const std::vector<const char*>& validationLayers, const std::vector<const char*>& deviceExtensions);

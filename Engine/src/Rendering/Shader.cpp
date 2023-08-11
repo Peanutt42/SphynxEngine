@@ -8,7 +8,7 @@ namespace Sphynx::Rendering {
 		VertexInput input;
 		input.Description.binding = 0;
 		input.Description.stride = sizeof(Vertex);
-		input.Description.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+		input.Description.inputRate = vk::VertexInputRate::eVertex;
 
 		VulkanVertexAttributeBuilder builder;
 		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Position));

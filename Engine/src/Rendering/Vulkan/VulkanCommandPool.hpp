@@ -2,7 +2,7 @@
 
 #include "pch.hpp"
 
-#include <vulkan/vulkan.h>
+#include <vulkan/vulkan.hpp>
 
 namespace Sphynx::Rendering {
 	class VulkanContext;
@@ -12,14 +12,14 @@ namespace Sphynx::Rendering {
 		VulkanCommandPool();
 		~VulkanCommandPool();
 
-		VkCommandBuffer BeginRecording(uint32_t frameIndex);
+		vk::CommandBuffer BeginRecording(uint32_t frameIndex);
 		void EndRecording(uint32_t frameIndex);
 
-		VkCommandBuffer BeginSingleUseCommandbuffer();
-		void EndSingleUseCommandbuffer(VkCommandBuffer commandbuffer);
+		vk::CommandBuffer BeginSingleUseCommandbuffer();
+		void EndSingleUseCommandbuffer(vk::CommandBuffer commandbuffer);
 
 	private:
-		VkCommandPool m_Pool = VK_NULL_HANDLE;
-		std::vector<VkCommandBuffer> m_CommandBuffers;
+		vk::CommandPool m_Pool;
+		std::vector<vk::CommandBuffer> m_CommandBuffers;
 	};
 }

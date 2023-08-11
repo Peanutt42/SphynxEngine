@@ -13,26 +13,26 @@ namespace Sphynx::Rendering {
 
 	class VulkanRenderpass {
 	public:
-		VulkanRenderpass(RenderPassUsage usage, VkFormat format);
+		VulkanRenderpass(RenderPassUsage usage, vk::Format format);
 		~VulkanRenderpass();
 
-		VkRenderPass GetHandle() { return m_Renderpass; }
+		vk::RenderPass GetHandle() { return m_Renderpass; }
 
 		// Isn't needed for the swapchain renderpass
-		void CreateFramebuffers(uint32_t width, uint32_t height, VkFormat format);
+		void CreateFramebuffers(uint32_t width, uint32_t height, vk::Format format);
 
-		VkFramebuffer GetFramebuffer(uint32_t currentImageIndex);
+		vk::Framebuffer GetFramebuffer(uint32_t currentImageIndex);
 
-		void Begin(VkFramebuffer framebuffer, VkCommandBuffer commandBuffer, VkExtent2D extent);
-		void End(VkCommandBuffer commandBuffer);
+		void Begin(vk::Framebuffer framebuffer, vk::CommandBuffer commandBuffer, vk::Extent2D extent);
+		void End(vk::CommandBuffer commandBuffer);
 
 	private:
-		VkRenderPass m_Renderpass = VK_NULL_HANDLE;
+		vk::RenderPass m_Renderpass;
 
 		// own framebuffers
-		std::vector<VkFramebuffer> m_Framebuffers;
-		std::vector<VkImage> m_FramebufferImages;
-		std::vector<VkDeviceMemory> m_FramebufferImageMemories;
-		std::vector<VkImageView> m_FramebufferImageViews;
+		std::vector<vk::Framebuffer> m_Framebuffers;
+		std::vector<vk::Image> m_FramebufferImages;
+		std::vector<vk::DeviceMemory> m_FramebufferImageMemories;
+		std::vector<vk::ImageView> m_FramebufferImageViews;
 	};
 }
