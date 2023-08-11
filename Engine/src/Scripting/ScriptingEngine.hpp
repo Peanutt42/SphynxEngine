@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/CoreInclude.hpp"
+#include "pch.hpp"
 #include "../../Programs/ReflectionGenerator/src/ReflectionInfo.hpp"
 
 namespace Sphynx::Scripting {

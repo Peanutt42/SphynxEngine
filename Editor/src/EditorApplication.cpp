@@ -138,8 +138,9 @@ namespace Sphynx::Editor {
 				continue;
 
 			auto findSystem = std::ranges::find_if(systems, [name](const auto& info) { return info.FullName == name; });
-			if (findSystem == systems.end())
+			if (findSystem == systems.end()) {
 				SE_WARN(Logging::Scripting, "Can't find systems '{}'", name);
+			}
 			else {
 				findSystem->Update(m_GameScene.get());
 			}
