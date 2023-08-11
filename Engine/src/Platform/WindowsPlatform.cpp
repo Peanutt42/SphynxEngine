@@ -18,6 +18,15 @@ namespace Sphynx {
 	}
 
 
+	void Platform::SetWorkingDirToExe() {
+		std::wstring filepathStr;
+		filepathStr.resize(MAX_PATH);
+		GetModuleFileNameW(nullptr, filepathStr.data(), filepathStr.size());
+		std::filesystem::path filepath = filepathStr;
+		std::filesystem::current_path(filepath.parent_path());
+	}
+
+
 	void Platform::MessagePrompts::Info(const std::string_view title, const std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_USERICON | MB_OK);
 	}

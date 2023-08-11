@@ -12,6 +12,16 @@ namespace Sphynx {
 
 		static StackTrace GenerateStackTrace();
 
+		static void SetWorkingDirToExe();
+
+		// Sets the working directory <levelsUp> times to the upper parent folder
+		static void SetWorkingDirToParentFolder(size_t levelsUp) {
+			std::filesystem::path currentPath = std::filesystem::current_path();
+			for (size_t i = 0; i < levelsUp; i++)
+				currentPath = currentPath.parent_path();
+			std::filesystem::current_path(currentPath);
+		}
+
 		class SE_API MessagePrompts {
 		public:
 			static void Info(const std::string_view title, const std::string_view msg);

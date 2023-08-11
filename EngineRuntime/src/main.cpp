@@ -26,12 +26,9 @@ namespace Sphynx {
 }
 
 int main(int argc, const char** argv) {
-	SE_ASSERT(argc >= 1, "There should be at least 1 argument being the .exe filepath");
-
-	// Set working directory to the rootDir
-	std::filesystem::path exeFilepath = argv[0];
-									// SphynxEngine/bin/$Platform/$Config/Editor/Editor.exe
-	std::filesystem::current_path(exeFilepath.parent_path().parent_path().parent_path().parent_path().parent_path());
+	Sphynx::Platform::SetWorkingDirToExe();
+	// SphynxEngine/bin/$Platform/$Config/Editor/Editor.exe
+	Sphynx::Platform::SetWorkingDirToParentFolder(4);
 
 	// Get project filepath
 	std::filesystem::path projectFilepath;
