@@ -38,6 +38,5 @@ jobs:
     runs-on: windows-latest
     steps:
       - name: Run Test
-        run: |
-          cd $GITHUB_WORKSPACE
-          ./bin/windows-x86_64/Release/Programs/Tests/Tests.exe
+        working-directory: bin/windows-x86_64/Release/Programs/Tests  
+        run: Tests.exe
