@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/CoreInclude.hpp"
+#include "pch.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML {

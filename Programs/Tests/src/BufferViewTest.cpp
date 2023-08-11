@@ -1,5 +1,4 @@
 #include "pch.hpp"
-#include "Core/CoreInclude.hpp"
 
 TEST(EngineUtils, BufferViewTest) {
 	Sphynx::BufferView bufferView;

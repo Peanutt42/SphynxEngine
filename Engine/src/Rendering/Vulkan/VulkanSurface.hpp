@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/CoreInclude.hpp"
+#include "pch.hpp"
 
 #undef VULKAN_H_
 #ifdef WINDOWS

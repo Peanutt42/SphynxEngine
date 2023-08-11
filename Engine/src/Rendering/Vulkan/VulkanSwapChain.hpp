@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/CoreInclude.hpp"
+#include "pch.hpp"
 #include "Rendering/Window.hpp"
 
 #include <vulkan/vulkan.h>

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/CoreInclude.hpp"
+#include "pch.hpp"
 
 namespace Sphynx::Rendering {
 	class VulkanTexture;

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Core/CoreInclude.hpp"
+#include "pch.hpp"
 #include "Scene/DefaultComponents.hpp"
 #include "Serialization/YAMLSerializer.hpp"
 #include "Scene.hpp"
