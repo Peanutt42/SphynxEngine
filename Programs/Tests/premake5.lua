@@ -6,8 +6,8 @@ project "Tests"
 
 	debugdir "$(SolutionDir)"
 
-	targetdir(EngineDir .. "bin/" .. outputdir .. "/%{prj.name}")
-	objdir(EngineDir .. "bin-int/" .. outputdir .. "/%{prj.name}")
+	targetdir(EngineDir .. "bin/" .. outputdir .. "/Programs/%{prj.name}")
+	objdir(EngineDir .. "bin-int/" .. outputdir .. "/Programs/%{prj.name}")
 
 	pchheader "pch.hpp"
     pchsource "src/pch.cpp"
