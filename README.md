@@ -1,4 +1,4 @@
-![example workflow](https://github.com/Peanutt42/SphynxEngine/actions/workflows/cpp-win-vs2022-build.yml/badge.svg)
+![example workflow](https://github.com/Peanutt42/SphynxEngine/actions/workflows/windows%20build.yml/badge.svg)
 
 # SphynxEngine
 Why 'Sphynx'? Because I love cats and this game engine isn't here to replace UE5
