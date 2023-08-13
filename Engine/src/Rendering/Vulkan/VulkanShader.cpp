@@ -182,7 +182,7 @@ namespace Sphynx::Rendering {
         SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create pipelineLayout");
 
         vk::GraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.stageCount = shaderStages.size();
+        pipelineInfo.stageCount = (uint32_t)shaderStages.size();
         pipelineInfo.pStages = shaderStages.data();
         pipelineInfo.pVertexInputState = &vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &inputAssembly;

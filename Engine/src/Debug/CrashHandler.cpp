@@ -110,16 +110,10 @@ namespace Sphynx {
 	}
 
 	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32_t line, [[maybe_unused]] uintptr_t Reserved) {
-		std::wstring expressionWStr = expression;
-		std::wstring functionWStr = function;
-		std::wstring fileWStr = file;
-		std::string expressionStr{ expressionWStr.begin(), expressionWStr.end() };
-		std::string functionStr{ functionWStr.begin(), functionWStr.end() };
-		std::string fileStr{ fileWStr.begin(), fileWStr.end() };
-		OnProcessCrashed(
-			std::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line),
-			nullptr, true
-		);
+		std::string expressionStr = Platform::WideToNarrow(expression);
+		std::string functionStr = Platform::WideToNarrow(function);
+		std::string fileStr = Platform::WideToNarrow(file);
+		OnProcessCrashed(std::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line), nullptr, true);
 	}
 
 

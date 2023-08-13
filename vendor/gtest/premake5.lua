@@ -9,7 +9,7 @@ project "gtest"
 
     files {
         "src/*.h",
-        "src/*.cc"
+        "src/gtest-all.cc"
     }
 
     includedirs {

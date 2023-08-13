@@ -12,6 +12,24 @@ namespace Sphynx {
 
 		static void SetWorkingDirToExe();
 
+
+		static std::string WideToNarrow(const std::wstring& wstr) {
+			std::locale loc("");
+			std::string result(wstr.size(), 0);
+			for (size_t i = 0; i < result.size(); i++)
+				result[i] = std::use_facet<std::ctype<wchar_t>>(loc).narrow(wstr[i]);
+			return result;
+		}
+		
+		static std::wstring NarrowToWide(const std::string& str) {
+			std::locale loc("");
+			std::wstring result(str.size(), 0);
+			for (size_t i = 0; i < result.size(); i++)
+				result[i] = std::use_facet<std::ctype<wchar_t>>(loc).widen(str[i]);
+			return result;
+		}
+
+
 		// Sets the working directory <levelsUp> times to the upper parent folder
 		static void SetWorkingDirToParentFolder(size_t levelsUp) {
 			std::filesystem::path currentPath = std::filesystem::current_path();

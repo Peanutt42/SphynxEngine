@@ -21,7 +21,7 @@ namespace Sphynx {
 	void Platform::SetWorkingDirToExe() {
 		std::wstring filepathStr;
 		filepathStr.resize(MAX_PATH);
-		GetModuleFileNameW(nullptr, filepathStr.data(), filepathStr.size());
+		GetModuleFileNameW(nullptr, filepathStr.data(), (DWORD)filepathStr.size());
 		std::filesystem::path filepath = filepathStr;
 		std::filesystem::current_path(filepath.parent_path());
 	}

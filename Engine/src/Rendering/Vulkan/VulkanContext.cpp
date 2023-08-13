@@ -230,7 +230,7 @@ namespace Sphynx::Rendering {
 	void VulkanContext::GenerateSceneTextureDescriptorSets() {
 		SceneTextureDescriptorSets.resize(MaxFramesInFlight);
 		for (size_t i = 0; i < SceneTextureDescriptorSets.size(); i++)
-			SceneTextureDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(DefaultSampler, SceneRenderpass->GetImageView(i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			SceneTextureDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(DefaultSampler, SceneRenderpass->GetImageView((uint32_t)i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	}
 

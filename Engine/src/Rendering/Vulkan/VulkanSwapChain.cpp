@@ -40,7 +40,7 @@ namespace Sphynx::Rendering {
 
 			vk::FramebufferCreateInfo framebufferInfo;
 			framebufferInfo.renderPass = renderpass;
-			framebufferInfo.attachmentCount = attachments.size();
+			framebufferInfo.attachmentCount = (uint32_t)attachments.size();
 			framebufferInfo.pAttachments = attachments.data();
 			framebufferInfo.width = m_Extent.width;
 			framebufferInfo.height = m_Extent.height;
@@ -54,22 +54,27 @@ namespace Sphynx::Rendering {
 	VulkanSwapChain::SupportDetails VulkanSwapChain::GetSupport(vk::PhysicalDevice device) {
 		SupportDetails details;
 
-		device.getSurfaceCapabilitiesKHR(VulkanContext::Surface, &details.Capabilities);
+		vk::Result result = device.getSurfaceCapabilitiesKHR(VulkanContext::Surface, &details.Capabilities);
+		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get the surface capabilities");
 
 		uint32_t formatCount;
-		device.getSurfaceFormatsKHR(VulkanContext::Surface, &formatCount, nullptr);
+		result = device.getSurfaceFormatsKHR(VulkanContext::Surface, &formatCount, nullptr);
+		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get surface format count");
 
 		if (formatCount != 0) {
 			details.Formats.resize(formatCount);
-			device.getSurfaceFormatsKHR(VulkanContext::Surface, &formatCount, details.Formats.data());
+			result = device.getSurfaceFormatsKHR(VulkanContext::Surface, &formatCount, details.Formats.data());
+			SE_ASSERT(result == vk::Result::eSuccess, "Failed to get surface formats");
 		}
 
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(device, VulkanContext::Surface, &presentModeCount, nullptr);
+		result = device.getSurfacePresentModesKHR(VulkanContext::Surface, &presentModeCount, nullptr);
+		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get surface present mode count");
 
 		if (presentModeCount != 0) {
 			details.PresentModes.resize(presentModeCount);
-			device.getSurfacePresentModesKHR(VulkanContext::Surface, &presentModeCount, details.PresentModes.data());
+			result = device.getSurfacePresentModesKHR(VulkanContext::Surface, &presentModeCount, details.PresentModes.data());
+			SE_ASSERT(result == vk::Result::eSuccess, "Failed to get surface present modes");
 		}
 
 		return details;
@@ -108,7 +113,7 @@ namespace Sphynx::Rendering {
 
 		if (indices.GraphicsFamily != indices.PresentFamily) {
 			createInfo.imageSharingMode = vk::SharingMode::eConcurrent;
-			createInfo.queueFamilyIndexCount = queueFamilyIndices.size();
+			createInfo.queueFamilyIndexCount = (uint32_t)queueFamilyIndices.size();
 			createInfo.pQueueFamilyIndices = queueFamilyIndices.data();
 		}
 		else
@@ -123,9 +128,11 @@ namespace Sphynx::Rendering {
 		vk::Result result = VulkanContext::LogicalDevice.createSwapchainKHR(&createInfo, nullptr, &m_SwapChain);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create swapchain");
 
-		VulkanContext::LogicalDevice.getSwapchainImagesKHR(m_SwapChain, &imageCount, nullptr);
+		result = VulkanContext::LogicalDevice.getSwapchainImagesKHR(m_SwapChain, &imageCount, nullptr);
+		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get swapchain imageCount");
 		m_Images.resize(imageCount);
-		VulkanContext::LogicalDevice.getSwapchainImagesKHR(m_SwapChain, &imageCount, m_Images.data());
+		result = VulkanContext::LogicalDevice.getSwapchainImagesKHR(m_SwapChain, &imageCount, m_Images.data());
+		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get swapchain images");
 
 		m_Format = surfaceFormat->format;
 
