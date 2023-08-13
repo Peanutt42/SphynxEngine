@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "Core/Engine.hpp"
+#include "Core/EntryPoint.hpp"
 #include "Core/Application.hpp"
 
 namespace Sphynx {
@@ -25,7 +25,7 @@ namespace Sphynx {
 	};
 }
 
-int main(int argc, const char** argv) {
+int GuardedMain(int argc, const char** argv) {
 	Sphynx::Platform::SetWorkingDirToExe();
 	// SphynxEngine/bin/$Platform/$Config/Editor/Editor.exe
 	Sphynx::Platform::SetWorkingDirToParentFolder(4);

@@ -9,6 +9,7 @@
 namespace Sphynx {
 	void Engine::Init(const EngineInitInfo& initInfo) {
 		CrashHandler::Init();
+		CrashHandler::StartCrashReporter();
 
 		s_Settings = initInfo.Settings;
 

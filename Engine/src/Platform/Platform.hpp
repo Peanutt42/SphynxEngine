@@ -2,7 +2,6 @@
 
 #include "std.hpp"
 #include "Core/EngineApi.hpp"
-#include "StackTrace.hpp"
 #include "Logging/Logging.hpp"
 
 namespace Sphynx {
@@ -10,7 +9,6 @@ namespace Sphynx {
 	public:
 		static bool IsDebuggerAttached();
 
-		static StackTrace GenerateStackTrace();
 
 		static void SetWorkingDirToExe();
 

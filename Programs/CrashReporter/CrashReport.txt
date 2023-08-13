@@ -1,0 +1,57 @@
+OS: Windows
+Archetecture: 64 bit
+Crash:
+  Process: Editor.exe
+  Thread: 15484
+  LastErrorMessages:
+    - "[Validation Layer]: loaderAddLayerProperties: C:\\VulkanSDK\\1.3.250.0\\Bin\\VkLayer_api_dump.json invalid layer manifest file version 1.2.0.  May cause errors."
+    - "[Validation Layer]: loaderAddLayerProperties: C:\\VulkanSDK\\1.3.250.0\\Bin\\VkLayer_gfxreconstruct.json invalid layer manifest file version 1.2.0.  May cause errors."
+    - "[Validation Layer]: loaderAddLayerProperties: C:\\VulkanSDK\\1.3.250.0\\Bin\\VkLayer_khronos_synchronization2.json invalid layer manifest file version 1.2.0.  May cause errors."
+    - "[Validation Layer]: loaderAddLayerProperties: C:\\VulkanSDK\\1.3.250.0\\Bin\\VkLayer_khronos_validation.json invalid layer manifest file version 1.2.0.  May cause errors."
+    - "[Validation Layer]: loaderAddLayerProperties: C:\\VulkanSDK\\1.3.250.0\\Bin\\VkLayer_screenshot.json invalid layer manifest file version 1.2.0.  May cause errors."
+    - "[Validation Layer]: loaderAddLayerProperties: C:\\VulkanSDK\\1.3.250.0\\Bin\\VkLayer_khronos_profiles.json invalid layer manifest file version 1.2.1.  May cause errors."
+    - "[Validation Layer]: loaderAddLayerProperties: C:\\VulkanSDK\\1.3.250.0\\Bin\\VkLayer_khronos_shader_object.json invalid layer manifest file version 1.2.0.  May cause errors."
+  Reason: Access violation trying to run function ptr at address nullptr
+Stacktrace:
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: vkResetFences()
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: Unknown symbol - 0x0
+  - FunctionName: VK_LAYER_RENDERDOC_CaptureNegotiateLoaderLayerInterfaceVersion()
+  - FunctionName: VK_LAYER_RENDERDOC_CaptureNegotiateLoaderLayerInterfaceVersion()
+  - FunctionName: vkResetFences()
+  - FunctionName: vkResetFences()
+  - FunctionName: vk::DispatchLoaderStatic::vkEnumeratePhysicalDevices()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\vendor\vulkan\1.3.250.1\include\vulkan\vulkan.hpp
+    SourceLine: 1339
+  - FunctionName: vk::Instance::enumeratePhysicalDevices<std::allocator<vk::PhysicalDevice>,vk::DispatchLoaderStatic>()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\vendor\vulkan\1.3.250.1\include\vulkan\vulkan_funcs.hpp
+    SourceLine: 107
+  - FunctionName: Sphynx::Rendering::VulkanPhysicalDevice::Pick()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\Engine\src\Rendering\Vulkan\VulkanDevice.cpp
+    SourceLine: 47
+  - FunctionName: Sphynx::Rendering::VulkanContext::Init()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\Engine\src\Rendering\Vulkan\VulkanContext.cpp
+    SourceLine: 28
+  - FunctionName: Sphynx::Rendering::Renderer::Renderer()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\Engine\src\Rendering\Renderer.cpp
+    SourceLine: 30
+  - FunctionName: Sphynx::Engine::Init()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\Engine\src\Core\Engine.cpp
+    SourceLine: 31
+  - FunctionName: GuardedMain()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\Editor\src\main.cpp
+    SourceLine: 52
+  - FunctionName: main()
+    SourceFile: C:\Users\madca\Documents\cpp\SphynxEngine\Engine\src\Core\EntryPoint.hpp
+    SourceLine: 19

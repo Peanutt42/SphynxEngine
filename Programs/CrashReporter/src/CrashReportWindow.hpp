@@ -1,7 +1,7 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include "../../../Engine/src/Platform/StackTrace.hpp"
+#include "../../../Engine/src/Debug/StackTrace.hpp"
 #include <filesystem>
 #include <iostream>
 #include <imgui.h>
@@ -16,7 +16,7 @@ namespace Sphynx {
 		struct CrashInfo {
 			std::string Process;
 			std::string Thread;
-			std::string Signal;
+			std::string Reason;
 			std::vector<std::string> LastErrorMessages;
 		} CrashInfo;
 		
@@ -39,7 +39,7 @@ namespace Sphynx {
 				if (crashNode) {
 					m_CrashData.CrashInfo.Process = crashNode["Process"].as<std::string>();
 					m_CrashData.CrashInfo.Thread = crashNode["Thread"].as<std::string>();
-					m_CrashData.CrashInfo.Signal = crashNode["Signal"].as<std::string>();
+					m_CrashData.CrashInfo.Reason = crashNode["Reason"].as<std::string>();
 					auto lastErrorMsgsNode = crashNode["LastErrorMessages"];
 					if (lastErrorMsgsNode) {
 						for (const YAML::Node& msg : lastErrorMsgsNode) {
@@ -79,7 +79,7 @@ namespace Sphynx {
 				ImGui::Text("Crash");
 				ImGui::BulletText("Process: %s", m_CrashData.CrashInfo.Process.c_str());
 				ImGui::BulletText("Thread: %s", m_CrashData.CrashInfo.Thread.c_str());
-				ImGui::BulletText("Signal: %s", m_CrashData.CrashInfo.Signal.c_str());
+				ImGui::BulletText("Reason: %s", m_CrashData.CrashInfo.Reason.c_str());
 				ImGui::BulletText("Last Error messages:");
 				for (const std::string& msg : m_CrashData.CrashInfo.LastErrorMessages)
 					ImGui::BulletText("\t%s", msg.c_str());

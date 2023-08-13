@@ -121,7 +121,7 @@ namespace Sphynx {
 	if (Sphynx::Platform::IsDebuggerAttached())																							\
 		__debugbreak();																													\
 	else																																\
-		Sphynx::CrashHandler::OnProcessCrashed();																						\
+		Sphynx::CrashHandler::OnCrash();																						\
 }
 #define SE_ASSERT(result, ...) {	\
 	if (!(result)) {																													\
@@ -129,7 +129,7 @@ namespace Sphynx {
 		if (Sphynx::Platform::IsDebuggerAttached())																						\
 			__debugbreak();																												\
 		else																															\
-			Sphynx::CrashHandler::OnProcessCrashed();																					\
+			Sphynx::CrashHandler::OnCrash();																					\
 	}																																	\
 }
 
@@ -139,8 +139,8 @@ namespace Sphynx {
 #define SE_INFO(...)			{}
 #define SE_WARN(...)			{}
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
-#define SE_FATAL(...)			{ Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnProcessCrashed(); }
-#define SE_ASSERT(result, ...)	{ if (!(result)) { Sphynx::Logging::AssertLog(#result, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnProcessCrashed(); } }
+#define SE_FATAL(...)			{ Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnCrash(); }
+#define SE_ASSERT(result, ...)	{ if (!(result)) { Sphynx::Logging::AssertLog(#result, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnCrash(); } }
 
 #endif
 }

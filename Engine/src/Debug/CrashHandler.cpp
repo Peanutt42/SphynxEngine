@@ -1,40 +1,232 @@
 #include "pch.hpp"
 #include "CrashHandler.hpp"
+#include "StackTrace.hpp"
 #include "Core/Engine.hpp"
 #include "Logging/Logging.hpp"
-#include "Platform/Platform.hpp"
 #include "Serialization/YAMLSerializer.hpp"
+
+#include <vulkan/vulkan.hpp> // for vk::Error
 
 #include <csignal>
 
+#ifdef WINDOWS
+#define WIN32_LEAN_AND_MEAN
+#include <Windows.h>
+#include <DbgHelp.h>
+#endif
+
 namespace Sphynx {
+	void AbortHandler(int);
+	void InvalidParameterHandler(const wchar_t* Expression, const wchar_t* Function, const wchar_t* File, uint32_t Line, uintptr_t Reserved);
+	void OnProcessCrashed(const std::string& reason, PCONTEXT pcontext = nullptr, bool msgBox = false);
+
+
+#ifdef WINDOWS
+#define CPP_EXCEPTION_CODE (0xE06D7363)
+
+	std::string ExceptionToStr(PEXCEPTION_RECORD record) {
+		switch (record->ExceptionCode) {
+		default: return "Unknown exceptionCode " + std::to_string(record->ExceptionCode);
+		case EXCEPTION_ACCESS_VIOLATION: {
+			std::string output = "Access violation ";
+
+			if (record->NumberParameters >= 1) {
+				if (record->ExceptionInformation[0] == 0)
+					output += "reading address ";
+				else if (record->ExceptionInformation[0] == 1)
+					output += "writing to address ";
+				else if (record->ExceptionInformation[0] == 8)
+					output += "trying to run function ptr at address ";
+			}
+			else
+				output += "writing/reading address ";
+		
+			if (record->ExceptionInformation[1] == (ULONG)nullptr)
+				output += "nullptr";
+			else {
+				std::stringstream addressHex;
+				addressHex << "0x" << std::hex << std::uppercase << record->ExceptionInformation[1];
+				output += addressHex.str();
+			}
+			return output;
+		}		
+		case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "Array index out of bounds";
+		case EXCEPTION_ILLEGAL_INSTRUCTION: return "Illegal instruction";
+		case EXCEPTION_STACK_OVERFLOW: return "Stack overflow";
+		case EXCEPTION_BREAKPOINT: return "Breakpoint";
+		case EXCEPTION_IN_PAGE_ERROR: return "In page error (maybe accessing invalid memory address)";
+		case EXCEPTION_PRIV_INSTRUCTION: return "tried to execute privilegded/invalid instruction";
+		case EXCEPTION_DATATYPE_MISALIGNMENT: return "tried to access a datatype without proper alignment";
+		case CPP_EXCEPTION_CODE: return "C++ exception";
+		case EXCEPTION_FLT_DENORMAL_OPERAND: return "float denormal operand";
+		case EXCEPTION_FLT_DIVIDE_BY_ZERO: return "float divide by zero";
+		case EXCEPTION_FLT_INVALID_OPERATION: return "float invalid operation";
+		case EXCEPTION_FLT_OVERFLOW: return "float overflow";
+		case EXCEPTION_FLT_UNDERFLOW: return "float underflow";
+		case EXCEPTION_INT_DIVIDE_BY_ZERO: return "int divide by zero";
+		case EXCEPTION_INT_OVERFLOW: return "int overflow";
+		}
+	}
+
+	LONG WINAPI ExceptionFilter(PEXCEPTION_POINTERS exceptionInfo) {
+		if (exceptionInfo->ExceptionRecord->ExceptionCode == CPP_EXCEPTION_CODE) {
+			Platform::MessagePrompts::Error("c++ except", "");
+			std::cout << "C++ exception found\n";
+			return EXCEPTION_CONTINUE_SEARCH; // cpp exceptions are handled by TerminateHandler
+		}
+
+		std::string reason = ExceptionToStr(exceptionInfo->ExceptionRecord);
+		OnProcessCrashed(reason, exceptionInfo->ContextRecord, true);
+
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+#endif
+
 	void CrashHandler::Init() {
+		if (s_Initialized)
+			return;
+
 		if (Platform::IsDebuggerAttached())
 			return;
 		
-		std::signal(SIGILL, OnProcessCrashed);  // illegal instruction
-		std::signal(SIGSEGV, OnProcessCrashed); // segmentation fault
-		std::signal(SIGABRT, OnProcessCrashed); // abort()
+#ifdef WINDOWS
+		SetUnhandledExceptionFilter(ExceptionFilter);
+#endif
 
+		_set_invalid_parameter_handler(InvalidParameterHandler);
+
+		if (std::signal(SIGABRT, AbortHandler) == SIG_ERR)
+			SE_ERR("Failed to register AbortHandler");
+
+		s_Initialized = true;
+	}
+
+	void CrashHandler::StartCrashReporter() {
 		Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
 	}
 
-	void CrashHandler::OnProcessCrashed(int signal) {
+	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32_t line, [[maybe_unused]] uintptr_t Reserved) {
+		std::wstring expressionWStr = expression;
+		std::wstring functionWStr = function;
+		std::wstring fileWStr = file;
+		std::string expressionStr{ expressionWStr.begin(), expressionWStr.end() };
+		std::string functionStr{ functionWStr.begin(), functionWStr.end() };
+		std::string fileStr{ fileWStr.begin(), fileWStr.end() };
+		OnProcessCrashed(
+			std::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line),
+			nullptr, true
+		);
+	}
+
+
+	void AbortHandler(int) {
+		OnProcessCrashed("abort() was called", nullptr, true);
+	}
+
+	void CrashHandler::OnCrash(const std::string reason, bool msgBox) {
+		OnProcessCrashed(reason, nullptr, msgBox);
+	}
+
+	void OnProcessCrashed(const std::string& reason, PCONTEXT pcontext, bool msgBox) {
+		if (msgBox)
+			Platform::MessagePrompts::Error("Engine crashed", reason);
+		
 		std::cout << "A crash occurred.\n";
 
-		switch (signal) {
-		default: std::cout << "unkown signal: " << signal << '\n'; break;
-		case -1: break;
-		case SIGILL: std::cout << "Illegal instruction!\n"; break;
-		case SIGSEGV: std::cout << "Segmentation fault!\n"; break;
-		case SIGABRT: std::cout << "abort() / throw was called!\n"; break;
+		std::cout << reason << '\n';
+
+#ifdef WINDOWS
+		StackTrace stacktrace;
+				
+		CONTEXT context;
+		PCONTEXT finalContext = pcontext;
+		if (!finalContext) {
+			memset(&context, 0, sizeof(context));
+			context.ContextFlags = CONTEXT_FULL;
+
+			RtlCaptureContext(&context);
+			finalContext = &context;
 		}
 
-		StackTrace stackTrace = Platform::GenerateStackTrace();
-		for (size_t i = 0; i < stackTrace.size(); i++) {
-			auto& entry = stackTrace[i];
-			std::cout << "[" + std::to_string(i + 1) + "] At " + entry.FunctionName << " in ";
-			std::cout << (entry.HasSource ? entry.SourceFile + ":" + std::to_string(entry.SourceLine) : "???");
+		STACKFRAME64 stackFrame;
+		memset(&stackFrame, 0, sizeof(stackFrame));
+
+		DWORD machineType = IMAGE_FILE_MACHINE_I386;
+#ifdef _M_X64
+		machineType = IMAGE_FILE_MACHINE_AMD64;
+#endif
+
+		stackFrame.AddrPC.Mode = AddrModeFlat;
+		stackFrame.AddrPC.Offset = finalContext->Rip;
+		stackFrame.AddrFrame.Mode = AddrModeFlat;
+		stackFrame.AddrFrame.Offset = finalContext->Rbp;
+		stackFrame.AddrStack.Mode = AddrModeFlat;
+		stackFrame.AddrStack.Offset = finalContext->Rsp;
+
+		HANDLE process = GetCurrentProcess();
+		HANDLE thread = GetCurrentThread();
+
+		SymInitialize(process, NULL, TRUE);
+
+		while (StackWalk64(machineType, process, thread, &stackFrame, finalContext, nullptr,
+			SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+		{
+			char symbolBuffer[sizeof(IMAGEHLP_SYMBOL64) + MAX_PATH];
+			memset(symbolBuffer, 0, sizeof(symbolBuffer));
+			IMAGEHLP_SYMBOL64* symbol = (IMAGEHLP_SYMBOL64*)symbolBuffer;
+			symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL64);
+			symbol->MaxNameLength = MAX_PATH;
+
+			DWORD64 displacement = 0;
+			if (SymGetSymFromAddr64(process, stackFrame.AddrPC.Offset, &displacement, symbol)) {
+				std::string symbolName = symbol->Name;
+
+				if (symbolName == __FUNCTION__) {
+					stacktrace.clear();
+					continue;
+				}
+
+				if (symbolName == "CxxThrowException") {
+					stacktrace.clear();
+					stacktrace.emplace_back("exception was thrown", false);
+					continue;
+				}
+
+				StackTraceEntry& entry = stacktrace.emplace_back();
+				entry.FunctionName = symbolName + "()";
+
+				// Display source file and line number if available
+				IMAGEHLP_LINE64 lineInfo;
+				memset(&lineInfo, 0, sizeof(lineInfo));
+				lineInfo.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+				DWORD lineDisplacement = 0;
+				if (SymGetLineFromAddr64(process, stackFrame.AddrPC.Offset, &lineDisplacement, &lineInfo)) {
+					entry.HasSource = true;
+					entry.SourceFile = lineInfo.FileName;
+					entry.SourceLine = lineInfo.LineNumber;
+				}
+				else
+					entry.HasSource = false;
+
+				if (symbolName == "main")
+					break;
+			}
+			else {
+				std::stringstream addressHex;
+				addressHex << "0x" << std::hex << std::uppercase << symbol->Address;
+				stacktrace.emplace_back("Unknown symbol - " + addressHex.str(), false);
+			}
+		}
+
+		SymCleanup(process);
+#endif
+		
+		for (size_t i = 0; i < stacktrace.size(); i++) {
+			auto& entry = stacktrace[i];
+			std::cout << "[" + std::to_string(i + 1) + "] At " + entry.FunctionName;
+			if (entry.HasSource)
+				std::cout << "\n    " << " in " << entry.SourceFile + ":" + std::to_string(entry.SourceLine);
 			std::cout << std::endl;
 		}
 
@@ -66,21 +258,14 @@ namespace Sphynx {
 		for (const std::string& error : Logging::GetErrorList())
 			out << YAML::Value << error;
 		out << YAML::EndSeq;
-		out << YAML::Key << "Signal" << YAML::Value;
-		switch (signal) {
-		default: out << ("unkown signal: " + std::to_string(signal)); break;
-		case -1:	out << "Explicit decision!"; break;
-		case SIGILL: out << "Illegal instruction!"; break;
-		case SIGSEGV: out << "Segmentation fault!"; break;
-		case SIGABRT: out << "abort() was called!"; break;
-		}
+		out << YAML::Key << "Reason" << YAML::Value << reason;
 		out << YAML::EndMap;
 
 
 		out << YAML::Key << "Stacktrace" << YAML::Value;
 		out << YAML::BeginSeq;
-		for (size_t i = 0; i < stackTrace.size(); i++) {
-			auto& entry = stackTrace[i];
+		for (size_t i = 0; i < stacktrace.size(); i++) {
+			auto& entry = stacktrace[i];
 			out << YAML::BeginMap;
 			out << YAML::Key << "FunctionName" << YAML::Value << entry.FunctionName;
 			if (entry.HasSource) {
@@ -95,8 +280,10 @@ namespace Sphynx {
 		out << YAML::EndMap;
 		YAMLSerializer::SaveFile("Programs/CrashReporter/CrashReport.txt", out);
 
+		std::cout << "Press any key to exit program, which will launch the crash reporter\n";
+
 		std::cin.get();
 
-		std::exit(666); // Anything other than 0 exit code is caught by CrashReporter.exe
+		std::exit(1);
 	}
 }
