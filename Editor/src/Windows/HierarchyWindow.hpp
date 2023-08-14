@@ -19,7 +19,7 @@ namespace Sphynx::Editor {
 					flags |= ImGuiTreeNodeFlags_Selected;
 
 				const std::string& name = scene.GetComponent<ECS::NameComponent>(entity)->Name;
-				bool opened = ImGui::TreeNodeEx((void*)(uint32)entity, flags, name.c_str());
+				bool opened = ImGui::TreeNodeEx((void*)(uint64)(uint32)entity, flags, name.c_str());
 
 				if (ImGui::IsItemClicked())
 					s_SelectedEntity = entity;

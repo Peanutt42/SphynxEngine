@@ -1,6 +1,7 @@
 #pragma once
 
 #include "std.hpp"
+#include "IntTypes.hpp"
 #include "Logging/Logging.hpp"
 
 namespace Sphynx {
