@@ -18,8 +18,8 @@ namespace Sphynx::Rendering {
 		size_t stbi_size = (size_t)width * (size_t)height * 4;
 
 		TextureSpecification spec{
-			.Width = (uint32_t)width,
-			.Height = (uint32_t)height,
+			.Width = (uint32)width,
+			.Height = (uint32)height,
 			.Format = TextureFormat::RGBA
 		};
 
@@ -35,7 +35,7 @@ namespace Sphynx::Rendering {
 		delete m_Texture;
 	}
 
-	uint32_t Image::GetWidth() const { return m_Texture->GetWidth(); }
-	uint32_t Image::GetHeight() const { return m_Texture->GetHeight(); }
+	uint32 Image::GetWidth() const { return m_Texture->GetWidth(); }
+	uint32 Image::GetHeight() const { return m_Texture->GetHeight(); }
 	void* Image::GetDescriptorSet() { return m_Texture->GetDescriptorSet(); }
 }

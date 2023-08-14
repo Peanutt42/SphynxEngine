@@ -81,7 +81,7 @@ namespace Sphynx::Rendering {
 		m_Renderpass = VK_NULL_HANDLE;
 	}
 
-	void VulkanRenderpass::CreateFramebuffers(uint32_t width, uint32_t height, vk::Format format, bool sampled) {
+	void VulkanRenderpass::CreateFramebuffers(uint32 width, uint32 height, vk::Format format, bool sampled) {
 		m_FramebufferImages.resize(VulkanContext::MaxFramesInFlight);
 		m_FramebufferImageMemories.resize(VulkanContext::MaxFramesInFlight);
 		m_FramebufferImageViews.resize(VulkanContext::MaxFramesInFlight);
@@ -108,21 +108,21 @@ namespace Sphynx::Rendering {
 		}
 	}
 
-	vk::Framebuffer VulkanRenderpass::GetFramebuffer(uint32_t imageIndex) {
+	vk::Framebuffer VulkanRenderpass::GetFramebuffer(uint32 imageIndex) {
 		if (imageIndex < m_Framebuffers.size())
 			return m_Framebuffers[imageIndex];
 		else
 			return VK_NULL_HANDLE;
 	}
 
-	vk::Image VulkanRenderpass::GetImage(uint32_t imageIndex) {
+	vk::Image VulkanRenderpass::GetImage(uint32 imageIndex) {
 		if (imageIndex < m_Framebuffers.size())
 			return m_FramebufferImages[imageIndex];
 		else
 			return VK_NULL_HANDLE;
 	}
 
-	vk::ImageView VulkanRenderpass::GetImageView(uint32_t imageIndex) {
+	vk::ImageView VulkanRenderpass::GetImageView(uint32 imageIndex) {
 		if (imageIndex < m_Framebuffers.size())
 			return m_FramebufferImageViews[imageIndex];
 		else

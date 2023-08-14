@@ -15,4 +15,7 @@ namespace Sphynx {
 
 	using byte = uint8_t;
 	static_assert(sizeof(byte) == 1);
+
+	using intptr = intptr_t;
+	using uintptr = uintptr_t;
 }

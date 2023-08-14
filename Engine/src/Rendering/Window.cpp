@@ -115,7 +115,7 @@ namespace Sphynx::Rendering {
 		return glfwWindowShouldClose(m_Window);
 	}
 
-	void Window::SetSize(uint32_t width, uint32_t height) {
+	void Window::SetSize(uint32 width, uint32 height) {
 		m_PendingMainThreadCallbacks.push_back([this, width, height]() {
 			m_Width = width;
 			m_Height = height;
@@ -123,14 +123,14 @@ namespace Sphynx::Rendering {
 		});
 	}
 
-	void Window::SetWidth(uint32_t width) {
+	void Window::SetWidth(uint32 width) {
 		m_PendingMainThreadCallbacks.push_back([this, width]() {
 			m_Width = width;
 			glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);
 		});
 	}
 
-	void Window::SetHeight(uint32_t height) {
+	void Window::SetHeight(uint32 height) {
 		m_PendingMainThreadCallbacks.push_back([this, height]() {
 			m_Height = height;
 			glfwSetWindowSize(m_Window, (int)m_Width, (int)m_Height);

@@ -4,7 +4,7 @@
 
 namespace Sphynx::Rendering {
 #pragma region SpirvHelper
-    vk::Format SpirvHelper::SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32_t elements) {
+    vk::Format SpirvHelper::SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32 elements) {
         switch (type) {
         default: return vk::Format::eUndefined;
         case spirv_cross::SPIRType::BaseType::SByte:
@@ -70,12 +70,12 @@ namespace Sphynx::Rendering {
         }
     }
 
-    void SpirvHelper::GetReflectionInfo(const std::vector<uint32_t>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo) {
+    void SpirvHelper::GetReflectionInfo(const std::vector<uint32>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo) {
         spirv_cross::Compiler compiler(spirvCode);
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
         for (auto& uniformBuffer : resources.uniform_buffers) {
-            uint32_t binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
+            uint32 binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
             std::string name = compiler.get_name(uniformBuffer.id);
 
             const auto& type = compiler.get_type(uniformBuffer.base_type_id);
@@ -83,17 +83,17 @@ namespace Sphynx::Rendering {
             outInfo.DescriptorBindings[binding] = { vk::DescriptorType::eUniformBuffer, stage, name, size };
         }
         for (auto& sampler : resources.sampled_images) {
-            uint32_t binding = compiler.get_decoration(sampler.id, spv::DecorationBinding);
+            uint32 binding = compiler.get_decoration(sampler.id, spv::DecorationBinding);
             std::string name = compiler.get_name(sampler.id);
             outInfo.DescriptorBindings[binding] = { vk::DescriptorType::eCombinedImageSampler, stage, name };
         }
     }
 #pragma endregion
 
-    static vk::ShaderModule CreateShaderModule(vk::Device device, const std::vector<uint32_t>& code) {
+    static vk::ShaderModule CreateShaderModule(vk::Device device, const std::vector<uint32>& code) {
         vk::ShaderModuleCreateInfo createInfo{};
-        createInfo.codeSize = code.size() * sizeof(uint32_t);
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+        createInfo.codeSize = code.size() * sizeof(uint32);
+        createInfo.pCode = (const uint32*)code.data();
         vk::ShaderModule shaderModule;
         vk::Result result = device.createShaderModule(&createInfo, nullptr, &shaderModule);
         SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create shaderModule");
@@ -125,7 +125,7 @@ namespace Sphynx::Rendering {
         vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.vertexBindingDescriptionCount = 1;
         vertexInputInfo.pVertexBindingDescriptions = &createInfo.VertexInput.Description;
-        vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)createInfo.VertexInput.Attributes.size();
+        vertexInputInfo.vertexAttributeDescriptionCount = (uint32)createInfo.VertexInput.Attributes.size();
         vertexInputInfo.pVertexAttributeDescriptions = createInfo.VertexInput.Attributes.data();
 
         vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
@@ -171,7 +171,7 @@ namespace Sphynx::Rendering {
             vk::DynamicState::eScissor
         };
         vk::PipelineDynamicStateCreateInfo dynamicState{};
-        dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+        dynamicState.dynamicStateCount = (uint32)dynamicStates.size();
         dynamicState.pDynamicStates = dynamicStates.data();
 
         vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
@@ -182,7 +182,7 @@ namespace Sphynx::Rendering {
         SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create pipelineLayout");
 
         vk::GraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.stageCount = (uint32_t)shaderStages.size();
+        pipelineInfo.stageCount = (uint32)shaderStages.size();
         pipelineInfo.pStages = shaderStages.data();
         pipelineInfo.pVertexInputState = &vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -237,7 +237,7 @@ namespace Sphynx::Rendering {
         }
     }
 
-    void VulkanVertexAttributeBuilder::Add(AttributeFormat attributeFormat, uint32_t offset, uint32_t binding) {
+    void VulkanVertexAttributeBuilder::Add(AttributeFormat attributeFormat, uint32 offset, uint32 binding) {
         vk::VertexInputAttributeDescription& desc = m_Attributes.emplace_back();
         desc.binding = binding;
         desc.location = m_Location;

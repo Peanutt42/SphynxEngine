@@ -12,8 +12,8 @@ namespace Sphynx::Rendering {
 		VulkanCommandPool();
 		~VulkanCommandPool();
 
-		vk::CommandBuffer BeginRecording(uint32_t frameIndex);
-		void EndRecording(uint32_t frameIndex);
+		vk::CommandBuffer BeginRecording(uint32 frameIndex);
+		void EndRecording(uint32 frameIndex);
 
 		vk::CommandBuffer BeginSingleUseCommandbuffer();
 		void EndSingleUseCommandbuffer(vk::CommandBuffer commandbuffer);

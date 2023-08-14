@@ -25,11 +25,11 @@ namespace Sphynx {
 			return m_Stream.good();
 		}
 
-		uint64_t GetStreamPosition() final {
+		uint64 GetStreamPosition() final {
 			return m_Stream.tellp();
 		}
 
-		void SetStreamPosition(uint64_t position) final {
+		void SetStreamPosition(uint64 position) final {
 			m_Stream.seekp(position);
 		}
 
@@ -62,11 +62,11 @@ namespace Sphynx {
 			return m_Stream.good();
 		}
 
-		uint64_t GetStreamPosition() override {
+		uint64 GetStreamPosition() override {
 			return m_Stream.tellg();
 		}
 
-		void SetStreamPosition(uint64_t position) override {
+		void SetStreamPosition(uint64 position) override {
 			m_Stream.seekg(position);
 		}
 

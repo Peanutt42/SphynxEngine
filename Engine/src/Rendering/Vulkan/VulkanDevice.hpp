@@ -6,8 +6,8 @@
 
 namespace Sphynx::Rendering {
 	struct VulkanQueueFamilyIndices {
-		std::optional<uint32_t> GraphicsFamily;
-		std::optional<uint32_t> PresentFamily;
+		std::optional<uint32> GraphicsFamily;
+		std::optional<uint32> PresentFamily;
 
 		VulkanQueueFamilyIndices(vk::PhysicalDevice device);
 

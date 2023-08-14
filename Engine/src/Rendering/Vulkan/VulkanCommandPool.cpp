@@ -20,7 +20,7 @@ namespace Sphynx::Rendering {
 		vk::CommandBufferAllocateInfo commandBufferAllocInfo{};
 		commandBufferAllocInfo.commandPool = m_Pool;
 		commandBufferAllocInfo.level = vk::CommandBufferLevel::ePrimary;
-		commandBufferAllocInfo.commandBufferCount = static_cast<uint32_t>(m_CommandBuffers.size());
+		commandBufferAllocInfo.commandBufferCount = (uint32)m_CommandBuffers.size();
 
 		result = VulkanContext::LogicalDevice.allocateCommandBuffers(&commandBufferAllocInfo, m_CommandBuffers.data());
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to allocate commandBuffers");
@@ -31,7 +31,7 @@ namespace Sphynx::Rendering {
 		m_Pool = VK_NULL_HANDLE;
 	}
 
-	vk::CommandBuffer VulkanCommandPool::BeginRecording(uint32_t frameIndex) {
+	vk::CommandBuffer VulkanCommandPool::BeginRecording(uint32 frameIndex) {
 		SE_ASSERT(frameIndex <= m_CommandBuffers.size(), Logging::Rendering, "Invalid frameIndex");
 
 		m_CommandBuffers[frameIndex].reset();
@@ -46,7 +46,7 @@ namespace Sphynx::Rendering {
 		return m_CommandBuffers[frameIndex];
 	}
 
-	void VulkanCommandPool::EndRecording(uint32_t frameIndex) {
+	void VulkanCommandPool::EndRecording(uint32 frameIndex) {
 		SE_ASSERT(frameIndex <= m_CommandBuffers.size(), Logging::Rendering, "Invalid frameIndex");
 
 		m_CommandBuffers[frameIndex].end();

@@ -24,7 +24,7 @@ namespace Sphynx::Editor {
 			}
 			else {
 				auto processNode = [&](aiNode* node) {
-					uint32_t indexOffset = 0;
+					uint32 indexOffset = 0;
 					for (unsigned int i = 0; i < node->mNumMeshes; i++) {
 						aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
 						for (unsigned int v = 0; v < mesh->mNumVertices; v++) {
@@ -57,7 +57,7 @@ namespace Sphynx::Editor {
 							for (unsigned int j = 0; j < face.mNumIndices; j++)
 								outData.Indices.push_back(indexOffset + face.mIndices[j]);
 						}
-						indexOffset += (uint32_t)outData.Indices.back();
+						indexOffset += (uint32)outData.Indices.back();
 					}
 					};
 				processNode(scene->mRootNode);

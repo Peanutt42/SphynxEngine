@@ -18,14 +18,14 @@ namespace Sphynx::Rendering {
 			size_t UniformSize = 0;
 		};
 
-		std::map<uint32_t, DescriptorBinding> DescriptorBindings; // binding - type pair
+		std::map<uint32, DescriptorBinding> DescriptorBindings; // binding - type pair
 	};
 
 	class SE_API SpirvHelper {
 	public:
-		static vk::Format SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32_t elements);
+		static vk::Format SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32 elements);
 
-		static void GetReflectionInfo(const std::vector<uint32_t>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo);
+		static void GetReflectionInfo(const std::vector<uint32>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo);
 	};
 
 	struct VertexInput {
@@ -34,8 +34,8 @@ namespace Sphynx::Rendering {
 	};
 
 	struct SE_API ShaderCreateInfo {
-		std::vector<uint32_t> VertexCode;
-		std::vector<uint32_t> FragmentCode;
+		std::vector<uint32> VertexCode;
+		std::vector<uint32> FragmentCode;
 
 		// Names of uniform buffers that are shared with other shaders and so aren't auto created
 		std::unordered_set<std::string> SharedUniformBuffers = {
@@ -60,7 +60,7 @@ namespace Sphynx::Rendering {
 		vk::PipelineLayout m_PipelineLayout;
 
 		ShaderReflectionInfo m_ReflectionInfo;
-		std::unordered_map<std::string, uint32_t> m_DescriptorNameToBindingMap;
+		std::unordered_map<std::string, uint32> m_DescriptorNameToBindingMap;
 
 		std::unordered_set<std::string> m_SharedUniformBuffers;
 	};
@@ -74,12 +74,12 @@ namespace Sphynx::Rendering {
 	public:
 		static vk::Format ToVkFormat(AttributeFormat format);
 
-		void Add(AttributeFormat attributeFormat, uint32_t offset, uint32_t binding = 0);
+		void Add(AttributeFormat attributeFormat, uint32 offset, uint32 binding = 0);
 
 		const std::vector<vk::VertexInputAttributeDescription>& GetAttributes() const { return m_Attributes; }
 
 	private:
-		uint32_t m_Location = 0;
+		uint32 m_Location = 0;
 		std::vector<vk::VertexInputAttributeDescription> m_Attributes;
 	};
 }

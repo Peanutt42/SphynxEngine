@@ -22,11 +22,11 @@ namespace Sphynx::Rendering {
 	}
 
 	Shader::Shader(BufferView vertexCode, BufferView fragmentCode) {
-		m_VertexSpirv.resize(vertexCode.Size / sizeof(uint32_t));
-		std::memcpy(m_VertexSpirv.data(), vertexCode.As<uint32_t>(), vertexCode.Size);
+		m_VertexSpirv.resize(vertexCode.GetSize<uint32>());
+		std::memcpy(m_VertexSpirv.data(), vertexCode.As<uint32>(), vertexCode.Size);
 
-		m_FragmentSpirv.resize(fragmentCode.Size / sizeof(uint32_t));
-		std::memcpy(m_FragmentSpirv.data(), fragmentCode.As<uint32_t>(), fragmentCode.Size);
+		m_FragmentSpirv.resize(fragmentCode.GetSize<uint32>());
+		std::memcpy(m_FragmentSpirv.data(), fragmentCode.As<uint32>(), fragmentCode.Size);
 	}
 
 	Shader::~Shader() {

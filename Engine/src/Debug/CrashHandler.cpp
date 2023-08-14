@@ -18,7 +18,7 @@
 
 namespace Sphynx {
 	void AbortHandler(int);
-	void InvalidParameterHandler(const wchar_t* Expression, const wchar_t* Function, const wchar_t* File, uint32_t Line, uintptr_t Reserved);
+	void InvalidParameterHandler(const wchar_t* Expression, const wchar_t* Function, const wchar_t* File, uint32 Line, uintptr Reserved);
 	void OnProcessCrashed(const std::string& reason, PCONTEXT pcontext = nullptr, bool msgBox = false);
 
 
@@ -109,7 +109,7 @@ namespace Sphynx {
 		Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
 	}
 
-	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32_t line, [[maybe_unused]] uintptr_t Reserved) {
+	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32 line, [[maybe_unused]] uintptr Reserved) {
 		std::string expressionStr = Platform::WideToNarrow(expression);
 		std::string functionStr = Platform::WideToNarrow(function);
 		std::string fileStr = Platform::WideToNarrow(file);

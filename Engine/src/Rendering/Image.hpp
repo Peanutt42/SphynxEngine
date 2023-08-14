@@ -10,8 +10,8 @@ namespace Sphynx::Rendering {
 		Image(BufferView data);
 		~Image();
 
-		uint32_t GetWidth() const;
-		uint32_t GetHeight() const;
+		uint32 GetWidth() const;
+		uint32 GetHeight() const;
 
 		//VkDescriptorSet
 		void* GetDescriptorSet();

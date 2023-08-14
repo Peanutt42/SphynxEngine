@@ -45,17 +45,17 @@ namespace Sphynx::Rendering {
 		inline static vk::CommandBuffer CommandBuffer;
 
 		inline static std::unique_ptr<VulkanRenderpass> SceneRenderpass;
-		inline static uint32_t SceneWidth = 1920;
-		inline static uint32_t SceneHeight = 1080;
+		inline static uint32 SceneWidth = 1920;
+		inline static uint32 SceneHeight = 1080;
 		inline static std::vector<vk::DescriptorSet> SceneTextureDescriptorSets;
 
 		inline static vk::Sampler DefaultSampler;
 
 		inline static vk::SharingMode SharingMode;
 
-		inline static uint32_t MaxFramesInFlight = 2;
-		inline static uint32_t CurrentFrame = 0;
-		inline static uint32_t CurrentImage = 0;
+		inline static uint32 MaxFramesInFlight = 2;
+		inline static uint32 CurrentFrame = 0;
+		inline static uint32 CurrentImage = 0;
 		inline static bool FramebufferResized = false;
 
 		inline static vk::DescriptorPool ImGuiDescriptorPool;

@@ -23,6 +23,6 @@ namespace Sphynx::Rendering {
 
 	private:
 		VulkanShader* m_VulkanShader = nullptr;
-		std::vector<uint32_t> m_VertexSpirv, m_FragmentSpirv;
+		std::vector<uint32> m_VertexSpirv, m_FragmentSpirv;
 	};
 }

@@ -86,7 +86,7 @@ namespace Sphynx::Rendering {
 	}
 
 
-	void VulkanTexture::CreateImage(uint32_t width, uint32_t height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image, vk::DeviceMemory& memory, vk::ImageCreateFlags flags, uint32_t arrayLayers) {
+	void VulkanTexture::CreateImage(uint32 width, uint32 height, vk::Format format, vk::ImageTiling tiling, vk::ImageUsageFlags usage, vk::MemoryPropertyFlags properties, vk::Image& image, vk::DeviceMemory& memory, vk::ImageCreateFlags flags, uint32 arrayLayers) {
 		vk::ImageCreateInfo imageInfo{};
 		imageInfo.imageType = vk::ImageType::e2D;
 		imageInfo.extent.width = width;
@@ -110,7 +110,7 @@ namespace Sphynx::Rendering {
 
 		vk::MemoryAllocateInfo allocInfo{};
 		allocInfo.allocationSize = memRequirements.size;
-		std::optional<uint32_t> memoryTypeIndex = FindMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
+		std::optional<uint32> memoryTypeIndex = FindMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
 		SE_ASSERT(memoryTypeIndex.has_value(), Logging::Rendering, "Failed to get memory type index");
 		allocInfo.memoryTypeIndex = *memoryTypeIndex;
 
@@ -177,7 +177,7 @@ namespace Sphynx::Rendering {
 		);
 	}
 
-	void VulkanTexture::CopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer buffer, vk::Image image, uint32_t width, uint32_t height) {
+	void VulkanTexture::CopyBufferToImage(vk::CommandBuffer commandBuffer, vk::Buffer buffer, vk::Image image, uint32 width, uint32 height) {
 		vk::BufferImageCopy region{};
 		region.bufferOffset = 0;
 		region.bufferRowLength = 0;
@@ -196,7 +196,7 @@ namespace Sphynx::Rendering {
 		commandBuffer.copyBufferToImage(buffer, image, vk::ImageLayout::eTransferDstOptimal, 1, &region);
 	}
 
-	vk::ImageView VulkanTexture::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, vk::ImageViewType type, uint32_t layerCount) {
+	vk::ImageView VulkanTexture::CreateImageView(vk::Image image, vk::Format format, vk::ImageAspectFlags aspectFlags, vk::ImageViewType type, uint32 layerCount) {
 		vk::ImageViewCreateInfo viewInfo{};
 		viewInfo.image = image;
 		viewInfo.viewType = type;

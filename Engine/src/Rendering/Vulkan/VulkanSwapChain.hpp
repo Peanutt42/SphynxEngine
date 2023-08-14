@@ -25,7 +25,7 @@ namespace Sphynx::Rendering {
 
 		const vk::Extent2D& GetExtent() const { return m_Extent; }
 		vk::Format GetFormat() const { return m_Format; }
-		vk::Framebuffer GetFramebuffer(uint32_t index);
+		vk::Framebuffer GetFramebuffer(uint32 index);
 		vk::SwapchainKHR GetHandle() { return m_SwapChain; }
 
 	private:

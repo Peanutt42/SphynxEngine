@@ -78,7 +78,7 @@ namespace Sphynx::Rendering {
 		vk::DescriptorPoolCreateInfo pool_info{};
 		pool_info.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
 		pool_info.maxSets = 1000;
-		pool_info.poolSizeCount = (uint32_t)poolSizes.size();
+		pool_info.poolSizeCount = (uint32)poolSizes.size();
 		pool_info.pPoolSizes = poolSizes.data();
 		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &ImGuiDescriptorPool);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create imgui descriptor pool");
@@ -230,7 +230,7 @@ namespace Sphynx::Rendering {
 	void VulkanContext::GenerateSceneTextureDescriptorSets() {
 		SceneTextureDescriptorSets.resize(MaxFramesInFlight);
 		for (size_t i = 0; i < SceneTextureDescriptorSets.size(); i++)
-			SceneTextureDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(DefaultSampler, SceneRenderpass->GetImageView((uint32_t)i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			SceneTextureDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(DefaultSampler, SceneRenderpass->GetImageView((uint32)i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
 	}
 
@@ -239,7 +239,7 @@ namespace Sphynx::Rendering {
 		RenderFinishedSemaphores.resize(MaxFramesInFlight, VK_NULL_HANDLE);
 		InFlightFences.resize(MaxFramesInFlight, VK_NULL_HANDLE);
 
-		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
+		for (uint32 frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
 			vk::SemaphoreCreateInfo semaphoreInfo{};
 			vk::Result result = LogicalDevice.createSemaphore(&semaphoreInfo, nullptr, &ImageAvailableSemaphores[frameIndex]);
 			SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create semaphore");
@@ -254,7 +254,7 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::_DestroySyncObjects() {
-		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
+		for (uint32 frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
 			LogicalDevice.destroySemaphore(ImageAvailableSemaphores[frameIndex], nullptr);
 			LogicalDevice.destroySemaphore(RenderFinishedSemaphores[frameIndex], nullptr);
 			LogicalDevice.destroyFence(InFlightFences[frameIndex], nullptr);

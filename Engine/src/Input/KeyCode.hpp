@@ -3,7 +3,7 @@
 #include "std.hpp"
 
 namespace Sphynx {
-	enum class KeyCode : uint16_t {
+	enum class KeyCode : uint16 {
 		None = 0,
 		A = 65,					// GLFW_KEY_A
 		B = 66,					// GLFW_KEY_B
@@ -91,8 +91,8 @@ namespace Sphynx {
 	};
 
 
-	enum class MouseButton : uint16_t {
-		None = (uint16_t)-1,
+	enum class MouseButton : uint16 {
+		None = (uint16)-1,
 		Button0 = 0,
 		Button1 = 1,
 		Button2 = 2,
