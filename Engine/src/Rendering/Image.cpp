@@ -11,10 +11,10 @@
 #include <backends/imgui_impl_vulkan.h>
 
 namespace Sphynx::Rendering {
-	Image::Image(const uint8_t* data, size_t size) {
+	Image::Image(BufferView data) {
 		int width, height, channels;
 		
-		uint8_t* stbi_data = stbi_load_from_memory(data, (int)size, &width, &height, &channels, 4);
+		uint8* stbi_data = stbi_load_from_memory(data.As<stbi_uc>(), (int)data.Size, &width, &height, &channels, 4);
 		size_t stbi_size = (size_t)width * (size_t)height * 4;
 
 		TextureSpecification spec{

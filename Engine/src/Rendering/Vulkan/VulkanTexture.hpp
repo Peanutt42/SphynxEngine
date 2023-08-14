@@ -13,7 +13,7 @@ namespace Sphynx::Rendering {
 	struct TextureSpecification {
 		uint32_t Width = 0, Height = 0;
 		TextureFormat Format = TextureFormat::RGBA;
-		std::vector<uint8_t> Data;
+		std::vector<byte> Data;
 	};
 
 	class SE_API VulkanTexture {
@@ -38,7 +38,7 @@ namespace Sphynx::Rendering {
 
 	private:
 		uint32_t m_Width = 0, m_Height = 0;
-		std::vector<uint8_t> m_Data;
+		std::vector<byte> m_Data;
 		vk::Format m_VulkanFormat = vk::Format::eUndefined;
 
 		vk::Image m_Image;

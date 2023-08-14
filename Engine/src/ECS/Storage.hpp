@@ -162,7 +162,7 @@ namespace Sphynx::ECS {
 		DestroyFunc m_DestroyFunc = nullptr;
 
 		ComponentIndex m_NextComponentIndex = 0;
-		std::vector<uint8_t> m_Data; // Dense
+		std::vector<byte> m_Data; // Dense
 		std::vector<ComponentIndex> m_ComponentIndexes; // Sparse
 	};
 

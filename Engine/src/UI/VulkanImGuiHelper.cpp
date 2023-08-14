@@ -58,10 +58,10 @@ namespace Sphynx::UI {
 
 
 		// Load icons
-		m_MinimizeIcon = std::make_unique<Rendering::Image>(g_WindowMinimizeIcon, sizeof(g_WindowMinimizeIcon));
-		m_MaximizeIcon = std::make_unique<Rendering::Image>(g_WindowMaximizeIcon, sizeof(g_WindowMaximizeIcon));
-		m_RestoreIcon = std::make_unique<Rendering::Image>(g_WindowRestoreIcon, sizeof(g_WindowRestoreIcon));
-		m_CloseIcon = std::make_unique<Rendering::Image>(g_WindowCloseIcon, sizeof(g_WindowCloseIcon));
+		m_MinimizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMinimizeIcon));
+		m_MaximizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMaximizeIcon));
+		m_RestoreIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowRestoreIcon));
+		m_CloseIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowCloseIcon));
 	}
 
 	VulkanImGuiHelper::~VulkanImGuiHelper() {

@@ -85,7 +85,7 @@ namespace Sphynx {
 			outText = ss.str();
 		}
 
-		static void ReadBinaryFile(const std::filesystem::path& filepath, std::vector<uint8_t>& outData) {
+		static void ReadBinaryFile(const std::filesystem::path& filepath, std::vector<byte>& outData) {
 			SE_ASSERT(std::filesystem::exists(filepath), "Can't find file {}", filepath.string());
 			std::ifstream stream(filepath, std::ifstream::in | std::ios::ate);
 			SE_ASSERT(stream, "Can't open file {}", filepath.string());

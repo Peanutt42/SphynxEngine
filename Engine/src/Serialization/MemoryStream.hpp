@@ -23,12 +23,12 @@ namespace Sphynx {
 			m_Position += size;
 		}
 
-		const std::vector<uint8_t>& GetBuffer() const {
+		const std::vector<byte>& GetBuffer() const {
 			return m_Buffer;
 		}
 
 	private:
-		std::vector<uint8_t> m_Buffer;
+		std::vector<byte> m_Buffer;
 		size_t m_Position = 0;
 	};
 

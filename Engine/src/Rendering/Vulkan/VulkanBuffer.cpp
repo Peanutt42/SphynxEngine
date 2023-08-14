@@ -79,7 +79,7 @@ namespace Sphynx::Rendering {
 		VulkanContext::LogicalDevice.unmapMemory(Memory);
 	}
 
-	void VulkanBuffer::Get(std::vector<uint8_t>& outData) {
+	void VulkanBuffer::Get(std::vector<byte>& outData) {
 		SE_PROFILE_FUNCTION();
 
 		outData.resize(Size);
