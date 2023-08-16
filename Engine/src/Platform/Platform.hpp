@@ -3,15 +3,21 @@
 #include "std.hpp"
 #include "Core/EngineApi.hpp"
 #include "Logging/Logging.hpp"
+#include "Debug/StackTrace.hpp"
 
 namespace Sphynx {
 	class SE_API Platform {
 	public:
 		static bool IsDebuggerAttached();
 
-
 		static void SetWorkingDirToExe();
 
+		// context argument is only windows specific and not needed when not inside crash handeling
+		static StackTrace GenerateStackTrace(void* customContext = nullptr);
+
+		// context is only windows specific
+		using ExceptionCallback = std::function<void(const std::string& reason, void* context)>;
+		static void SetExceptionCallback(const ExceptionCallback& callback);
 
 		static std::string WideToNarrow(const std::wstring& wstr) {
 			std::locale loc("");
