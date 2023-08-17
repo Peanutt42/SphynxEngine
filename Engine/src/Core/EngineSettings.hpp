@@ -12,6 +12,7 @@ namespace Sphynx {
 		bool ImGuiEnabled = false;
 		std::string WindowName;
 		bool Fullscreen = false;
+		bool CustomWindowControls = true;
 		float MaxFPS = -1.f;
 
 		void ParseArguments(const ConsoleArguments& arguments) {

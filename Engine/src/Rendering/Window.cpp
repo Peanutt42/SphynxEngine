@@ -12,7 +12,7 @@ namespace Sphynx::Rendering {
 		SE_ERR(Logging::Rendering, "[GLFW]: ({}): {}", error, description);
 	}
 
-	Window::Window(const std::string_view title, bool maximized, bool fullscreen)
+	Window::Window(const std::string_view title, bool maximized, bool fullscreen, bool customWindowControls)
 		: m_Title(title), m_Maximized(maximized)
 	{
 		SE_PROFILE_FUNCTION();
@@ -31,7 +31,7 @@ namespace Sphynx::Rendering {
 
 		// ImGui implements custom titlebar
 		if (Engine::GetSettings().ImGuiEnabled && !fullscreen)
-			glfwWindowHint(GLFW_TITLEBAR, false);
+			glfwWindowHint(GLFW_TITLEBAR, !customWindowControls);
 
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {

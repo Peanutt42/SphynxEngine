@@ -24,7 +24,7 @@ namespace Sphynx {
 		s_ScriptingEngine = new Scripting::ScriptingEngine();
 
 		if (!s_Settings.Headless) {
-			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen);
+			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen, s_Settings.CustomWinodwControls);
 
 			Input::Init(s_Window->GetGLFWHandle());
 
