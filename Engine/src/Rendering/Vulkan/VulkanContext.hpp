@@ -8,8 +8,13 @@
 #include "VulkanRenderpass.hpp"
 #include "VulkanCommandPool.hpp"
 #include "VulkanTexture.hpp"
+#include "VulkanUniformBuffer.hpp"
 
 namespace Sphynx::Rendering {
+	struct UniformBufferData {
+		glm::mat4 proj_view; // proj * view
+	};
+
 	class SE_API VulkanContext {
 	public:
 		static void Init(Window& window);
@@ -53,12 +58,14 @@ namespace Sphynx::Rendering {
 
 		inline static vk::SharingMode SharingMode;
 
+		inline static std::unique_ptr<VulkanUniformBuffer> UniformBuffer;
+
 		inline static uint32 MaxFramesInFlight = 2;
 		inline static uint32 CurrentFrame = 0;
 		inline static uint32 CurrentImage = 0;
 		inline static bool FramebufferResized = false;
 
-		inline static vk::DescriptorPool ImGuiDescriptorPool;
+		inline static vk::DescriptorPool DescriptorPool;
 
 	private:
 		static void _CreateSyncObjects();

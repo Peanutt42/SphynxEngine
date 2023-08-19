@@ -77,10 +77,12 @@ namespace Sphynx::Editor {
 			if (Input::IsKeyPressed(KeyCode::O))
 				OpenScene();
 		}
-
-		if (m_GameRunning) {
+		
+		if (m_State == EditorState::Playing) {
 			UpdateGame();
 		}
+
+		Engine::Renderer().SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
 	}
 
 	void EditorApplication::DrawUI() {

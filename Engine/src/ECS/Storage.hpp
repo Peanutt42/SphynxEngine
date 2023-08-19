@@ -88,6 +88,20 @@ namespace Sphynx::ECS {
 			return &m_Data[index];
 		}
 
+		template<typename T>
+		T* TryGet(EntityId entity) {
+			return (T*)TryGetRaw(entity);
+		}
+
+		void* TryGetRaw(EntityId entity) {
+			if (entity >= m_ComponentIndexes.size())
+				return nullptr;
+			ComponentIndex index = m_ComponentIndexes[entity];
+			if (index == InvalidComponentIndex)
+				return nullptr;
+			return &m_Data[index];
+		}
+
 		bool Remove(const EntityId entity) {
 			if (!Has(entity))
 				return false;

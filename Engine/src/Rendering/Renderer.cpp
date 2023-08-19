@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
+#include "Scene/DefaultComponents.hpp"
 
 #include "Vulkan/VulkanContext.hpp"
 
@@ -33,6 +34,7 @@ namespace Sphynx::Rendering {
 
 		m_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
 		m_DefaultShader->UploadToGPU();
+		m_DefaultShader->GetVulkanShader()->SetUniformBuffer("v_ubo", *VulkanContext::UniformBuffer);
 	}
 
 	Renderer::~Renderer() {
@@ -43,8 +45,25 @@ namespace Sphynx::Rendering {
 		VulkanContext::Shutdown();
 	}
 
+	void Renderer::SubmitScene(Scene& scene, const Camera& camera) {
+		m_RenderCommand.Transforms.clear();
+		m_RenderCommand.Camera = camera;
+
+		// TODO: actual impl.
+		auto view = scene.View<ECS::TransformComponent>();
+		view.ForEach([&](ECS::EntityId entity, const ECS::TransformComponent& transform) {
+			m_RenderCommand.Transforms.push_back(transform);
+		});
+	}
+
 	void Renderer::Begin() {
 		SE_PROFILE_FUNCTION();
+
+		float aspect = GetAspect((float)VulkanContext::SceneWidth, (float)VulkanContext::SceneHeight);
+		UniformBufferData uniformBufferData{
+			.proj_view = m_RenderCommand.Camera.GetPerspective(aspect) * m_RenderCommand.Camera.GetView()
+		};
+		VulkanContext::UniformBuffer->Update(uniformBufferData);
 
 		VulkanContext::BeginSceneRenderpass();
 		// Draw Scene

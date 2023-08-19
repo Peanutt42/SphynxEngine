@@ -5,6 +5,7 @@
 #include "UI/VulkanImGuiHelper.hpp"
 #include "EditorWindow.hpp"
 #include "Scene/Scene.hpp"
+#include "Rendering/Camera.hpp"
 
 namespace Sphynx::Editor {
 	enum class EditorState {
@@ -39,6 +40,9 @@ namespace Sphynx::Editor {
 			return find->second;
 		}
 
+		static EditorState GetState() { return s_Instance->m_State; }
+		static Rendering::Camera& GetEditingCamera() { return s_Instance->m_EditingCamera; }
+
 		void CreateNewScene();
 		void OpenScene();
 		void SaveCurrentScene();
@@ -52,8 +56,8 @@ namespace Sphynx::Editor {
 		EditorState m_State = EditorState::Editing;
 		std::unique_ptr<Scene> m_EditingScene;
 		std::filesystem::path m_SceneFilepath;
+		Rendering::Camera m_EditingCamera;
 		bool m_SceneDirty = false;
-		bool m_GameRunning = false;
 		std::unique_ptr<Scene> m_GameScene;
 		std::unordered_map<std::string, bool> m_GameECSSystemActiveMap;
 	};

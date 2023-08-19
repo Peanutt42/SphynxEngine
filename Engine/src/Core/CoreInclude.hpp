@@ -15,6 +15,7 @@
 #include "Profiling/Profiling.hpp"
 #include "Input/Input.hpp"
 #include "Memory/BufferView.hpp"
+#include "Math/Transform.hpp"
 #include "Serialization/StreamWriter.hpp"
 #include "Serialization/StreamReader.hpp"
 #include "Serialization/MemoryStream.hpp"

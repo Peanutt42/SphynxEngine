@@ -6,9 +6,10 @@
 namespace Sphynx::Rendering {
 	VertexInput GetVertexInputDescription() {
 		VertexInput input;
-		input.Description.binding = 0;
-		input.Description.stride = sizeof(Vertex);
-		input.Description.inputRate = vk::VertexInputRate::eVertex;
+		auto& binding = input.Bindings.emplace_back();
+		binding.binding = 0;
+		binding.stride = sizeof(Vertex);
+		binding.inputRate = vk::VertexInputRate::eVertex;
 
 		VulkanVertexAttributeBuilder builder;
 		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Position));

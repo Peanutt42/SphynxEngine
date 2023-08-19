@@ -4,6 +4,7 @@
 #include "VulkanInstance.hpp"
 #include "VulkanSwapChain.hpp"
 #include "VulkanRenderpass.hpp"
+#include "VulkanUniformBuffer.hpp"
 
 #include <vulkan/vulkan.hpp>
 #include <spirv_cross/spirv_cross.hpp>
@@ -29,7 +30,7 @@ namespace Sphynx::Rendering {
 	};
 
 	struct VertexInput {
-		vk::VertexInputBindingDescription Description{};
+		std::vector<vk::VertexInputBindingDescription> Bindings;
 		std::vector<vk::VertexInputAttributeDescription> Attributes;
 	};
 
@@ -38,8 +39,9 @@ namespace Sphynx::Rendering {
 		std::vector<uint32> FragmentCode;
 
 		// Names of uniform buffers that are shared with other shaders and so aren't auto created
-		std::unordered_set<std::string> SharedUniformBuffers = {
-			//"u_UBO",
+		const inline static std::unordered_set<std::string> SharedUniformBuffers = {
+			"v_ubo",
+			"f_ubo"
 		};
 
 		VertexInput VertexInput;
@@ -53,7 +55,19 @@ namespace Sphynx::Rendering {
 		VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass);
 		~VulkanShader();
 
+		void SetUniformBuffer(const std::string& name, const VulkanUniformBuffer& uniformBuffer);
+
+		template<typename T>
+		void UpdateUniformBuffer(const std::string& name, const T& data) {
+			std::optional<uint32> binding = _GetBinding(name);
+			if (binding)
+				m_UniformBuffers.at(*binding)->Update<T>(data);
+		}
+
 		void Bind(vk::CommandBuffer commandBuffer);
+
+	private:
+		std::optional<uint32> _GetBinding(const std::string& name);
 
 	private:
 		vk::Pipeline m_Pipeline;
@@ -62,7 +76,10 @@ namespace Sphynx::Rendering {
 		ShaderReflectionInfo m_ReflectionInfo;
 		std::unordered_map<std::string, uint32> m_DescriptorNameToBindingMap;
 
-		std::unordered_set<std::string> m_SharedUniformBuffers;
+		vk::DescriptorSetLayout m_DescriptorSetLayout;
+		std::vector<vk::DescriptorSet> m_DescriptorSets;
+
+		std::unordered_map<uint32, std::unique_ptr<VulkanUniformBuffer>> m_UniformBuffers;
 	};
 
 	enum class AttributeFormat {

@@ -17,6 +17,8 @@ namespace Sphynx::Rendering {
 
 		void UploadToGPU();
 
+		VulkanShader* GetVulkanShader() { return m_VulkanShader; }
+
 	private:
 		Shader(const Shader&) = delete;
 		Shader& operator=(const Shader&) = delete;

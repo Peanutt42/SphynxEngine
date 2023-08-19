@@ -37,7 +37,7 @@ namespace Sphynx::UI {
 		init_info.PhysicalDevice = Rendering::VulkanContext::PhysicalDevice;
 		init_info.Device = Rendering::VulkanContext::LogicalDevice;
 		init_info.Queue = Rendering::VulkanContext::GraphicsQueue;
-		init_info.DescriptorPool = Rendering::VulkanContext::ImGuiDescriptorPool;
+		init_info.DescriptorPool = Rendering::VulkanContext::DescriptorPool;
 		init_info.MinImageCount = Rendering::VulkanContext::MaxFramesInFlight;
 		init_info.ImageCount = Rendering::VulkanContext::MaxFramesInFlight;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;

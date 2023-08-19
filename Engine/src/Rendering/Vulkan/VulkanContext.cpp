@@ -59,7 +59,8 @@ namespace Sphynx::Rendering {
 
 		DefaultSampler = VulkanTexture::CreateSampler();
 
-		// ImGui DescriptorPool
+		UniformBuffer = std::make_unique<VulkanUniformBuffer>(sizeof(UniformBufferData));
+
 		// TODO: Change tutorial sizes to more acurate ones
 		// NOTE: you can change these values at runtime
 		std::array<vk::DescriptorPoolSize, 11> poolSizes = {
@@ -80,14 +81,16 @@ namespace Sphynx::Rendering {
 		pool_info.maxSets = 1000;
 		pool_info.poolSizeCount = (uint32)poolSizes.size();
 		pool_info.pPoolSizes = poolSizes.data();
-		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &ImGuiDescriptorPool);
-		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create imgui descriptor pool");
+		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &DescriptorPool);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create descriptor pool");
 	}
 
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
 
 		LogicalDevice.destroySampler(DefaultSampler);
+
+		UniformBuffer.reset();
 
 		_DestroySyncObjects();
 
@@ -99,8 +102,7 @@ namespace Sphynx::Rendering {
 
 		SwapChain.reset();
 
-		if (ImGuiDescriptorPool)
-			LogicalDevice.destroyDescriptorPool(ImGuiDescriptorPool, nullptr);
+		LogicalDevice.destroyDescriptorPool(DescriptorPool, nullptr);
 
 		LogicalDevice.destroy(nullptr);
 		LogicalDevice = VK_NULL_HANDLE;
