@@ -4,24 +4,6 @@
 #include "Vulkan/VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	VertexInput GetVertexInputDescription() {
-		VertexInput input;
-		auto& binding = input.Bindings.emplace_back();
-		binding.binding = 0;
-		binding.stride = sizeof(Vertex);
-		binding.inputRate = vk::VertexInputRate::eVertex;
-
-		VulkanVertexAttributeBuilder builder;
-		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Position));
-		builder.Add(AttributeFormat::Float3, offsetof(Vertex, Normal));
-		builder.Add(AttributeFormat::Float2, offsetof(Vertex, UV));
-		// Note: set the binding to 1 for per instance data
-
-		input.Attributes = builder.GetAttributes();
-
-		return input;
-	}
-
 	Shader::Shader(BufferView vertexCode, BufferView fragmentCode) {
 		m_VertexSpirv.resize(vertexCode.GetSize<uint32>());
 		std::memcpy(m_VertexSpirv.data(), vertexCode.As<uint32>(), vertexCode.Size);
@@ -42,8 +24,50 @@ namespace Sphynx::Rendering {
 		ShaderCreateInfo info{
 			.VertexCode = std::move(m_VertexSpirv),
 			.FragmentCode = std::move(m_FragmentSpirv),
-			.VertexInput = GetVertexInputDescription()
+			.VertexInputBindings = std::vector<vk::VertexInputBindingDescription>{
+				vk::VertexInputBindingDescription{ 0, sizeof(Vertex), vk::VertexInputRate::eVertex },
+				vk::VertexInputBindingDescription{ 1, sizeof(InstanceData), vk::VertexInputRate::eInstance }
+			}
 		};
+
+		SpirvHelper::GetReflectionInfo(info.VertexCode, vk::ShaderStageFlagBits::eVertex, info.ReflectionInfo);
+		SpirvHelper::GetReflectionInfo(info.FragmentCode, vk::ShaderStageFlagBits::eFragment, info.ReflectionInfo);
+		
+		std::sort(info.ReflectionInfo.VertexAttributes.begin(), info.ReflectionInfo.VertexAttributes.end(),
+			[](const vk::VertexInputAttributeDescription& l, const vk::VertexInputAttributeDescription& r) {
+				return l.location < r.location;
+			});
+
+		// Find the first location of the instance attributes
+		uint32 firstInstanceLocation = std::numeric_limits<uint32>::max();
+		uint32 instanceAttributesSize = 0;
+		for (int i = (int)info.ReflectionInfo.VertexAttributes.size() - 1; i >= 0; i--) {
+			auto& attribute = info.ReflectionInfo.VertexAttributes[i];
+
+			instanceAttributesSize += info.ReflectionInfo.VertexInputAttributeSizes.at(attribute.location);
+
+			if (sizeof(InstanceData) == instanceAttributesSize) {
+				firstInstanceLocation = attribute.location;
+				break;
+			}
+		}
+
+		// Set all the attribute's bindings and offsets
+		uint32 vertexAttributesSize = 0;
+		instanceAttributesSize = 0;
+		for (auto& attribute : info.ReflectionInfo.VertexAttributes) {
+			if (attribute.location < firstInstanceLocation) {
+				attribute.binding = 0;
+				attribute.offset = vertexAttributesSize;
+				vertexAttributesSize += info.ReflectionInfo.VertexInputAttributeSizes.at(attribute.location);
+			}
+			else {
+				attribute.binding = 1;
+				attribute.offset = instanceAttributesSize;
+				instanceAttributesSize += info.ReflectionInfo.VertexInputAttributeSizes.at(attribute.location);
+			}
+		}
+
 		m_VulkanShader = new VulkanShader(info, *VulkanContext::SceneRenderpass);
 	}
 }

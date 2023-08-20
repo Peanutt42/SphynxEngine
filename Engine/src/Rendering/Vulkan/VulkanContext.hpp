@@ -9,6 +9,8 @@
 #include "VulkanCommandPool.hpp"
 #include "VulkanTexture.hpp"
 #include "VulkanUniformBuffer.hpp"
+#include "VulkanInstanceBuffer.hpp"
+#include "Rendering/InstanceData.hpp"
 
 namespace Sphynx::Rendering {
 	struct UniformBufferData {
@@ -53,6 +55,8 @@ namespace Sphynx::Rendering {
 		inline static uint32 SceneWidth = 1920;
 		inline static uint32 SceneHeight = 1080;
 		inline static std::vector<vk::DescriptorSet> SceneTextureDescriptorSets;
+
+		inline static std::unique_ptr<VulkanInstanceBuffer<InstanceData>> InstanceBuffer;
 
 		inline static vk::Sampler DefaultSampler;
 

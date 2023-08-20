@@ -8,7 +8,7 @@ namespace Sphynx::Rendering {
 		
 		for (uint32 i = 0; i < memProperties.memoryTypeCount; i++) {
 			if ((typeFilter & (1 << i)) &&
-				memProperties.memoryTypes[i].propertyFlags & properties)
+				(memProperties.memoryTypes[i].propertyFlags & properties) == properties)
 				return i;
 		}
 		return {};

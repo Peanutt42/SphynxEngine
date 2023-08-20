@@ -5,7 +5,10 @@
 #include "Mesh.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
+#include "InstanceData.hpp"
 #include "Scene/Scene.hpp"
+
+#include <queue>
 
 namespace Sphynx::Rendering {
 	class SE_API Renderer {
@@ -20,6 +23,8 @@ namespace Sphynx::Rendering {
 
 		void WaitBeforeClose();
 
+		void AddBeforeNextRenderCallback(const std::function<void()>& callback) { m_BeforeNextRenderCallbacks.push(callback); }
+
 		// ImTextureID
 		void* GetSceneTextureID();
 
@@ -28,10 +33,12 @@ namespace Sphynx::Rendering {
 		std::unique_ptr<Mesh> m_CubeMesh;
 		std::unique_ptr<Shader> m_DefaultShader;
 
+		std::queue<std::function<void()>> m_BeforeNextRenderCallbacks;
+
 		bool m_GeneratedSceneTextureDescriptorSets = false;
 
 		struct RenderCommand {
-			std::vector<Transform> Transforms;
+			std::vector<InstanceData> ModelMatrices;
 			Camera Camera;
 		} m_RenderCommand;
 	};

@@ -83,10 +83,15 @@ namespace Sphynx::Rendering {
 		pool_info.pPoolSizes = poolSizes.data();
 		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &DescriptorPool);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create descriptor pool");
+
+
+		InstanceBuffer = std::make_unique<VulkanInstanceBuffer<InstanceData>>(MaxFramesInFlight);
 	}
 
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
+
+		InstanceBuffer.reset();
 
 		LogicalDevice.destroySampler(DefaultSampler);
 

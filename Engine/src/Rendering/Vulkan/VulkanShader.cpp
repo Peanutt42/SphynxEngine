@@ -87,6 +87,26 @@ namespace Sphynx::Rendering {
             std::string name = compiler.get_name(sampler.id);
             outInfo.DescriptorBindings[binding] = { vk::DescriptorType::eCombinedImageSampler, stage, name };
         }
+
+        if (stage & vk::ShaderStageFlagBits::eVertex) {
+            outInfo.VertexAttributes.clear();
+            for (auto& input : resources.stage_inputs) {
+                const auto& type = compiler.get_type(input.type_id);
+                uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
+
+                vk::Format attributeFormat = SpirvTypeToVkFormat(type.basetype, type.vecsize);
+                for (uint32_t i = 0; i < type.columns; i++) {
+                    uint32_t attributeSize = (type.width * type.vecsize) / 8;
+                    uint32_t attributeLocation = location + i;
+
+                    vk::VertexInputAttributeDescription& desc = outInfo.VertexAttributes.emplace_back();
+                    desc.binding = 0;
+                    desc.location = attributeLocation;
+                    desc.format = attributeFormat;
+                    outInfo.VertexInputAttributeSizes[attributeLocation] = attributeSize;
+                }
+            }
+        }
     }
 #pragma endregion
 
@@ -101,10 +121,9 @@ namespace Sphynx::Rendering {
         return shaderModule;
     }
 
-    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass) {
-        SpirvHelper::GetReflectionInfo(createInfo.VertexCode, vk::ShaderStageFlagBits::eVertex, m_ReflectionInfo);
-        SpirvHelper::GetReflectionInfo(createInfo.FragmentCode, vk::ShaderStageFlagBits::eFragment, m_ReflectionInfo);
-
+    VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass)
+        : m_ReflectionInfo(createInfo.ReflectionInfo)
+    {        
         vk::ShaderModule vertexModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.VertexCode);
         vk::ShaderModule fragmentModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.FragmentCode);
 
@@ -149,10 +168,10 @@ namespace Sphynx::Rendering {
 
         // Pipeline
         vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.vertexBindingDescriptionCount = (uint32)createInfo.VertexInput.Bindings.size();
-        vertexInputInfo.pVertexBindingDescriptions = createInfo.VertexInput.Bindings.data();
-        vertexInputInfo.vertexAttributeDescriptionCount = (uint32)createInfo.VertexInput.Attributes.size();
-        vertexInputInfo.pVertexAttributeDescriptions = createInfo.VertexInput.Attributes.data();
+        vertexInputInfo.vertexBindingDescriptionCount = (uint32)createInfo.VertexInputBindings.size();
+        vertexInputInfo.pVertexBindingDescriptions = createInfo.VertexInputBindings.data();
+        vertexInputInfo.vertexAttributeDescriptionCount = (uint32)m_ReflectionInfo.VertexAttributes.size();
+        vertexInputInfo.pVertexAttributeDescriptions = m_ReflectionInfo.VertexAttributes.data();
 
         vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
@@ -294,26 +313,5 @@ namespace Sphynx::Rendering {
         if (find == m_DescriptorNameToBindingMap.end())
             return std::nullopt;
         return find->second;
-    }
-
-
-    vk::Format VulkanVertexAttributeBuilder::ToVkFormat(AttributeFormat format) {
-        switch (format) {
-        default:
-            throw std::invalid_argument("invalid format arg");
-        case AttributeFormat::Float2: return vk::Format::eR32G32Sfloat;
-        case AttributeFormat::Float3: return vk::Format::eR32G32B32Sfloat;
-        case AttributeFormat::Float4: return vk::Format::eR32G32B32A32Sfloat;
-        }
-    }
-
-    void VulkanVertexAttributeBuilder::Add(AttributeFormat attributeFormat, uint32 offset, uint32 binding) {
-        vk::VertexInputAttributeDescription& desc = m_Attributes.emplace_back();
-        desc.binding = binding;
-        desc.location = m_Location;
-        desc.format = ToVkFormat(attributeFormat);
-        desc.offset = offset;
-        
-        m_Location++;
     }
 }

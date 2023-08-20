@@ -11,6 +11,9 @@
 
 namespace Sphynx::Rendering {
 	struct ShaderReflectionInfo {
+		std::vector<vk::VertexInputAttributeDescription> VertexAttributes;
+		std::map<uint32_t, uint32_t> VertexInputAttributeSizes;
+
 		struct DescriptorBinding {
 			vk::DescriptorType Type = {};
 			vk::ShaderStageFlags Stage = {};
@@ -28,15 +31,14 @@ namespace Sphynx::Rendering {
 
 		static void GetReflectionInfo(const std::vector<uint32>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo);
 	};
-
-	struct VertexInput {
-		std::vector<vk::VertexInputBindingDescription> Bindings;
-		std::vector<vk::VertexInputAttributeDescription> Attributes;
-	};
-
+	
 	struct SE_API ShaderCreateInfo {
 		std::vector<uint32> VertexCode;
 		std::vector<uint32> FragmentCode;
+
+		std::vector<vk::VertexInputBindingDescription> VertexInputBindings;
+
+		ShaderReflectionInfo ReflectionInfo;
 
 		// Names of uniform buffers that are shared with other shaders and so aren't auto created
 		const inline static std::unordered_set<std::string> SharedUniformBuffers = {
@@ -44,9 +46,7 @@ namespace Sphynx::Rendering {
 			"f_ubo"
 		};
 
-		VertexInput VertexInput;
-
-		bool Wireframe = false;
+		bool Wireframe = false;		
 		bool DepthTesting = true;
 	};
 
@@ -80,23 +80,5 @@ namespace Sphynx::Rendering {
 		std::vector<vk::DescriptorSet> m_DescriptorSets;
 
 		std::unordered_map<uint32, std::unique_ptr<VulkanUniformBuffer>> m_UniformBuffers;
-	};
-
-	enum class AttributeFormat {
-		Float2,
-		Float3,
-		Float4
-	};
-	class VulkanVertexAttributeBuilder {
-	public:
-		static vk::Format ToVkFormat(AttributeFormat format);
-
-		void Add(AttributeFormat attributeFormat, uint32 offset, uint32 binding = 0);
-
-		const std::vector<vk::VertexInputAttributeDescription>& GetAttributes() const { return m_Attributes; }
-
-	private:
-		uint32 m_Location = 0;
-		std::vector<vk::VertexInputAttributeDescription> m_Attributes;
 	};
 }
