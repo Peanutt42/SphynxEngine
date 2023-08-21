@@ -25,11 +25,11 @@ namespace Sphynx {
 			return m_Stream.good();
 		}
 
-		uint64_t GetStreamPosition() final {
+		uint64 GetStreamPosition() final {
 			return m_Stream.tellp();
 		}
 
-		void SetStreamPosition(uint64_t position) final {
+		void SetStreamPosition(uint64 position) final {
 			m_Stream.seekp(position);
 		}
 
@@ -62,11 +62,11 @@ namespace Sphynx {
 			return m_Stream.good();
 		}
 
-		uint64_t GetStreamPosition() override {
+		uint64 GetStreamPosition() override {
 			return m_Stream.tellg();
 		}
 
-		void SetStreamPosition(uint64_t position) override {
+		void SetStreamPosition(uint64 position) override {
 			m_Stream.seekg(position);
 		}
 
@@ -85,7 +85,7 @@ namespace Sphynx {
 			outText = ss.str();
 		}
 
-		static void ReadBinaryFile(const std::filesystem::path& filepath, std::vector<uint8_t>& outData) {
+		static void ReadBinaryFile(const std::filesystem::path& filepath, std::vector<byte>& outData) {
 			SE_ASSERT(std::filesystem::exists(filepath), "Can't find file {}", filepath.string());
 			std::ifstream stream(filepath, std::ifstream::in | std::ios::ate);
 			SE_ASSERT(stream, "Can't open file {}", filepath.string());

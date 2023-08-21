@@ -3,12 +3,12 @@
 #include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	std::optional<uint32_t> FindMemoryTypeIndex(uint32_t typeFilter, vk::MemoryPropertyFlags properties) {
+	std::optional<uint32> FindMemoryTypeIndex(uint32 typeFilter, vk::MemoryPropertyFlags properties) {
 		vk::PhysicalDeviceMemoryProperties memProperties = VulkanContext::PhysicalDevice.getMemoryProperties();
 		
-		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+		for (uint32 i = 0; i < memProperties.memoryTypeCount; i++) {
 			if ((typeFilter & (1 << i)) &&
-				memProperties.memoryTypes[i].propertyFlags & properties)
+				(memProperties.memoryTypes[i].propertyFlags & properties) == properties)
 				return i;
 		}
 		return {};
@@ -33,7 +33,7 @@ namespace Sphynx::Rendering {
 
 		vk::MemoryAllocateInfo allocInfo{};
 		allocInfo.allocationSize = memRequirements.size;
-		std::optional<uint32_t> memoryTypeIndex = FindMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
+		std::optional<uint32> memoryTypeIndex = FindMemoryTypeIndex(memRequirements.memoryTypeBits, properties);
 		SE_ASSERT(memoryTypeIndex.has_value(), Logging::Rendering, "Failed to find memory type");
 		allocInfo.memoryTypeIndex = *memoryTypeIndex;
 
@@ -79,7 +79,7 @@ namespace Sphynx::Rendering {
 		VulkanContext::LogicalDevice.unmapMemory(Memory);
 	}
 
-	void VulkanBuffer::Get(std::vector<uint8_t>& outData) {
+	void VulkanBuffer::Get(std::vector<byte>& outData) {
 		SE_PROFILE_FUNCTION();
 
 		outData.resize(Size);

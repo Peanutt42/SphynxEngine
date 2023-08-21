@@ -28,7 +28,7 @@ namespace Sphynx::Editor {
 				}
 
 				if (fileExtension == ".glsl") {
-					std::vector<uint32_t> vertexCode, fragmentCode;
+					std::vector<uint32> vertexCode, fragmentCode;
 					ShaderImporter::Import(path, vertexCode, fragmentCode);
 				}
 			}

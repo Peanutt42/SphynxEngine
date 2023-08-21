@@ -30,12 +30,12 @@ namespace Sphynx::Rendering {
 
 
 	Mesh::Mesh(const MeshData& data)
-		: Mesh(BufferView(data.Vertices), (uint32_t)data.Vertices.size(), data.Indices) {}
+		: Mesh(BufferView(data.Vertices), (uint32)data.Vertices.size(), data.Indices) {}
 
-	Mesh::Mesh(BufferView vertices, uint32_t vertexCount, const std::vector<uint32_t>& indices) {
+	Mesh::Mesh(BufferView vertices, uint32 vertexCount, const std::vector<uint32>& indices) {
 		m_VertexCount = vertexCount;
 		m_VertexBuffer = VulkanBuffer::CreateWithStaging(vertices, vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
-		m_IndicesCount = (uint32_t)indices.size();
+		m_IndicesCount = (uint32)indices.size();
 		if (m_IndicesCount > 0)
 			m_IndexBuffer = VulkanBuffer::CreateWithStaging(BufferView(indices), vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
 	}
@@ -46,7 +46,7 @@ namespace Sphynx::Rendering {
 		delete m_VertexBuffer;
 	}
 
-	void Mesh::Draw(uint32_t instanceCount) {
+	void Mesh::Draw(uint32 instanceCount) {
 		vk::CommandBuffer& cmd = VulkanContext::CommandBuffer;
 		
 		vk::DeviceSize offset = 0;

@@ -128,16 +128,16 @@ namespace Sphynx::Rendering {
 		createInfo.pEnabledFeatures = &deviceFeatures;
 		createInfo.enabledExtensionCount = 0;
 
-		createInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		createInfo.enabledLayerCount = (uint32)validationLayers.size();
 		createInfo.ppEnabledLayerNames = validationLayers.data();
 		
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(deviceExtensions.size());
+		createInfo.enabledExtensionCount = (uint32)deviceExtensions.size();
 		createInfo.ppEnabledExtensionNames = deviceExtensions.data();
 
-		std::set<uint32_t> uniqueQueueFamilies = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
+		std::set<uint32> uniqueQueueFamilies = { indices.GraphicsFamily.value(), indices.PresentFamily.value() };
 
 		std::vector<vk::DeviceQueueCreateInfo> queueCreateInfos;
-		for (uint32_t uniqueQueueFamily : uniqueQueueFamilies) {
+		for (uint32 uniqueQueueFamily : uniqueQueueFamilies) {
 			vk::DeviceQueueCreateInfo uniqueQueueCreateInfo{};
 			uniqueQueueCreateInfo.queueFamilyIndex = uniqueQueueFamily;
 			uniqueQueueCreateInfo.queueCount = 1;
@@ -145,7 +145,7 @@ namespace Sphynx::Rendering {
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
-		createInfo.queueCreateInfoCount = static_cast<uint32_t>(queueCreateInfos.size());
+		createInfo.queueCreateInfoCount = (uint32)queueCreateInfos.size();
 		createInfo.pQueueCreateInfos = queueCreateInfos.data();
 
 		CreateResult result;

@@ -1,40 +1,78 @@
 #include "pch.hpp"
 #include "CrashHandler.hpp"
+#include "StackTrace.hpp"
 #include "Core/Engine.hpp"
 #include "Logging/Logging.hpp"
-#include "Platform/Platform.hpp"
 #include "Serialization/YAMLSerializer.hpp"
 
 #include <csignal>
 
 namespace Sphynx {
+	void AbortHandler(int);
+	void InvalidParameterHandler(const wchar_t* Expression, const wchar_t* Function, const wchar_t* File, uint32 Line, uintptr Reserved);
+	void OnProcessCrashed(const std::string& reason, void* context = nullptr, bool msgBox = false);
+
+
 	void CrashHandler::Init() {
+		if (s_Initialized)
+			return;
+
 		if (Platform::IsDebuggerAttached())
 			return;
 		
-		std::signal(SIGILL, OnProcessCrashed);  // illegal instruction
-		std::signal(SIGSEGV, OnProcessCrashed); // segmentation fault
-		std::signal(SIGABRT, OnProcessCrashed); // abort()
+		Platform::SetExceptionCallback([](const std::string& reason, void* context) {
+			OnProcessCrashed(reason, context, true);
+		});
+
+		_set_invalid_parameter_handler(InvalidParameterHandler);
+
+		if (std::signal(SIGABRT, AbortHandler) == SIG_ERR)
+			SE_ERR("Failed to register AbortHandler");
+
+		s_Initialized = true;
+	}
+
+	void CrashHandler::StartCrashReporter() {
+		if (Platform::IsDebuggerAttached())
+			return;
 
 		Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
 	}
 
-	void CrashHandler::OnProcessCrashed(int signal) {
+	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32 line, [[maybe_unused]] uintptr Reserved) {
+		std::string expressionStr = Platform::WideToNarrow(expression);
+		std::string functionStr = Platform::WideToNarrow(function);
+		std::string fileStr = Platform::WideToNarrow(file);
+		OnProcessCrashed(std::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line), nullptr, true);
+	}
+
+
+	void AbortHandler(int) {
+		OnProcessCrashed("abort() was called", nullptr, true);
+	}
+
+	void CrashHandler::OnCrash(const std::string reason, bool msgBox) {
+		OnProcessCrashed(reason, nullptr, msgBox);
+	}
+
+	void OnProcessCrashed(const std::string& reason, void* context, bool msgBox) {
+		if (msgBox)
+			Platform::MessagePrompts::Error("Engine crashed", reason);
+		
 		std::cout << "A crash occurred.\n";
 
-		switch (signal) {
-		default: std::cout << "unkown signal: " << signal << '\n'; break;
-		case -1: break;
-		case SIGILL: std::cout << "Illegal instruction!\n"; break;
-		case SIGSEGV: std::cout << "Segmentation fault!\n"; break;
-		case SIGABRT: std::cout << "abort() / throw was called!\n"; break;
-		}
+		std::cout << reason << '\n';
 
-		StackTrace stackTrace = Platform::GenerateStackTrace();
-		for (size_t i = 0; i < stackTrace.size(); i++) {
-			auto& entry = stackTrace[i];
-			std::cout << "[" + std::to_string(i + 1) + "] At " + entry.FunctionName << " in ";
-			std::cout << (entry.HasSource ? entry.SourceFile + ":" + std::to_string(entry.SourceLine) : "???");
+		StackTrace stacktrace = Platform::GenerateStackTrace(context);
+		
+		for (size_t i = 0; i < stacktrace.size(); i++) {
+			auto& entry = stacktrace[i];
+			std::cout << "[" + std::to_string(i + 1) + "] At ";
+			if (entry.HasModule)
+				std::cout << entry.ModuleName << "::";
+			std::cout << entry.FunctionName;
+			if (entry.HasSource)
+				std::cout << "\n    " << " in " << entry.SourceFile + ":" + std::to_string(entry.SourceLine);
 			std::cout << std::endl;
 		}
 
@@ -66,23 +104,20 @@ namespace Sphynx {
 		for (const std::string& error : Logging::GetErrorList())
 			out << YAML::Value << error;
 		out << YAML::EndSeq;
-		out << YAML::Key << "Signal" << YAML::Value;
-		switch (signal) {
-		default: out << ("unkown signal: " + std::to_string(signal)); break;
-		case -1:	out << "Explicit decision!"; break;
-		case SIGILL: out << "Illegal instruction!"; break;
-		case SIGSEGV: out << "Segmentation fault!"; break;
-		case SIGABRT: out << "abort() was called!"; break;
-		}
+		out << YAML::Key << "Reason" << YAML::Value << reason;
 		out << YAML::EndMap;
 
 
 		out << YAML::Key << "Stacktrace" << YAML::Value;
 		out << YAML::BeginSeq;
-		for (size_t i = 0; i < stackTrace.size(); i++) {
-			auto& entry = stackTrace[i];
+		for (size_t i = 0; i < stacktrace.size(); i++) {
+			auto& entry = stacktrace[i];
 			out << YAML::BeginMap;
 			out << YAML::Key << "FunctionName" << YAML::Value << entry.FunctionName;
+
+			if (entry.HasModule)
+				out << YAML::Key << "ModuleName" << YAML::Value << entry.ModuleName;
+
 			if (entry.HasSource) {
 				out << YAML::Key << "SourceFile" << YAML::Value << entry.SourceFile;
 				out << YAML::Key << "SourceLine" << YAML::Value << entry.SourceLine;
@@ -95,8 +130,12 @@ namespace Sphynx {
 		out << YAML::EndMap;
 		YAMLSerializer::SaveFile("Programs/CrashReporter/CrashReport.txt", out);
 
+		std::cout << "Press any key to exit program, which will launch the crash reporter\n";
+
 		std::cin.get();
 
-		std::exit(666); // Anything other than 0 exit code is caught by CrashReporter.exe
+		Sphynx::Engine::Shutdown();
+
+		std::exit(1);
 	}
 }

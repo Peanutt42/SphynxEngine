@@ -3,6 +3,8 @@
 #include "VulkanDevice.hpp"
 #include "VulkanSurface.hpp"
 
+#include <backends/imgui_impl_vulkan.h>
+
 namespace Sphynx::Rendering {
 	void VulkanContext::Init(Rendering::Window& window) {
 		SE_PROFILE_FUNCTION();
@@ -16,15 +18,21 @@ namespace Sphynx::Rendering {
 			false
 #endif
 		);
-
+		
 		Surface = VulkanSurface::GetFromWindow(Instance->Instance, window.GetGLFWHandle());
 
 		std::vector<const char*> deviceExtensions {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
 		};
+		
 		PhysicalDevice = VulkanPhysicalDevice::Pick(deviceExtensions);
 		
 		SE_INFO(Logging::Rendering, "Chosen GPU: {}", VulkanPhysicalDevice::GetName(PhysicalDevice));
+		
+		VulkanLogicalDevice::CreateResult logicalDeviceResult = VulkanLogicalDevice::Create(Instance->ValidationLayers, deviceExtensions);
+		LogicalDevice = logicalDeviceResult.Device;
+		GraphicsQueue = logicalDeviceResult.GraphicsQueue;
+		PresentQueue = logicalDeviceResult.PresentQueue;
 		
 		VulkanQueueFamilyIndices indices(PhysicalDevice);
 		SharingMode = indices.GraphicsFamily == indices.PresentFamily ? vk::SharingMode::eExclusive : vk::SharingMode::eConcurrent;
@@ -34,11 +42,6 @@ namespace Sphynx::Rendering {
 		if (swapChainSupport.Capabilities.maxImageCount > 0 && MaxFramesInFlight > swapChainSupport.Capabilities.maxImageCount)
 			MaxFramesInFlight = swapChainSupport.Capabilities.maxImageCount;
 
-		VulkanLogicalDevice::CreateResult logicalDeviceResult = VulkanLogicalDevice::Create(Instance->ValidationLayers, deviceExtensions);
-		LogicalDevice = logicalDeviceResult.Device;
-		GraphicsQueue = logicalDeviceResult.GraphicsQueue;
-		GraphicsQueue = logicalDeviceResult.PresentQueue;
-		PresentQueue = logicalDeviceResult.PresentQueue;
 
 		SwapChain = std::make_unique<VulkanSwapChain>();
 
@@ -52,9 +55,12 @@ namespace Sphynx::Rendering {
 
 		_CreateSyncObjects();
 
-		SceneRenderpass->CreateFramebuffers(SceneWidth, SceneHeight, SwapChain->GetFormat());
+		SceneRenderpass->CreateFramebuffers(SceneWidth, SceneHeight, SwapChain->GetFormat(), true);
 
-		// ImGui DescriptorPool
+		DefaultSampler = VulkanTexture::CreateSampler();
+
+		UniformBuffer = std::make_unique<VulkanUniformBuffer>(sizeof(UniformBufferData));
+
 		// TODO: Change tutorial sizes to more acurate ones
 		// NOTE: you can change these values at runtime
 		std::array<vk::DescriptorPoolSize, 11> poolSizes = {
@@ -73,14 +79,23 @@ namespace Sphynx::Rendering {
 		vk::DescriptorPoolCreateInfo pool_info{};
 		pool_info.flags = vk::DescriptorPoolCreateFlagBits::eFreeDescriptorSet;
 		pool_info.maxSets = 1000;
-		pool_info.poolSizeCount = (uint32_t)poolSizes.size();
+		pool_info.poolSizeCount = (uint32)poolSizes.size();
 		pool_info.pPoolSizes = poolSizes.data();
-		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &ImGuiDescriptorPool);
-		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create imgui descriptor pool");
+		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &DescriptorPool);
+		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create descriptor pool");
+
+
+		InstanceBuffer = std::make_unique<VulkanInstanceBuffer<InstanceData>>(MaxFramesInFlight);
 	}
 
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
+
+		InstanceBuffer.reset();
+
+		LogicalDevice.destroySampler(DefaultSampler);
+
+		UniformBuffer.reset();
 
 		_DestroySyncObjects();
 
@@ -92,8 +107,7 @@ namespace Sphynx::Rendering {
 
 		SwapChain.reset();
 
-		if (ImGuiDescriptorPool)
-			LogicalDevice.destroyDescriptorPool(ImGuiDescriptorPool, nullptr);
+		LogicalDevice.destroyDescriptorPool(DescriptorPool, nullptr);
 
 		LogicalDevice.destroy(nullptr);
 		LogicalDevice = VK_NULL_HANDLE;
@@ -125,7 +139,7 @@ namespace Sphynx::Rendering {
 
 		CommandBuffer = CommandPool->BeginRecording(CurrentFrame);
 
-		SceneRenderpass->Begin(SceneRenderpass->GetFramebuffer(CurrentImage), CommandBuffer, VkExtent2D(SceneWidth, SceneHeight));
+		SceneRenderpass->Begin(SceneRenderpass->GetFramebuffer(CurrentImage), CommandBuffer, vk::Extent2D(SceneWidth, SceneHeight));
 	}
 
 	void VulkanContext::EndSceneRenderpass() {
@@ -133,24 +147,23 @@ namespace Sphynx::Rendering {
 
 		SceneRenderpass->End(CommandBuffer);
 
-		//// Make Scene Texture readable for shaders
-		//{
-		//	VkImageMemoryBarrier barrier{};
-		//	barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-		//	barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-		//	barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-		//	barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		//	barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-		//	barrier.image = m_SceneImages[m_CurrentImage];
-		//	barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		//	barrier.subresourceRange.baseMipLevel = 0;
-		//	barrier.subresourceRange.levelCount = 1;
-		//	barrier.subresourceRange.baseArrayLayer = 0;
-		//	barrier.subresourceRange.layerCount = 1;
-		//	barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-		//	barrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-		//	vkCmdPipelineBarrier(m_CommandBuffer, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
-		//}
+		// Make Scene Texture readable for shaders
+		{
+			vk::ImageMemoryBarrier barrier;
+			barrier.oldLayout = vk::ImageLayout::eColorAttachmentOptimal;
+			barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
+			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			barrier.image = SceneRenderpass->GetImage(CurrentImage);
+			barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+			barrier.subresourceRange.baseMipLevel = 0;
+			barrier.subresourceRange.levelCount = 1;
+			barrier.subresourceRange.baseArrayLayer = 0;
+			barrier.subresourceRange.layerCount = 1;
+			barrier.srcAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+			barrier.dstAccessMask = vk::AccessFlagBits::eShaderRead;
+			CommandBuffer.pipelineBarrier(vk::PipelineStageFlagBits::eColorAttachmentOutput, vk::PipelineStageFlagBits::eFragmentShader, (vk::DependencyFlags)0, 0, nullptr, 0, nullptr, 1, &barrier);
+		}
 	}
 
 	void VulkanContext::BeginLastRenderpass() {
@@ -218,7 +231,14 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::WaitBeforeClose() {
-		vkDeviceWaitIdle(LogicalDevice);
+		LogicalDevice.waitIdle();
+	}
+
+	void VulkanContext::GenerateSceneTextureDescriptorSets() {
+		SceneTextureDescriptorSets.resize(MaxFramesInFlight);
+		for (size_t i = 0; i < SceneTextureDescriptorSets.size(); i++)
+			SceneTextureDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(DefaultSampler, SceneRenderpass->GetImageView((uint32)i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
 	}
 
 	void VulkanContext::_CreateSyncObjects() {
@@ -226,7 +246,7 @@ namespace Sphynx::Rendering {
 		RenderFinishedSemaphores.resize(MaxFramesInFlight, VK_NULL_HANDLE);
 		InFlightFences.resize(MaxFramesInFlight, VK_NULL_HANDLE);
 
-		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
+		for (uint32 frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
 			vk::SemaphoreCreateInfo semaphoreInfo{};
 			vk::Result result = LogicalDevice.createSemaphore(&semaphoreInfo, nullptr, &ImageAvailableSemaphores[frameIndex]);
 			SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create semaphore");
@@ -241,7 +261,7 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::_DestroySyncObjects() {
-		for (uint32_t frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
+		for (uint32 frameIndex = 0; frameIndex < MaxFramesInFlight; frameIndex++) {
 			LogicalDevice.destroySemaphore(ImageAvailableSemaphores[frameIndex], nullptr);
 			LogicalDevice.destroySemaphore(RenderFinishedSemaphores[frameIndex], nullptr);
 			LogicalDevice.destroyFence(InFlightFences[frameIndex], nullptr);

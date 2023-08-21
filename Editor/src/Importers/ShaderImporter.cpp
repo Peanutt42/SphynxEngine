@@ -4,7 +4,7 @@
 #include <shaderc/shaderc.hpp>
 
 namespace Sphynx::Editor {
-    void CompileShader(const std::string& shaderCode, shaderc_shader_kind type, const std::string& shaderName, std::vector<uint32_t>& outSpirvCode) {
+    void CompileShader(const std::string& shaderCode, shaderc_shader_kind type, const std::string& shaderName, std::vector<uint32>& outSpirvCode) {
         shaderc::Compiler compiler;
         shaderc::CompileOptions options;
         options.SetOptimizationLevel(shaderc_optimization_level_performance);
@@ -77,7 +77,7 @@ namespace Sphynx::Editor {
         return true;
     }
 
-	void ShaderImporter::Import(const std::filesystem::path& filepath, std::vector<uint32_t>& outVertexCode, std::vector<uint32_t>& outFragmentCode) {
+	void ShaderImporter::Import(const std::filesystem::path& filepath, std::vector<uint32>& outVertexCode, std::vector<uint32>& outFragmentCode) {
         std::filesystem::path cachedShaderFilepath = filepath;
         cachedShaderFilepath.replace_extension(".cached_shader");
 

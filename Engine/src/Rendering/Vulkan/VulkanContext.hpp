@@ -8,8 +8,15 @@
 #include "VulkanRenderpass.hpp"
 #include "VulkanCommandPool.hpp"
 #include "VulkanTexture.hpp"
+#include "VulkanUniformBuffer.hpp"
+#include "VulkanInstanceBuffer.hpp"
+#include "Rendering/InstanceData.hpp"
 
 namespace Sphynx::Rendering {
+	struct UniformBufferData {
+		glm::mat4 proj_view; // proj * view
+	};
+
 	class SE_API VulkanContext {
 	public:
 		static void Init(Window& window);
@@ -22,6 +29,8 @@ namespace Sphynx::Rendering {
 		static void Finish();
 
 		static void WaitBeforeClose();
+
+		static void GenerateSceneTextureDescriptorSets();
 
 
 		inline static Rendering::Window* Window = nullptr;
@@ -43,17 +52,24 @@ namespace Sphynx::Rendering {
 		inline static vk::CommandBuffer CommandBuffer;
 
 		inline static std::unique_ptr<VulkanRenderpass> SceneRenderpass;
-		inline static uint32_t SceneWidth = 1920;
-		inline static uint32_t SceneHeight = 1080;
+		inline static uint32 SceneWidth = 1920;
+		inline static uint32 SceneHeight = 1080;
+		inline static std::vector<vk::DescriptorSet> SceneTextureDescriptorSets;
+
+		inline static std::unique_ptr<VulkanInstanceBuffer<InstanceData>> InstanceBuffer;
+
+		inline static vk::Sampler DefaultSampler;
 
 		inline static vk::SharingMode SharingMode;
 
-		inline static uint32_t MaxFramesInFlight = 2;
-		inline static uint32_t CurrentFrame = 0;
-		inline static uint32_t CurrentImage = 0;
+		inline static std::unique_ptr<VulkanUniformBuffer> UniformBuffer;
+
+		inline static uint32 MaxFramesInFlight = 2;
+		inline static uint32 CurrentFrame = 0;
+		inline static uint32 CurrentImage = 0;
 		inline static bool FramebufferResized = false;
 
-		inline static vk::DescriptorPool ImGuiDescriptorPool;
+		inline static vk::DescriptorPool DescriptorPool;
 
 	private:
 		static void _CreateSyncObjects();

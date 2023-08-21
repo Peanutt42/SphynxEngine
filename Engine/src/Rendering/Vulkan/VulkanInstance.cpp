@@ -13,6 +13,7 @@ namespace Sphynx::Rendering {
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = "Sphynx Engine";
 		appInfo.engineVersion = VK_MAKE_VERSION(Engine::Version.Major, Engine::Version.Minor, Engine::Version.Patch);
+		// NOTE: On a old laptop of mine, in order to use renderdoc, you need at least VK_API_VERSION_1_1 or it crashes when enumerating the gpu devices
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
 		vk::InstanceCreateInfo createInfo{};
@@ -38,8 +39,7 @@ namespace Sphynx::Rendering {
 
 		vk::Result result = vk::createInstance(&createInfo, nullptr, &Instance);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create vulkan instance");
-
-
+		
 		s_DispatchLoader.init(Instance, vkGetInstanceProcAddr);
 
 
@@ -60,10 +60,10 @@ namespace Sphynx::Rendering {
 
 		SE_ASSERT(glfwVulkanSupported(), Logging::Rendering, "GLFW doesn't support Vulkan on this platform");
 		// Add glfw extensions
-		uint32_t glfwExtensionCount = 0;
+		uint32 glfwExtensionCount = 0;
 		const char** glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
 		SE_ASSERT(glfwExtensions, Logging::Rendering, "GLFW doesn't support Vulkan surface creation");
-		for (uint32_t i = 0; i < glfwExtensionCount; i++)
+		for (uint32 i = 0; i < glfwExtensionCount; i++)
 			m_RequiredExtensions.emplace_back(glfwExtensions[i]);
 
 		// Check if extensions are supported
@@ -86,7 +86,7 @@ namespace Sphynx::Rendering {
 			SE_FATAL(Logging::Rendering, "{} instance extensions aren't supported! (see logs for more detail)", unsupportedExtensionCount);
 		}
 
-		createInfo.enabledExtensionCount = (uint32_t)m_RequiredExtensions.size();
+		createInfo.enabledExtensionCount = (uint32)m_RequiredExtensions.size();
 		createInfo.ppEnabledExtensionNames = m_RequiredExtensions.data();
 	}
 
@@ -113,7 +113,7 @@ namespace Sphynx::Rendering {
 			return false;
 		
 		if (Validation) {
-			createInfo.enabledLayerCount = (uint32_t)validationLayers.size();
+			createInfo.enabledLayerCount = (uint32)validationLayers.size();
 			createInfo.ppEnabledLayerNames = validationLayers.data();
 		}
 		return Validation;

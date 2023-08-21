@@ -9,6 +9,7 @@
 #include "Windows/PropertyWindow.hpp"
 #include "Windows/ProfilingWindow.hpp"
 #include "Windows/ECSSystemManagerWindow.hpp"
+#include "Windows/ViewportWindow.hpp"
 
 namespace Sphynx::Editor {
 	EditorApplication::EditorApplication() {
@@ -32,6 +33,7 @@ namespace Sphynx::Editor {
 		m_Windows.push_back(std::make_unique<PropertyWindow>());
 		m_Windows.push_back(std::make_unique<ProfilingWindow>());
 		m_Windows.push_back(std::make_unique<ECSSystemManagerWindow>());
+		m_Windows.push_back(std::make_unique<ViewportWindow>());
 
 		EditorAssetManager::LoadAssets();
 
@@ -75,10 +77,12 @@ namespace Sphynx::Editor {
 			if (Input::IsKeyPressed(KeyCode::O))
 				OpenScene();
 		}
-
-		if (m_GameRunning) {
+		
+		if (m_State == EditorState::Playing) {
 			UpdateGame();
 		}
+
+		Engine::Renderer().SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
 	}
 
 	void EditorApplication::DrawUI() {
@@ -92,12 +96,6 @@ namespace Sphynx::Editor {
 				window->Draw();
 			ImGui::End();
 		}
-
-		ImGui::Begin("Test");
-
-		ImGui::Text("This is a test");
-
-		ImGui::End();
 	}
 
 	void EditorApplication::OnDrawMenubar() {

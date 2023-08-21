@@ -9,6 +9,7 @@
 namespace Sphynx {
 	void Engine::Init(const EngineInitInfo& initInfo) {
 		CrashHandler::Init();
+		CrashHandler::StartCrashReporter();
 
 		s_Settings = initInfo.Settings;
 
@@ -23,7 +24,7 @@ namespace Sphynx {
 		s_ScriptingEngine = new Scripting::ScriptingEngine();
 
 		if (!s_Settings.Headless) {
-			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen);
+			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen, s_Settings.CustomWindowControls);
 
 			Input::Init(s_Window->GetGLFWHandle());
 
@@ -96,7 +97,7 @@ namespace Sphynx {
 			float timeLeft = (1.f / s_Settings.MaxFPS) - updateTime;
 			if (timeLeft > 0.f) {
 				SE_PROFILE_SCOPE("MaxFpsCap");
-				Time::MicroSleep((uint64_t)(floor(timeLeft * 1000 * 1000))); // Wait for microseconds
+				Time::MicroSleep((uint64)(floor(timeLeft * 1000 * 1000))); // Wait for microseconds
 			}
 		}
 

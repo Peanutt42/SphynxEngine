@@ -17,12 +17,14 @@ namespace Sphynx::Rendering {
 
 		void UploadToGPU();
 
+		VulkanShader* GetVulkanShader() { return m_VulkanShader; }
+
 	private:
 		Shader(const Shader&) = delete;
 		Shader& operator=(const Shader&) = delete;
 
 	private:
 		VulkanShader* m_VulkanShader = nullptr;
-		std::vector<uint32_t> m_VertexSpirv, m_FragmentSpirv;
+		std::vector<uint32> m_VertexSpirv, m_FragmentSpirv;
 	};
 }

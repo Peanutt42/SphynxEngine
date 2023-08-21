@@ -1,4 +1,4 @@
-name: C++ Windows VS2022 Build
+name: Windows Build
 on:
   push:
     paths-ignore:

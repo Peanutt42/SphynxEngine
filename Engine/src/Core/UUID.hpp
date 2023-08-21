@@ -1,11 +1,12 @@
 #pragma once
 
 #include "std.hpp"
+#include "IntTypes.hpp"
 #include "EngineApi.hpp"
 
 namespace Sphynx {
 	struct SE_API UUID {
-		using type = uint64_t;
+		using type = uint64;
 
 		UUID() : m_UUID(s_UniformDistribution(s_Engine)) {}
 		UUID(type uuid) : m_UUID(uuid) {}

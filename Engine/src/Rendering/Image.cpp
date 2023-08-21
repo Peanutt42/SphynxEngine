@@ -11,15 +11,15 @@
 #include <backends/imgui_impl_vulkan.h>
 
 namespace Sphynx::Rendering {
-	Image::Image(const uint8_t* data, size_t size) {
+	Image::Image(BufferView data) {
 		int width, height, channels;
 		
-		uint8_t* stbi_data = stbi_load_from_memory(data, (int)size, &width, &height, &channels, 4);
+		uint8* stbi_data = stbi_load_from_memory(data.As<stbi_uc>(), (int)data.Size, &width, &height, &channels, 4);
 		size_t stbi_size = (size_t)width * (size_t)height * 4;
 
 		TextureSpecification spec{
-			.Width = (uint32_t)width,
-			.Height = (uint32_t)height,
+			.Width = (uint32)width,
+			.Height = (uint32)height,
 			.Format = TextureFormat::RGBA
 		};
 
@@ -35,7 +35,7 @@ namespace Sphynx::Rendering {
 		delete m_Texture;
 	}
 
-	uint32_t Image::GetWidth() const { return m_Texture->GetWidth(); }
-	uint32_t Image::GetHeight() const { return m_Texture->GetHeight(); }
+	uint32 Image::GetWidth() const { return m_Texture->GetWidth(); }
+	uint32 Image::GetHeight() const { return m_Texture->GetHeight(); }
 	void* Image::GetDescriptorSet() { return m_Texture->GetDescriptorSet(); }
 }

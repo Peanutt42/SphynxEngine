@@ -7,6 +7,7 @@
 #include "Time.hpp"
 #include "Version.hpp"
 #include "EngineApi.hpp"
+#include "IntTypes.hpp"
 #include "UUID.hpp"
 
 #include "Logging/Logging.hpp"
@@ -14,6 +15,7 @@
 #include "Profiling/Profiling.hpp"
 #include "Input/Input.hpp"
 #include "Memory/BufferView.hpp"
+#include "Math/Transform.hpp"
 #include "Serialization/StreamWriter.hpp"
 #include "Serialization/StreamReader.hpp"
 #include "Serialization/MemoryStream.hpp"

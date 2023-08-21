@@ -81,12 +81,15 @@ namespace Sphynx::Rendering {
 		m_Renderpass = VK_NULL_HANDLE;
 	}
 
-	void VulkanRenderpass::CreateFramebuffers(uint32_t width, uint32_t height, vk::Format format) {
+	void VulkanRenderpass::CreateFramebuffers(uint32 width, uint32 height, vk::Format format, bool sampled) {
 		m_FramebufferImages.resize(VulkanContext::MaxFramesInFlight);
 		m_FramebufferImageMemories.resize(VulkanContext::MaxFramesInFlight);
 		m_FramebufferImageViews.resize(VulkanContext::MaxFramesInFlight);
 		for (size_t i = 0; i < VulkanContext::MaxFramesInFlight; i++) {
-			VulkanTexture::CreateImage(width, height, format, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eColorAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
+			vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment;
+			if (sampled)
+				usage |= vk::ImageUsageFlagBits::eSampled;
+			VulkanTexture::CreateImage(width, height, format, vk::ImageTiling::eOptimal, usage, vk::MemoryPropertyFlagBits::eDeviceLocal, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
 			m_FramebufferImageViews[i] = VulkanTexture::CreateImageView(m_FramebufferImages[i], format, vk::ImageAspectFlagBits::eColor);
 		}
 
@@ -105,9 +108,23 @@ namespace Sphynx::Rendering {
 		}
 	}
 
-	vk::Framebuffer VulkanRenderpass::GetFramebuffer(uint32_t currentImageIndex) {
-		if (currentImageIndex < m_Framebuffers.size())
-			return m_Framebuffers[currentImageIndex];
+	vk::Framebuffer VulkanRenderpass::GetFramebuffer(uint32 imageIndex) {
+		if (imageIndex < m_Framebuffers.size())
+			return m_Framebuffers[imageIndex];
+		else
+			return VK_NULL_HANDLE;
+	}
+
+	vk::Image VulkanRenderpass::GetImage(uint32 imageIndex) {
+		if (imageIndex < m_Framebuffers.size())
+			return m_FramebufferImages[imageIndex];
+		else
+			return VK_NULL_HANDLE;
+	}
+
+	vk::ImageView VulkanRenderpass::GetImageView(uint32 imageIndex) {
+		if (imageIndex < m_Framebuffers.size())
+			return m_FramebufferImageViews[imageIndex];
 		else
 			return VK_NULL_HANDLE;
 	}

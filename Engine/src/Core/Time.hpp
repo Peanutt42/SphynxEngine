@@ -1,19 +1,20 @@
 #pragma once
 
 #include "std.hpp"
+#include "IntTypes.hpp"
 #include "Logging/Logging.hpp"
 
 namespace Sphynx {
 	class SE_API Time {
 	public:
-		static void Sleep(uint64_t milliseconds) {
+		static void Sleep(uint64 milliseconds) {
 			auto start = std::chrono::high_resolution_clock::now();
-			while ((uint64_t)(std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count()) < milliseconds) {}
+			while (std::chrono::duration_cast<std::chrono::duration<uint64, std::milli>>(std::chrono::high_resolution_clock::now() - start).count() < milliseconds) {}
 		}
 
-		static void MicroSleep(uint64_t microseconds) {
+		static void MicroSleep(uint64 microseconds) {
 			auto start = std::chrono::high_resolution_clock::now();
-			while ((uint64_t)(std::chrono::duration_cast<std::chrono::microseconds>(std::chrono::high_resolution_clock::now() - start).count()) < microseconds) {}
+			while (std::chrono::duration_cast<std::chrono::duration<uint64, std::micro>>(std::chrono::high_resolution_clock::now() - start).count() < microseconds) {}
 		}
 	};
 

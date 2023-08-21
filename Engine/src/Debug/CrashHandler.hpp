@@ -4,12 +4,17 @@
 #include <vector>
 #include "Core/EngineApi.hpp"
 
-namespace Sphynx {
+namespace Sphynx {	
 	class SE_API CrashHandler {
 	public:
 		static void Init();
 
-		// signal = -1 -> singal gets ignored
-		static void OnProcessCrashed(int signal = -1);
+		static void StartCrashReporter();
+
+		static void OnCrash(const std::string reason = "Engine decision (SE_ASSERT/SE_FATAL)",
+							bool msgBox = false);
+
+	private:
+		inline static bool s_Initialized = false;
 	};
 }

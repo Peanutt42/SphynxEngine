@@ -191,9 +191,8 @@ namespace Sphynx::ECS {
 			void ForEach(const Callback& callback) {
 				for (EntityId entity = 0; entity < m_Registry.m_NextEntityId; ++entity) {
 					if constexpr (std::is_invocable_v<Callback, EntityId, T&>) {
-						void* component = nullptr;
-						if (m_Storage->TryGet(entity, &component))
-							callback(entity, *static_cast<T*>(component));
+						if (T* component = m_Storage->TryGet<T>(entity))
+							callback(entity, *component);
 					}
 					else {
 						if (m_Storage->Has(entity))

@@ -7,11 +7,11 @@ namespace Sphynx::Rendering {
 
 	class SE_API Image {
 	public:
-		Image(const uint8_t* data, size_t size);
+		Image(BufferView data);
 		~Image();
 
-		uint32_t GetWidth() const;
-		uint32_t GetHeight() const;
+		uint32 GetWidth() const;
+		uint32 GetHeight() const;
 
 		//VkDescriptorSet
 		void* GetDescriptorSet();

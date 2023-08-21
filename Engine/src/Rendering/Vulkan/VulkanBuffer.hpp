@@ -4,7 +4,7 @@
 #include "VulkanCommandPool.hpp"
 
 namespace Sphynx::Rendering {
-	std::optional<uint32_t> FindMemoryTypeIndex(uint32_t typeFilter, vk::MemoryPropertyFlags properties);
+	std::optional<uint32> FindMemoryTypeIndex(uint32 typeFilter, vk::MemoryPropertyFlags properties);
 
 	class SE_API VulkanBuffer {
 	public:
@@ -18,7 +18,7 @@ namespace Sphynx::Rendering {
 		static VulkanBuffer* CreateWithStaging(BufferView data, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties = (vk::MemoryPropertyFlags)0);
 
 		void Set(BufferView data);
-		void Get(std::vector<uint8_t>& outData);
+		void Get(std::vector<byte>& outData);
 		void Copy(vk::CommandBuffer commandBuffer, vk::Buffer dst);
 	};
 }

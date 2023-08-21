@@ -41,32 +41,32 @@ namespace Sphynx {
 	}
 
 	const bool Input::IsKeyPressed(KeyCode key) {
-		return s_KeyStateChanged[(uint16_t)key] && GetKey(key) == ButtonState::Pressed;
+		return s_KeyStateChanged[(uint16)key] && GetKey(key) == ButtonState::Pressed;
 	}
 
 	const bool Input::IsKeyReleased(KeyCode key) {
-		return s_KeyStateChanged[(uint16_t)key] && GetKey(key) == ButtonState::Released;
+		return s_KeyStateChanged[(uint16)key] && GetKey(key) == ButtonState::Released;
 	}
 
 	const ButtonState Input::GetKey(KeyCode key) {
-		return s_KeyStates[(uint16_t)key];
+		return s_KeyStates[(uint16)key];
 	}
 
 
 	const bool Input::IsMouseButtonUp(MouseButton button) {
-		return !s_MouseButtonStates[(uint16_t)button];
+		return !s_MouseButtonStates[(uint16)button];
 	}
 
 	const bool Input::IsMouseButtonDown(MouseButton button) {
-		return s_MouseButtonStates[(uint16_t)button];
+		return s_MouseButtonStates[(uint16)button];
 	}
 
 	const bool Input::IsMouseButtonPressed(MouseButton button) {
-		return s_MouseButtonStateChanged[(uint16_t)button] && IsMouseButtonDown(button);
+		return s_MouseButtonStateChanged[(uint16)button] && IsMouseButtonDown(button);
 	}
 
 	const bool Input::IsMouseButtonReleased(MouseButton button) {
-		return s_MouseButtonStateChanged[(uint16_t)button] && IsMouseButtonUp(button);
+		return s_MouseButtonStateChanged[(uint16)button] && IsMouseButtonUp(button);
 	}
 
 

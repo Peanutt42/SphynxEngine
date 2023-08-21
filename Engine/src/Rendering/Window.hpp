@@ -7,7 +7,7 @@ struct GLFWwindow;
 namespace Sphynx::Rendering {
 	class SE_API Window {
 	public:
-		Window(const std::string_view title, bool maximized = true, bool fullscreen = false);
+		Window(const std::string_view title, bool maximized = true, bool fullscreen = false, bool customWindowControls = true);
 		~Window();
 
 		Window(const Window&) = delete;
@@ -16,11 +16,11 @@ namespace Sphynx::Rendering {
 
 		bool ShouldClose();
 
-		void SetSize(uint32_t width, uint32_t height);
-		void SetWidth(uint32_t width);
-		void SetHeight(uint32_t height);
-		uint32_t GetWidth() const { return m_Width; }
-		uint32_t GetHeight() const { return m_Height; }
+		void SetSize(uint32 width, uint32 height);
+		void SetWidth(uint32 width);
+		void SetHeight(uint32 height);
+		uint32 GetWidth() const { return m_Width; }
+		uint32 GetHeight() const { return m_Height; }
 		const std::string& GetTitle() const { return m_Title; }
 
 		void Maximize();
@@ -61,7 +61,7 @@ namespace Sphynx::Rendering {
 
 		GLFWwindow* m_Window = nullptr;
 		std::string m_Title;
-		uint32_t m_Width = 0, m_Height = 0;
+		uint32 m_Width = 0, m_Height = 0;
 		glm::vec2 m_Position{ 0, 0 };
 
 		bool m_Maximized = false;

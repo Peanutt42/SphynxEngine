@@ -4,7 +4,7 @@
 
 namespace Sphynx::Rendering {
 #pragma region SpirvHelper
-    vk::Format SpirvHelper::SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32_t elements) {
+    vk::Format SpirvHelper::SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32 elements) {
         switch (type) {
         default: return vk::Format::eUndefined;
         case spirv_cross::SPIRType::BaseType::SByte:
@@ -70,12 +70,12 @@ namespace Sphynx::Rendering {
         }
     }
 
-    void SpirvHelper::GetReflectionInfo(const std::vector<uint32_t>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo) {
+    void SpirvHelper::GetReflectionInfo(const std::vector<uint32>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo) {
         spirv_cross::Compiler compiler(spirvCode);
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
         for (auto& uniformBuffer : resources.uniform_buffers) {
-            uint32_t binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
+            uint32 binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
             std::string name = compiler.get_name(uniformBuffer.id);
 
             const auto& type = compiler.get_type(uniformBuffer.base_type_id);
@@ -83,17 +83,37 @@ namespace Sphynx::Rendering {
             outInfo.DescriptorBindings[binding] = { vk::DescriptorType::eUniformBuffer, stage, name, size };
         }
         for (auto& sampler : resources.sampled_images) {
-            uint32_t binding = compiler.get_decoration(sampler.id, spv::DecorationBinding);
+            uint32 binding = compiler.get_decoration(sampler.id, spv::DecorationBinding);
             std::string name = compiler.get_name(sampler.id);
             outInfo.DescriptorBindings[binding] = { vk::DescriptorType::eCombinedImageSampler, stage, name };
+        }
+
+        if (stage & vk::ShaderStageFlagBits::eVertex) {
+            outInfo.VertexAttributes.clear();
+            for (auto& input : resources.stage_inputs) {
+                const auto& type = compiler.get_type(input.type_id);
+                uint32_t location = compiler.get_decoration(input.id, spv::DecorationLocation);
+
+                vk::Format attributeFormat = SpirvTypeToVkFormat(type.basetype, type.vecsize);
+                for (uint32_t i = 0; i < type.columns; i++) {
+                    uint32_t attributeSize = (type.width * type.vecsize) / 8;
+                    uint32_t attributeLocation = location + i;
+
+                    vk::VertexInputAttributeDescription& desc = outInfo.VertexAttributes.emplace_back();
+                    desc.binding = 0;
+                    desc.location = attributeLocation;
+                    desc.format = attributeFormat;
+                    outInfo.VertexInputAttributeSizes[attributeLocation] = attributeSize;
+                }
+            }
         }
     }
 #pragma endregion
 
-    static vk::ShaderModule CreateShaderModule(vk::Device device, const std::vector<uint32_t>& code) {
+    static vk::ShaderModule CreateShaderModule(vk::Device device, const std::vector<uint32>& code) {
         vk::ShaderModuleCreateInfo createInfo{};
-        createInfo.codeSize = code.size() * sizeof(uint32_t);
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(code.data());
+        createInfo.codeSize = code.size() * sizeof(uint32);
+        createInfo.pCode = (const uint32*)code.data();
         vk::ShaderModule shaderModule;
         vk::Result result = device.createShaderModule(&createInfo, nullptr, &shaderModule);
         SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create shaderModule");
@@ -102,31 +122,56 @@ namespace Sphynx::Rendering {
     }
 
     VulkanShader::VulkanShader(const ShaderCreateInfo& createInfo, VulkanRenderpass& renderpass)
-        : m_SharedUniformBuffers(createInfo.SharedUniformBuffers)
-    {
-        SpirvHelper::GetReflectionInfo(createInfo.VertexCode, vk::ShaderStageFlagBits::eVertex, m_ReflectionInfo);
-        SpirvHelper::GetReflectionInfo(createInfo.VertexCode, vk::ShaderStageFlagBits::eFragment, m_ReflectionInfo);
-
+        : m_ReflectionInfo(createInfo.ReflectionInfo)
+    {        
         vk::ShaderModule vertexModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.VertexCode);
         vk::ShaderModule fragmentModule = CreateShaderModule(VulkanContext::LogicalDevice, createInfo.FragmentCode);
 
-        vk::PipelineShaderStageCreateInfo vertShaderStageInfo{};
-        vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
-        vertShaderStageInfo.module = vertexModule;
-        vertShaderStageInfo.pName = "main";
+        // Descritpor set layout
+        std::vector<vk::DescriptorSetLayoutBinding> layoutBindings;
+        layoutBindings.reserve(m_ReflectionInfo.DescriptorBindings.size());
+        for (const auto& [binding, descriptor] : m_ReflectionInfo.DescriptorBindings) {
+            auto& layoutBinding = layoutBindings.emplace_back();
+            layoutBinding.binding = binding;
+            layoutBinding.descriptorCount = 1;
+            layoutBinding.descriptorType = descriptor.Type;
+            layoutBinding.pImmutableSamplers = nullptr;
+            layoutBinding.stageFlags = descriptor.Stage;
+        }
+        vk::DescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.bindingCount = (uint32)layoutBindings.size();
+        layoutInfo.pBindings = layoutBindings.data();
 
-        vk::PipelineShaderStageCreateInfo fragShaderStageInfo{};
-        fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
-        fragShaderStageInfo.module = fragmentModule;
-        fragShaderStageInfo.pName = "main";
+        vk::Result result = VulkanContext::LogicalDevice.createDescriptorSetLayout(&layoutInfo, nullptr, &m_DescriptorSetLayout);
+        SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create descriptor set layout");
 
-        std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
+        // Descriptor sets
+        std::vector<vk::DescriptorSetLayout> layouts(VulkanContext::MaxFramesInFlight, m_DescriptorSetLayout);
+        vk::DescriptorSetAllocateInfo allocInfo{};
+        allocInfo.descriptorPool = VulkanContext::DescriptorPool;
+        allocInfo.descriptorSetCount = VulkanContext::MaxFramesInFlight;
+        allocInfo.pSetLayouts = layouts.data();
 
+        m_DescriptorSets.resize(VulkanContext::MaxFramesInFlight);
+        result = VulkanContext::LogicalDevice.allocateDescriptorSets(&allocInfo, m_DescriptorSets.data());
+        SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to allocate descriptor sets");
+
+
+        // Pipeline Layout
+        vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
+        pipelineLayoutInfo.setLayoutCount = 1;
+        pipelineLayoutInfo.pSetLayouts = &m_DescriptorSetLayout;
+        pipelineLayoutInfo.pushConstantRangeCount = 0;
+
+        result = VulkanContext::LogicalDevice.createPipelineLayout(&pipelineLayoutInfo, nullptr, &m_PipelineLayout);
+        SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create pipelineLayout");
+
+        // Pipeline
         vk::PipelineVertexInputStateCreateInfo vertexInputInfo{};
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexBindingDescriptions = &createInfo.VertexInput.Description;
-        vertexInputInfo.vertexAttributeDescriptionCount = (uint32_t)createInfo.VertexInput.Attributes.size();
-        vertexInputInfo.pVertexAttributeDescriptions = createInfo.VertexInput.Attributes.data();
+        vertexInputInfo.vertexBindingDescriptionCount = (uint32)createInfo.VertexInputBindings.size();
+        vertexInputInfo.pVertexBindingDescriptions = createInfo.VertexInputBindings.data();
+        vertexInputInfo.vertexAttributeDescriptionCount = (uint32)m_ReflectionInfo.VertexAttributes.size();
+        vertexInputInfo.pVertexAttributeDescriptions = m_ReflectionInfo.VertexAttributes.data();
 
         vk::PipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.topology = vk::PrimitiveTopology::eTriangleList;
@@ -139,15 +184,22 @@ namespace Sphynx::Rendering {
         vk::PipelineRasterizationStateCreateInfo rasterizer{};
         rasterizer.depthClampEnable = VK_FALSE;
         rasterizer.rasterizerDiscardEnable = VK_FALSE;
-        rasterizer.polygonMode = vk::PolygonMode::eFill;
+        rasterizer.polygonMode = createInfo.Wireframe ? vk::PolygonMode::eLine : vk::PolygonMode::eFill;
         rasterizer.lineWidth = 1.0f;
         rasterizer.cullMode = vk::CullModeFlagBits::eBack;
-        rasterizer.frontFace = vk::FrontFace::eClockwise;
+        rasterizer.frontFace = vk::FrontFace::eCounterClockwise;
         rasterizer.depthBiasEnable = VK_FALSE;
+        rasterizer.depthBiasConstantFactor = 0.0f; // Optional
+        rasterizer.depthBiasClamp = 0.0f; // Optional
+        rasterizer.depthBiasSlopeFactor = 0.0f; // Optional
 
         vk::PipelineMultisampleStateCreateInfo multisampling{};
         multisampling.sampleShadingEnable = VK_FALSE;
         multisampling.rasterizationSamples = vk::SampleCountFlagBits::e1;
+        multisampling.minSampleShading = 1.0f; // Optional
+        multisampling.pSampleMask = nullptr; // Optional
+        multisampling.alphaToCoverageEnable = VK_FALSE; // Optional
+        multisampling.alphaToOneEnable = VK_FALSE; // Optional
 
         vk::PipelineColorBlendAttachmentState colorBlendAttachment{};
         colorBlendAttachment.colorWriteMask = vk::ColorComponentFlagBits::eR |
@@ -158,31 +210,32 @@ namespace Sphynx::Rendering {
 
         vk::PipelineColorBlendStateCreateInfo colorBlending{};
         colorBlending.logicOpEnable = VK_FALSE;
-        colorBlending.logicOp = vk::LogicOp::eCopy;
         colorBlending.attachmentCount = 1;
         colorBlending.pAttachments = &colorBlendAttachment;
-        colorBlending.blendConstants[0] = 0.0f;
-        colorBlending.blendConstants[1] = 0.0f;
-        colorBlending.blendConstants[2] = 0.0f;
-        colorBlending.blendConstants[3] = 0.0f;
 
         std::vector<vk::DynamicState> dynamicStates = {
             vk::DynamicState::eViewport,
             vk::DynamicState::eScissor
         };
         vk::PipelineDynamicStateCreateInfo dynamicState{};
-        dynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
+        dynamicState.dynamicStateCount = (uint32)dynamicStates.size();
         dynamicState.pDynamicStates = dynamicStates.data();
 
-        vk::PipelineLayoutCreateInfo pipelineLayoutInfo{};
-        pipelineLayoutInfo.setLayoutCount = 0;
-        pipelineLayoutInfo.pushConstantRangeCount = 0;
 
-        vk::Result result = VulkanContext::LogicalDevice.createPipelineLayout(&pipelineLayoutInfo, nullptr, &m_PipelineLayout);
-        SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create pipelineLayout");
+        vk::PipelineShaderStageCreateInfo vertShaderStageInfo{};
+        vertShaderStageInfo.stage = vk::ShaderStageFlagBits::eVertex;
+        vertShaderStageInfo.module = vertexModule;
+        vertShaderStageInfo.pName = "main";
 
+        vk::PipelineShaderStageCreateInfo fragShaderStageInfo{};
+        fragShaderStageInfo.stage = vk::ShaderStageFlagBits::eFragment;
+        fragShaderStageInfo.module = fragmentModule;
+        fragShaderStageInfo.pName = "main";
+
+        std::array<vk::PipelineShaderStageCreateInfo, 2> shaderStages = { vertShaderStageInfo, fragShaderStageInfo };
+        
         vk::GraphicsPipelineCreateInfo pipelineInfo{};
-        pipelineInfo.stageCount = shaderStages.size();
+        pipelineInfo.stageCount = (uint32)shaderStages.size();
         pipelineInfo.pStages = shaderStages.data();
         pipelineInfo.pVertexInputState = &vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &inputAssembly;
@@ -208,42 +261,57 @@ namespace Sphynx::Rendering {
 
             // Create empty uniform buffer (if not shared by other shaders)
             if (descriptor.Type == vk::DescriptorType::eUniformBuffer &&
-                !m_SharedUniformBuffers.contains(descriptor.Name))
+                !ShaderCreateInfo::SharedUniformBuffers.contains(descriptor.Name))
             {
-                // TODO: UniformBuffers
+                m_UniformBuffers[binding] = std::make_unique<VulkanUniformBuffer>(descriptor.UniformSize);
+                SetUniformBuffer(descriptor.Name, *m_UniformBuffers.at(binding));
             }
         }
     }
 
     VulkanShader::~VulkanShader() {
+        m_UniformBuffers.clear();
+
+        VulkanContext::LogicalDevice.destroyDescriptorSetLayout(m_DescriptorSetLayout, nullptr);
+
         VulkanContext::LogicalDevice.destroyPipeline(m_Pipeline, nullptr);
         m_Pipeline = VK_NULL_HANDLE;
         VulkanContext::LogicalDevice.destroyPipelineLayout(m_PipelineLayout, nullptr);
         m_PipelineLayout = VK_NULL_HANDLE;
     }
 
-    void VulkanShader::Bind(vk::CommandBuffer commandBuffer) {
-        commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_Pipeline);
-    }
+    void VulkanShader::SetUniformBuffer(const std::string& name, const VulkanUniformBuffer& uniformBuffer) {
+        std::optional<uint32> binding = _GetBinding(name);
+        if (!binding) {
+            SE_ERR(Logging::Rendering, "Failed to set uniform buffer, '{}' doesn't exist", name);
+            return;
+        }
+    
+        std::vector<vk::Buffer> buffers = uniformBuffer.GetBuffers();
+        for (size_t i = 0; i < m_DescriptorSets.size(); i++) {
 
+            vk::WriteDescriptorSet descriptorWrite{};
+            descriptorWrite.dstSet = m_DescriptorSets[i];
+            descriptorWrite.dstBinding = *binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+            vk::DescriptorBufferInfo bufferInfo{ buffers[i], 0, (uint32)uniformBuffer.Size };
+            descriptorWrite.pBufferInfo = &bufferInfo;
 
-    vk::Format VulkanVertexAttributeBuilder::ToVkFormat(AttributeFormat format) {
-        switch (format) {
-        default:
-            throw std::invalid_argument("invalid format arg");
-        case AttributeFormat::Float2: return vk::Format::eR32G32Sfloat;
-        case AttributeFormat::Float3: return vk::Format::eR32G32B32Sfloat;
-        case AttributeFormat::Float4: return vk::Format::eR32G32B32A32Sfloat;
+            VulkanContext::LogicalDevice.updateDescriptorSets(1, &descriptorWrite, 0, nullptr);
         }
     }
 
-    void VulkanVertexAttributeBuilder::Add(AttributeFormat attributeFormat, uint32_t offset, uint32_t binding) {
-        vk::VertexInputAttributeDescription& desc = m_Attributes.emplace_back();
-        desc.binding = binding;
-        desc.location = m_Location;
-        desc.format = ToVkFormat(attributeFormat);
-        desc.offset = offset;
-        
-        m_Location++;
+    void VulkanShader::Bind(vk::CommandBuffer commandBuffer) {
+        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_PipelineLayout, 0, 1, &m_DescriptorSets[VulkanContext::CurrentFrame], 0, nullptr);
+        commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_Pipeline);
+    }
+
+    std::optional<uint32> VulkanShader::_GetBinding(const std::string& name) {
+        auto find = m_DescriptorNameToBindingMap.find(name);
+        if (find == m_DescriptorNameToBindingMap.end())
+            return std::nullopt;
+        return find->second;
     }
 }

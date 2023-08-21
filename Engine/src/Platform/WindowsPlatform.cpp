@@ -18,6 +18,189 @@ namespace Sphynx {
 	}
 
 
+	void Platform::SetWorkingDirToExe() {
+		std::wstring filepathStr;
+		filepathStr.resize(MAX_PATH);
+		GetModuleFileNameW(nullptr, filepathStr.data(), (DWORD)filepathStr.size());
+		std::filesystem::path filepath = filepathStr;
+		std::filesystem::current_path(filepath.parent_path());
+	}
+
+
+	StackTrace Platform::GenerateStackTrace(void* customContext) {
+		StackTrace stacktrace;
+
+		CONTEXT capturedContext;
+		PCONTEXT finalContext = (PCONTEXT)customContext;
+		if (!finalContext) {
+			memset(&capturedContext, 0, sizeof(capturedContext));
+			capturedContext.ContextFlags = CONTEXT_FULL;
+
+			RtlCaptureContext(&capturedContext);
+			finalContext = &capturedContext;
+		}
+
+		STACKFRAME64 stackFrame;
+		memset(&stackFrame, 0, sizeof(stackFrame));
+
+		DWORD machineType = IMAGE_FILE_MACHINE_I386;
+#ifdef _M_X64
+		machineType = IMAGE_FILE_MACHINE_AMD64;
+#endif
+
+		stackFrame.AddrPC.Mode = AddrModeFlat;
+		stackFrame.AddrPC.Offset = finalContext->Rip;
+		stackFrame.AddrFrame.Mode = AddrModeFlat;
+		stackFrame.AddrFrame.Offset = finalContext->Rbp;
+		stackFrame.AddrStack.Mode = AddrModeFlat;
+		stackFrame.AddrStack.Offset = finalContext->Rsp;
+
+		HANDLE process = GetCurrentProcess();
+		HANDLE thread = GetCurrentThread();
+
+		std::string currentProcessName = Platform::Process::GetCurrentName();
+		// remove extension
+		std::filesystem::path currentProcesName_path = currentProcessName;
+		currentProcesName_path.replace_extension("");
+		currentProcessName = currentProcesName_path.string();
+		std::cout << currentProcessName << std::endl;
+
+		SymInitialize(process, NULL, TRUE);
+
+		while (StackWalk64(machineType, process, thread, &stackFrame, finalContext, nullptr,
+			SymFunctionTableAccess64, SymGetModuleBase64, nullptr))
+		{
+			char symbolBuffer[sizeof(IMAGEHLP_SYMBOL64) + MAX_PATH];
+			memset(symbolBuffer, 0, sizeof(symbolBuffer));
+			IMAGEHLP_SYMBOL64* symbol = (IMAGEHLP_SYMBOL64*)symbolBuffer;
+			symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL64);
+			symbol->MaxNameLength = MAX_PATH;
+
+			DWORD64 displacement = 0;
+			if (SymGetSymFromAddr64(process, stackFrame.AddrPC.Offset, &displacement, symbol)) {
+				std::string symbolName = symbol->Name;
+
+				if (symbolName == __FUNCTION__) {
+					stacktrace.clear();
+					continue;
+				}
+
+				if (symbolName == "CxxThrowException") {
+					stacktrace.clear();
+					stacktrace.emplace_back("exception was thrown", false);
+					continue;
+				}
+
+				StackTraceEntry& entry = stacktrace.emplace_back();
+				entry.FunctionName = symbolName + "()";
+
+				// Get module name if available
+
+				IMAGEHLP_MODULE64 moduleInfo;
+				std::memset(&moduleInfo, 0, sizeof(moduleInfo));
+				moduleInfo.SizeOfStruct = sizeof(moduleInfo);
+				if (SymGetModuleInfo64(process, stackFrame.AddrPC.Offset, &moduleInfo)) {
+					std::filesystem::path moduleFilepath = moduleInfo.LoadedImageName;
+
+					entry.ModuleName = moduleFilepath.filename().string();
+					entry.HasModule = true;
+				}
+				else
+					entry.HasModule = false;
+
+
+				// Display source file and line number if available
+				IMAGEHLP_LINE64 lineInfo;
+				memset(&lineInfo, 0, sizeof(lineInfo));
+				lineInfo.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
+
+				DWORD lineDisplacement = 0;
+				if (SymGetLineFromAddr64(process, stackFrame.AddrPC.Offset, &lineDisplacement, &lineInfo)) {
+					entry.HasSource = true;
+					entry.SourceFile = lineInfo.FileName;
+					entry.SourceLine = lineInfo.LineNumber;
+				}
+				else
+					entry.HasSource = false;
+
+				if (symbolName == "main")
+					break;
+			}
+			else {
+				std::stringstream addressHex;
+				addressHex << "0x" << std::hex << std::uppercase << symbol->Address;
+				stacktrace.emplace_back("Unknown symbol - " + addressHex.str(), false);
+			}
+		}
+
+		SymCleanup(process);
+
+		return stacktrace;
+	}
+
+
+	std::string ExceptionToStr(PEXCEPTION_RECORD record) {
+		switch (record->ExceptionCode) {
+		default: return "Unknown exceptionCode " + std::to_string(record->ExceptionCode);
+		case EXCEPTION_ACCESS_VIOLATION: {
+			std::string output = "Access violation ";
+
+			if (record->NumberParameters >= 1) {
+				if (record->ExceptionInformation[0] == 0)
+					output += "reading address ";
+				else if (record->ExceptionInformation[0] == 1)
+					output += "writing to address ";
+				else if (record->ExceptionInformation[0] == 8)
+					output += "trying to run function ptr at address ";
+			}
+			else
+				output += "writing/reading address ";
+
+			if (record->ExceptionInformation[1] == (ULONG)nullptr)
+				output += "nullptr";
+			else {
+				std::stringstream addressHex;
+				addressHex << "0x" << std::hex << std::uppercase << record->ExceptionInformation[1];
+				output += addressHex.str();
+			}
+			return output;
+		}
+		case EXCEPTION_ARRAY_BOUNDS_EXCEEDED: return "Array index out of bounds";
+		case EXCEPTION_ILLEGAL_INSTRUCTION: return "Illegal instruction";
+		case EXCEPTION_STACK_OVERFLOW: return "Stack overflow";
+		case EXCEPTION_BREAKPOINT: return "Breakpoint";
+		case EXCEPTION_IN_PAGE_ERROR: return "In page error (maybe accessing invalid memory address)";
+		case EXCEPTION_PRIV_INSTRUCTION: return "tried to execute privilegded/invalid instruction";
+		case EXCEPTION_DATATYPE_MISALIGNMENT: return "tried to access a datatype without proper alignment";
+		case EXCEPTION_FLT_DENORMAL_OPERAND: return "float denormal operand";
+		case EXCEPTION_FLT_DIVIDE_BY_ZERO: return "float divide by zero";
+		case EXCEPTION_FLT_INVALID_OPERATION: return "float invalid operation";
+		case EXCEPTION_FLT_OVERFLOW: return "float overflow";
+		case EXCEPTION_FLT_UNDERFLOW: return "float underflow";
+		case EXCEPTION_INT_DIVIDE_BY_ZERO: return "int divide by zero";
+		case EXCEPTION_INT_OVERFLOW: return "int overflow";
+		}
+	}
+
+	static Platform::ExceptionCallback s_ExceptionCallback;
+
+	LONG WINAPI ExceptionFilter(PEXCEPTION_POINTERS exceptionInfo) {
+		std::string reason = ExceptionToStr(exceptionInfo->ExceptionRecord);
+		if (s_ExceptionCallback)
+			s_ExceptionCallback(reason, exceptionInfo->ContextRecord);
+		else
+			SE_FATAL("Unset ExceptionCallback: Legacy Callback: Reason for crash: {}", reason);
+
+		// doesn't matter since we have already quit by now
+		return EXCEPTION_CONTINUE_SEARCH;
+	}
+
+	void Platform::SetExceptionCallback(const ExceptionCallback& callback) {
+		SetUnhandledExceptionFilter(ExceptionFilter);
+		s_ExceptionCallback = callback;
+	}
+
+
 	void Platform::MessagePrompts::Info(const std::string_view title, const std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_USERICON | MB_OK);
 	}
@@ -155,88 +338,6 @@ namespace Sphynx {
 
 	unsigned int Platform::Thread::GetCurrentId() {
 		return ::GetCurrentThreadId();
-	}
-
-
-	StackTrace Platform::GenerateStackTrace() {
-		StackTrace trace;
-
-		constexpr int maxStackTraceDepth = 100;
-		std::array<void*, maxStackTraceDepth> internalStacktraces;
-		USHORT stackTraceSize = CaptureStackBackTrace(0, maxStackTraceDepth, internalStacktraces.data(), nullptr);
-
-		HANDLE process = GetCurrentProcess();
-
-		// Initialize symbol handling
-		SymSetOptions(SYMOPT_DEFERRED_LOADS | SYMOPT_INCLUDE_32BIT_MODULES);
-		SymInitialize(process, nullptr, TRUE);
-
-		// Allocate space for symbol information
-		constexpr DWORD maxSymbolNameLength = 256;
-		char symbolBuffer[sizeof(IMAGEHLP_SYMBOL64) + maxSymbolNameLength];
-		PIMAGEHLP_SYMBOL64 symbol = reinterpret_cast<PIMAGEHLP_SYMBOL64>(symbolBuffer);
-		symbol->SizeOfStruct = sizeof(IMAGEHLP_SYMBOL64);
-		symbol->MaxNameLength = maxSymbolNameLength;
-
-
-		IMAGEHLP_LINE64 line;
-		ZeroMemory(&line, sizeof(line));
-		line.SizeOfStruct = sizeof(IMAGEHLP_LINE64);
-
-		DWORD displacement32 = 0;
-
-		for (USHORT i = 0; i < stackTraceSize; ++i) {
-			DWORD64 address = reinterpret_cast<DWORD64>(internalStacktraces[i]);
-			if (SymGetSymFromAddr64(process, address, nullptr, symbol)) {
-				std::string_view symbolName = symbol->Name;
-				if (symbolName == "abort")
-					trace.emplace_back("Internal function: abort()", false, "internal", 0);
-				else if (symbolName == "raise")
-					trace.emplace_back("Internal function: raise()", false, "internal", 0);
-				else if (symbolName == "Sphynx::CrashHandler::OnProcessCrashed" ||
-					symbolName == "Sphynx::CrashHandler::MakeStackTrace" ||
-					symbolName == "Sphynx::Platform::GenerateStackTrace" ||
-					symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::operator()" ||
-					symbolName == "`Sphynx::CrashHandler::Init'::`2'::<lambda_2>::<lambda_invoker_cdecl>" ||
-					symbolName == "_seh_filter_exe" ||
-					symbolName == "`__scrt_common_main_seh'::`1'::filt$0" ||
-					symbolName == "__C_specific_handler" ||
-					symbolName == "__chkstk" ||
-					symbolName == "log2f" ||
-					symbolName == "RtlFindCharInUnicodeString" ||
-					symbolName == "KiUserExceptionDispatcher")
-				{
-					continue;
-				}
-				else if (symbolName == "CxxThrowException") {
-					trace.clear(); // Everything until now has been internal c++ std::exception handeling
-					trace.emplace_back("unhandeled std::exception", false, "internal", 0);
-				}
-				else {
-					auto& entry = trace.emplace_back();
-					entry.FunctionName = std::string(symbol->Name) + "()";
-
-					if (SymGetLineFromAddr64(process, address, &displacement32, &line)) {
-						entry.HasSource = true;
-						entry.SourceFile = std::string(line.FileName);
-						entry.SourceLine = (size_t)line.LineNumber;
-					}
-					else
-						entry.HasSource = false;
-
-					if (symbolName == "main")
-						break;
-				}
-			}
-			else {
-				std::stringstream addressHex;
-				addressHex << "0x" << std::hex << std::uppercase << symbol->Address;
-				trace.emplace_back("Unknown symbol - " + addressHex.str(), false);
-			}
-		}
-		SymCleanup(process);
-
-		return trace;
 	}
 
 
