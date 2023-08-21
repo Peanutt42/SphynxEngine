@@ -11,6 +11,10 @@ namespace Sphynx {
 		class Renderer;
 	}
 
+	namespace Physics {
+		class PhysicEngine;
+	}
+
 	namespace Scripting {
 		class ScriptingEngine;
 	}
@@ -38,6 +42,7 @@ namespace Sphynx {
 
 		static Scripting::ScriptingEngine& Scripting() { return *s_ScriptingEngine; }
 		static Rendering::Renderer& Renderer() { return *s_Renderer; }
+		static Physics::PhysicEngine& Physics() { return *s_PhysicEngine; }
 
 		static UI::VulkanImGuiHelper& ImGuiHelper() { return *s_ImGuiHelper; }
 
@@ -57,6 +62,7 @@ namespace Sphynx {
 
 		inline static Rendering::Window* s_Window = nullptr;
 		inline static Rendering::Renderer* s_Renderer = nullptr;
+		inline static Physics::PhysicEngine* s_PhysicEngine = nullptr;
 		inline static Scripting::ScriptingEngine* s_ScriptingEngine = nullptr;
 		inline static UI::VulkanImGuiHelper* s_ImGuiHelper = nullptr;
 	};

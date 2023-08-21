@@ -56,3 +56,10 @@ CopyBinaryCmds["assimp"] = copydll_cmd_begin .. EngineDir .. "vendor\\assimp\\bi
 
 -- gtest
 IncludeDirs["gtest"] = EngineDir .. "vendor/gtest/include"
+
+-- bullet
+IncludeDirs["bullet"] = EngineDir .. "vendor/bullet3/include"
+LibaryDirs["bullet"] = EngineDir .. "vendor/bullet3/lib/%{cfg.buildcfg}"
+Libaries["bullet_collision"] = "BulletCollision.lib"
+Libaries["bullet_dynamics"] = "BulletDynamics.lib"
+Libaries["bullet_math"] = "LinearMath.lib"

@@ -3,6 +3,7 @@
 
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
+#include "Physics/PhysicEngine.hpp"
 #include "Scripting/ScriptingEngine.hpp"
 #include "UI/VulkanImGuiHelper.hpp"
 
@@ -20,6 +21,8 @@ namespace Sphynx {
 		s_Project = initInfo.Project;
 
 		s_Application = initInfo.Application;
+
+		s_PhysicEngine = new Physics::PhysicEngine();
 
 		s_ScriptingEngine = new Scripting::ScriptingEngine();
 
@@ -50,6 +53,8 @@ namespace Sphynx {
 		s_Project.reset();
 
 		delete s_ScriptingEngine;
+
+		delete s_PhysicEngine;
 
 		if (!s_Settings.Headless) {
 			if (s_Settings.ImGuiEnabled)

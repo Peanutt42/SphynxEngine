@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "EditorApplication.hpp"
 #include "EditorAssetManager.hpp"
+#include "Physics/PhysicEngine.hpp"
 
 #include "Scene/SceneSerializer.hpp"
 
@@ -77,10 +78,14 @@ namespace Sphynx::Editor {
 			if (Input::IsKeyPressed(KeyCode::O))
 				OpenScene();
 		}
+
+		if (Input::IsKeyPressed(KeyCode::F5))
+			OnRuntimeStart();
+		if (Input::IsKeyPressed(KeyCode::F8))
+			OnRuntimeStop();
 		
-		if (m_State == EditorState::Playing) {
-			UpdateGame();
-		}
+		if (m_State == EditorState::Playing)
+			OnRuntimeUpdate();
 
 		Engine::Renderer().SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
 	}
@@ -128,7 +133,16 @@ namespace Sphynx::Editor {
 		}
 	}
 
-	void EditorApplication::UpdateGame() {
+	void EditorApplication::OnRuntimeStart() {
+		m_State = EditorState::Playing;
+		m_GameScene = std::make_unique<Scene>(*m_EditingScene);
+		Engine::Physics().ClearWorld();
+	}
+
+	void EditorApplication::OnRuntimeUpdate() {
+		// Update Physics
+		Engine::Physics().Update(*m_GameScene);
+
 		// Update ECS-Systems
 		const std::vector<Scripting::SystemReflectionInfo>& systems = Engine::Scripting().GetSystems();
 		for (const auto& [name, active] : m_GameECSSystemActiveMap) {
@@ -143,6 +157,11 @@ namespace Sphynx::Editor {
 				findSystem->Update(m_GameScene.get());
 			}
 		}
+	}
+
+	void EditorApplication::OnRuntimeStop() {
+		m_GameScene.reset();
+		m_State = EditorState::Editing;
 	}
 
 

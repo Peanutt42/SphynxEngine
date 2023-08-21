@@ -3,18 +3,30 @@ Entities:
   - Entity: 11624051516532224898
     Name: 1.
     Transform:
-      Position: [0, 0, 0]
+      Position: [0, 4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    Rigidbody:
+      Dynamic: true
+    BoxCollider:
+      HalfExtent: [1, 1, 1]
   - Entity: 17324187834077041472
     Name: 2.
     Transform:
-      Position: [0, 0, 0]
+      Position: [0, -3.20000005, 0]
       Rotation: [0, 0, 0]
-      Scale: [1, 1, 1]
+      Scale: [6.30000019, 1, 1]
+    Rigidbody:
+      Dynamic: false
+    BoxCollider:
+      HalfExtent: [1, 1, 1]
   - Entity: 4262648916456273196
     Name: 3.
     Transform:
-      Position: [0, 0, 0]
+      Position: [-1.29999995, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
+    Rigidbody:
+      Dynamic: true
+    SphereCollider:
+      Radius: 1
