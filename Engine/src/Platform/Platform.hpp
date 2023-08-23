@@ -62,7 +62,7 @@ namespace Sphynx {
 
 		class SE_API Process {
 		public:
-			static void Run(const std::filesystem::path& filepath, const std::wstring& args);
+			static bool Run(const std::filesystem::path& filepath, const std::wstring& args);
 
 			static unsigned long GetCurrentProcessId();
 
@@ -82,17 +82,23 @@ namespace Sphynx {
 			DynamicLinkLibary(const std::filesystem::path& filepath);
 			~DynamicLinkLibary();
 
-			DynamicLinkLibary(const DynamicLinkLibary&) = delete;
-
 			template<typename Func>
-			Func LoadFunction(const std::string_view name) {
+			std::optional<Func> LoadFunction(const std::string_view name) {
+				if (!m_PlatformData)
+					return std::nullopt;
 				Func function = (Func)_GetFuncAddress(name.data());
-				SE_ASSERT(function, Logging::Scripting, "Failed to get function '{}'", name);
+				if (!function)
+					return std::nullopt;
 				return function;
 			}
 
 		private:
 			void* _GetFuncAddress(const char* name);
+
+			DynamicLinkLibary(const DynamicLinkLibary&) = delete;
+			DynamicLinkLibary(DynamicLinkLibary&&) = delete;
+			DynamicLinkLibary& operator=(const DynamicLinkLibary&) = delete;
+			DynamicLinkLibary& operator=(DynamicLinkLibary&&) = delete;
 
 		private:
 			DLLPlatformData* m_PlatformData = nullptr;

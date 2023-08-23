@@ -301,10 +301,10 @@ namespace Sphynx {
 
 
 
-	void Platform::Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
+	bool Platform::Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
 		if (!std::filesystem::exists(filepath)) {
-			SE_FATAL(Logging::General, "Can't find process to start in {}", filepath.string());
-			return;
+			SE_ERR(Logging::General, "Can't find process to start in {}", filepath.string());
+			return false;
 		}
 
 		STARTUPINFO si;
@@ -319,10 +319,12 @@ namespace Sphynx {
 		if (CreateProcessW(nullptr, _args.data(), nullptr, nullptr, false, DETACHED_PROCESS, nullptr, nullptr, &si, &pi)) {
 			CloseHandle(pi.hProcess);
 			CloseHandle(pi.hThread);
-			return;
+			return true;
 		}
-		else
-			SE_FATAL(Logging::General, "Failed to start process {}", filepath.string());
+		else {
+			SE_ERR(Logging::General, "Failed to start process {}", filepath.string());
+			return false;
+		}
 	}
 
 	unsigned long Platform::Process::GetCurrentProcessId() {
@@ -345,10 +347,9 @@ namespace Sphynx {
 		HMODULE Module = nullptr;
 	};
 	Platform::DynamicLinkLibary::DynamicLinkLibary(const std::filesystem::path& filepath) {
-		m_PlatformData = new DLLPlatformData();
-
 		SE_ASSERT(std::filesystem::exists(filepath), "{} doesn't exist!", filepath.string());
 
+		m_PlatformData = new DLLPlatformData();
 		m_PlatformData->Module = LoadLibraryW(filepath.native().c_str());
 		SE_ASSERT(m_PlatformData->Module, "Failed to open {}", filepath.string());
 	}
