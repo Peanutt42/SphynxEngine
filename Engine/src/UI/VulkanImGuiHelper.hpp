@@ -35,5 +35,9 @@ namespace Sphynx::UI {
 		std::unique_ptr<Rendering::Image> m_MaximizeIcon;
 		std::unique_ptr<Rendering::Image> m_RestoreIcon;
 		std::unique_ptr<Rendering::Image> m_CloseIcon;
+
+		float m_MinimizeOpacity = 0.f;
+		float m_MaximizeOpacity = 0.f;
+		float m_CloseOpacity = 0.f;
 	};
 }
