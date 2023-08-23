@@ -171,32 +171,21 @@ namespace Sphynx::UI {
 										 ImGui::GetCursorScreenPos().y + titlebarHeight };
 			auto* bgDrawList = ImGui::GetBackgroundDrawList();
 			bgDrawList->AddRectFilled(titlebarMin, titlebarMax, Themes::Default::titlebar);
-			// DEBUG TITLEBAR BOUNDS
-			// auto* fgDrawList = ImGui::GetForegroundDrawList();
-			// fgDrawList->AddRect(titlebarMin, titlebarMax, IM_COL32(255, 0, 0, 255));
-
-			//// Logo
-			//{
-			//	const int logoWidth = 48;// m_LogoTex->GetWidth();
-			//	const int logoHeight = 48;// m_LogoTex->GetHeight();
-			//	const ImVec2 logoOffset(16.0f + windowPadding.x, 5.0f + windowPadding.y + titlebarVerticalOffset);
-			//	const ImVec2 logoRectStart = { ImGui::GetItemRectMin().x + logoOffset.x, ImGui::GetItemRectMin().y + logoOffset.y };
-			//	const ImVec2 logoRectMax = { logoRectStart.x + logoWidth, logoRectStart.y + logoHeight };
-			//	fgDrawList->AddImage(m_AppHeaderIcon->GetDescriptorSet(), logoRectStart, logoRectMax);
-			//}
-
+			
 			ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth() - windowPadding.y * 2.0f, ImGui::GetFrameHeightWithSpacing() });
 
 			static float moveOffsetX;
 			static float moveOffsetY;
 			const float w = ImGui::GetContentRegionAvail().x;
-			const float buttonsAreaWidth = 94;
+			constexpr float buttonWidth = 44.f;
+			constexpr float buttonHeight = (buttonWidth * 2) / 3; // width / height = 1.5
+			constexpr float buttonsAreaWidth = buttonWidth * 3;
 
 			// Title bar drag area
 			// On Windows we hook into the GLFW win32 window internals
 			ImGui::SetCursorPos(ImVec2(windowPadding.x, windowPadding.y + titlebarVerticalOffset)); // Reset cursor pos
 			// DEBUG DRAG BOUNDS
-			// fgDrawList->AddRect(ImGui::GetCursorScreenPos(), ImVec2(ImGui::GetCursorScreenPos().x + w - buttonsAreaWidth, ImGui::GetCursorScreenPos().y + titlebarHeight), IM_COL32(255, 0, 0, 255));
+			// ImGui::GetForegroundDrawList()->AddRect(ImGui::GetCursorScreenPos(), ImVec2(ImGui::GetCursorScreenPos().x + w - buttonsAreaWidth, ImGui::GetCursorScreenPos().y + titlebarHeight), IM_COL32(255, 0, 0, 255));
 			ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight));
 
 			m_TitlebarHovered = ImGui::IsItemHovered();
@@ -246,22 +235,23 @@ namespace Sphynx::UI {
 			const ImU32 buttonColN = ColorWithMultipliedValue(Themes::Default::text, 0.9f);
 			const ImU32 buttonColH = ColorWithMultipliedValue(Themes::Default::text, 1.2f);
 			const ImU32 buttonColP = Themes::Default::textDarker;
-			constexpr float buttonSize = 32.f;
+			const ImVec2 buttonSize{ buttonWidth, buttonHeight };
 			constexpr float iconSize = 12.f;
-			const float iconPadding = (buttonSize - iconSize) / 2;
+			const float iconPaddingWidth = (buttonWidth - iconSize) / 2;
+			const float iconPaddingHeight = (buttonHeight - iconSize) / 2;
 
-			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonSize * 3 - 2.f, windowPadding.y + 2.f));
-			if (ImGui::InvisibleButton("Minimize", ImVec2(buttonSize, buttonSize)))
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonWidth * 3 - 2.f, windowPadding.y + 2.f));
+			if (ImGui::InvisibleButton("Minimize", buttonSize))
 				Rendering::VulkanContext::Window->Minimize();
 			if (ImGui::IsItemHovered())
 				ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Themes::Default::textDarker);
 
-			const float padY = (buttonSize - (float)m_MinimizeIcon->GetHeight()) / 2.0f;
-			UI::DrawButtonImage(*m_MinimizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -(buttonSize - iconSize) / 2, -padY));
+			const float padY = (buttonHeight - (float)m_MinimizeIcon->GetHeight()) / 2.0f;
+			UI::DrawButtonImage(*m_MinimizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -(buttonWidth - iconSize) / 2, -padY));
 
 
-			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonSize * 2 - 2.f, windowPadding.y + 2.f));
-			if (ImGui::InvisibleButton("Maximize", ImVec2(buttonSize, buttonSize))) {
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonWidth * 2 - 2.f, windowPadding.y + 2.f));
+			if (ImGui::InvisibleButton("Maximize", buttonSize)) {
 				if (isMaximized)
 					Rendering::VulkanContext::Window->Restore();
 				else
@@ -269,14 +259,14 @@ namespace Sphynx::UI {
 			}
 			if (ImGui::IsItemHovered())
 				ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Themes::Default::textDarker);
-			UI::DrawButtonImage(isMaximized ? *m_RestoreIcon : *m_MaximizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -iconPadding, -iconPadding));
+			UI::DrawButtonImage(isMaximized ? *m_RestoreIcon : *m_MaximizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
 
-			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonSize * 1 - 2.f, windowPadding.y + 2.f));
-			if (ImGui::InvisibleButton("Close", ImVec2(buttonSize, buttonSize)))
+			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonWidth * 1 - 2.f, windowPadding.y + 2.f));
+			if (ImGui::InvisibleButton("Close", buttonSize))
 				Engine::CloseNextFrame();
 			if (ImGui::IsItemHovered())
 				ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
-			UI::DrawButtonImage(*m_CloseIcon, Themes::Default::text, ColorWithMultipliedValue(Themes::Default::text, 1.4f), buttonColP, RectExpanded(GetItemRect(), -iconPadding, -iconPadding));
+			UI::DrawButtonImage(*m_CloseIcon, Themes::Default::text, ColorWithMultipliedValue(Themes::Default::text, 1.4f), buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
 
 			ImGui::EndHorizontal();
 

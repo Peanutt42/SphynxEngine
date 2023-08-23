@@ -45,31 +45,39 @@ namespace Sphynx {
 		static void RawLog(Verbosity verbosity, Category category, const std::string& msg);
 
 		template<typename... Args>
-		static void Log(Verbosity verbosity, Category category, std::format_string<Args...> msg, Args&&... args) {
+		static std::string Log(Verbosity verbosity, Category category, std::format_string<Args...> msg, Args&&... args) {
 			std::string formatted = std::format(msg, std::forward<Args>(args)...);
 			RawLog(verbosity, category, formatted);
+			return formatted;
 		}
 
 		template<typename... Args>
-		static void Log(Verbosity verbosity, std::format_string<Args...> msg, Args&&... args) {
+		static std::string Log(Verbosity verbosity, std::format_string<Args...> msg, Args&&... args) {
 			std::string formatted = std::format(msg, std::forward<Args>(args)...);
 			RawLog(verbosity, Category::General, formatted);
+			return formatted;
 		}
 
 		template<typename... Args>
-		static void AssertLog(const char* expression, Verbosity verbosity, Category category, std::format_string<Args...> msg, Args&&... args) {
+		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, Category category, const std::format_string<Args...>& msg, Args&&... args) {
 			std::string formatted = std::format(msg, std::forward<Args>(args)...);
-			RawLog(verbosity, category, "Assertion failed: " + std::string(expression) + "\n" + formatted);
+			std::string finalMsg = std::format("Assertion failed in {}\n{}: {}", file, expression, formatted);
+			RawLog(verbosity, category, finalMsg);
+			return finalMsg;
 		}
 
 		template<typename... Args>
-		static void AssertLog(const char* expression, Verbosity verbosity, std::format_string<Args...> msg, Args&&... args) {
+		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, std::format_string<Args...> msg, Args&&... args) {
 			std::string formatted = std::format(msg, std::forward<Args>(args)...);
-			RawLog(verbosity, Category::General, "Assertion failed: " + std::string(expression) + "\n" + formatted);
+			std::string finalMsg = std::format("Assertion failed in {}\n{}: {}", file, expression, formatted);
+			RawLog(verbosity, Category::General, finalMsg);
+			return finalMsg;
 		}
 
-		static void AssertLog(const char* expression, Verbosity verbosity, const char* assertMsg) {
-			RawLog(verbosity, Category::General, "Assertion failed: " + std::string(expression) + "\n" + std::string(assertMsg));
+		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, const char* assertMsg) {
+			std::string finalMsg = std::format("Assertion failed in {}\n{}: {}", file, expression, assertMsg);
+			RawLog(verbosity, Category::General, finalMsg);
+			return finalMsg;
 		}
 
 		static const std::vector<std::string>& GetErrorList() { return s_ErrorMessageStack; }
@@ -117,19 +125,19 @@ namespace Sphynx {
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
 #define SE_FATAL(...) \
 {																																		\
-	Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);															\
+	std::string formatted = Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);									\
 	if (Sphynx::Platform::IsDebuggerAttached())																							\
 		__debugbreak();																													\
 	else																																\
-		Sphynx::CrashHandler::OnCrash();																						\
+		Sphynx::CrashHandler::OnCrash("SE_FATAL: " + formatted);																	\
 }
 #define SE_ASSERT(result, ...) {	\
 	if (!(result)) {																													\
-		Sphynx::Logging::AssertLog(#result, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);											\
+		std::string formatted = Sphynx::Logging::AssertLog(#result, __FILE__, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);		\
 		if (Sphynx::Platform::IsDebuggerAttached())																						\
 			__debugbreak();																												\
 		else																															\
-			Sphynx::CrashHandler::OnCrash();																					\
+			Sphynx::CrashHandler::OnCrash("SE_ASSERT: " + formatted);																\
 	}																																	\
 }
 
@@ -139,8 +147,13 @@ namespace Sphynx {
 #define SE_INFO(...)			{}
 #define SE_WARN(...)			{}
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
-#define SE_FATAL(...)			{ Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnCrash(); }
-#define SE_ASSERT(result, ...)	{ if (!(result)) { Sphynx::Logging::AssertLog(#result, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnCrash(); } }
+#define SE_FATAL(...)			{ std::string formatted = Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnCrash("SE_FATAL: " + formatted); }
+#define SE_ASSERT(result, ...) {	\
+	if (!(result)) {																													\
+		std::string formatted = Sphynx::Logging::AssertLog(#result, __FILE__, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);		\
+		Sphynx::CrashHandler::OnCrash("SE_ASSERT: " + formatted);																		\
+	}																																	\
+}
 
 #endif
 }
