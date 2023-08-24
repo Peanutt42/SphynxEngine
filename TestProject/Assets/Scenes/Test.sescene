@@ -15,7 +15,7 @@ Entities:
     Transform:
       Position: [0, -3.20000005, 0]
       Rotation: [0, 0, 0]
-      Scale: [6.30000019, 1, 1]
+      Scale: [6.5999999, 1, 6.69999981]
     Rigidbody:
       Dynamic: false
     BoxCollider:

@@ -6,9 +6,8 @@ class btRigidBody;
 
 namespace Sphynx::Physics {
 	struct RigidbodyComponent {
-		bool Dynamic = false;
+		bool Dynamic = true;
 
-		int BodyIndex = -1;
 		btRigidBody* Body = nullptr;
 	};
 
