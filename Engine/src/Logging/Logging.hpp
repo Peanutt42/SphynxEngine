@@ -118,6 +118,7 @@ namespace Sphynx {
 			__debugbreak();																												\
 		else																															\
 			Sphynx::CrashHandler::OnCrash("SE_ASSERT: " + formatted);																\
+		std::exit(1);	/* This will never be reached but suppresses warnings for not checking if the expr is 0 */					\
 	}																																	\
 }
 
