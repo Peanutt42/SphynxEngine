@@ -18,11 +18,11 @@ void crash(std::string_view msg) {
 }
 
 int main(const int argc, const char** argv) {
-	if (argc < 1) {
-		crash("There should always be atleast one cmd arg");
-	}
-
-	std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path().parent_path());
+	std::wstring filepathStr;
+	filepathStr.resize(MAX_PATH);
+	GetModuleFileNameW(nullptr, filepathStr.data(), (DWORD)filepathStr.size());
+	std::filesystem::path filepath = filepathStr;
+	std::filesystem::current_path(filepath.parent_path().parent_path().parent_path().parent_path());
 
 	if (argc != 2) {
 		crash("Usage: [process_id]");

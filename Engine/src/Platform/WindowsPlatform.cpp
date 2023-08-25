@@ -18,6 +18,19 @@ namespace Sphynx {
 	}
 
 
+	bool Platform::ConsoleSupportsColor() {
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (hOut == INVALID_HANDLE_VALUE)
+			return false;
+		
+		DWORD consoleMode;
+		if (!GetConsoleMode(hOut, &consoleMode))
+			return false;
+
+		return consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+	}
+
+
 	void Platform::SetWorkingDirToExe() {
 		std::wstring filepathStr;
 		filepathStr.resize(MAX_PATH);

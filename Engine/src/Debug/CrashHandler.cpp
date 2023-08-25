@@ -128,7 +128,7 @@ namespace Sphynx {
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
-		YAMLSerializer::SaveFile("Programs/CrashReporter/CrashReport.txt", out);
+		YAMLSerializer::SaveFile("Logs/CrashReport.txt", out);
 
 		std::cout << "Press any key to exit program, which will launch the crash reporter\n";
 

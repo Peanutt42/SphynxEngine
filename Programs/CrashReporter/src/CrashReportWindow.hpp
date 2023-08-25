@@ -3,6 +3,7 @@
 #include <yaml-cpp/yaml.h>
 #include "../../../Engine/src/Debug/StackTrace.hpp"
 #include <filesystem>
+#include <fstream>
 #include <iostream>
 #include <imgui.h>
 
@@ -26,13 +27,13 @@ namespace Sphynx {
 	class CrashReporterWindow {
 	public:
 		CrashReporterWindow() {
-			if (!std::filesystem::exists("CrashReport.txt")) {
-				std::cout << "Couldn't find CrashReport.txt!\n";
+			if (!std::filesystem::exists("Logs/CrashReport.txt")) {
+				std::cout << "Couldn't find Logs/CrashReport.txt!\n";
 				return;
 			}
 			
 			try {
-				YAML::Node data = YAML::LoadFile("CrashReport.txt");
+				YAML::Node data = YAML::LoadFile("Logs/CrashReport.txt");
 				m_CrashData.SystemInfo.OS = data["OS"].as<std::string>();
 				m_CrashData.SystemInfo.Architecture = data["Archetecture"].as<std::string>();
 				auto crashNode = data["Crash"];
@@ -73,6 +74,21 @@ namespace Sphynx {
 			}
 			catch (const std::exception& e) {
 				std::cout << "Failed to parse crash data! " << e.what() << '\n';
+			}
+
+
+			if (!std::filesystem::exists("Logs/Engine.log")) {
+				std::cout << "Couldn't find Logs/Engine.log!\n";
+				return;
+			}
+			else {
+				std::ifstream logFile("Logs/Engine.log");
+				if (logFile.is_open()) {
+					std::stringstream ss;
+					ss << logFile.rdbuf();
+					m_LogFileContent = ss.str();
+					m_CouldOpenLogFile = true;
+				}
 			}
 		}
 		
@@ -142,11 +158,26 @@ namespace Sphynx {
 			else {
 				if (ImGui::BeginPopupModal("Failed to open the crash data")) {
 					ImGui::TextUnformatted("Couldn't open crash data,\n"
-						"it should have been in Programs/CrashReporter/CrashReport.txt!");
+						"it should have been in Logs/CrashReport.txt!");
 
 					ImGui::EndPopup();
 				}
 				ImGui::OpenPopup("Failed to open the crash data");
+			}
+
+			if (m_CouldOpenLogFile) {
+				ImGui::TextUnformatted("Log File:");
+				ImGui::BeginChild("log file content", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar);
+				ImGui::TextUnformatted(m_LogFileContent.c_str());
+				ImGui::EndChild();
+			}
+			else {
+				if (ImGui::BeginPopupModal("Failed to open log file")) {
+					ImGui::TextUnformatted("Couldn't open log file,\n"
+											"see Logs/Engine.log!");
+					ImGui::EndPopup();
+				}
+				ImGui::OpenPopup("Failed to open log file");
 			}
 			
 			ImGui::End();
@@ -155,5 +186,7 @@ namespace Sphynx {
 	private:
 		CrashData m_CrashData;
 		bool m_CouldOpenCrashData = false;
+		std::string m_LogFileContent;
+		bool m_CouldOpenLogFile = false;
 	};
 }

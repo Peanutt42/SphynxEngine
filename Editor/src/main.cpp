@@ -48,7 +48,7 @@ int GuardedMain(int argc, const char** argv) {
 	};
 
 	Sphynx::Engine::Init(initInfo);
-	
+
 	while (!Sphynx::Engine::ShouldClose()) {
 		Sphynx::Engine::Update();
 	}
