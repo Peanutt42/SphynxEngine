@@ -10,6 +10,8 @@ namespace Sphynx {
 	public:
 		static bool IsDebuggerAttached();
 
+		static bool ConsoleSupportsColor();
+
 		static void SetWorkingDirToExe();
 
 		// context argument is only windows specific and not needed when not inside crash handeling

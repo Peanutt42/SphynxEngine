@@ -15,6 +15,38 @@ namespace Sphynx {
 		}
 	}
 
+	const char* Logging::CategoryToString(Category category) {
+		switch (category) {
+		default:
+		case Category::General:			return "[General]        ";
+		case Category::Game:			return "[Game]           ";
+		case Category::Editor:			return "[Editor]         ";
+		case Category::Runtime:			return "[Runtime]        ";
+		case Category::Audio:			return "[Audio]          ";
+		case Category::AssetManagment:	return "[Assets]         ";
+		case Category::Serialization:	return "[Serialization]  ";
+		case Category::Memory:			return "[Memory]         ";
+		case Category::Networking:		return "[Networking]     ";
+		case Category::Scripting:		return "[Scripting]      ";
+		case Category::ECS:				return "[ECS]            ";
+		case Category::Physics:			return "[Physics]        ";
+		case Category::Rendering:		return "[Rendering]      ";
+		case Category::UI:				return "[UI]             ";
+		case Category::Building:		return "[Building]       ";
+		}
+	}
+
+	const char* Logging::VerbosityToString(Verbosity verbosity) {
+		switch (verbosity) {
+		default:					return "INVALID: ";
+		case Verbosity::Trace:		return "Trace:   ";
+		case Verbosity::Info:		return "Info:    ";
+		case Verbosity::Warning:	return "Warning: ";
+		case Verbosity::Error:		return "Error:   ";
+		case Verbosity::Critical:	return "Critical:";
+		}
+	}
+
 
 	void Logging::Init() {
 		SE_PROFILE_FUNCTION();
@@ -24,11 +56,14 @@ namespace Sphynx {
 
 		std::scoped_lock lock(s_Mutex);
 
+		s_ColorEnabled = Platform::ConsoleSupportsColor();
+
 		if (!std::filesystem::exists("Logs"))
 			std::filesystem::create_directory("Logs");
 
 		s_LogFile.open("Logs/Engine.log");
-		assert(s_LogFile.is_open() && "Failed to create Logfile!");
+		if (!s_LogFile.is_open())
+			CrashHandler::OnCrash("Failed to create Logfile!");
 
 		s_Initialized = true;
 	}
@@ -47,24 +82,39 @@ namespace Sphynx {
 	}
 
 	void Logging::RawLog(Verbosity verbosity, Category category, const std::string& msg) {
-		std::cout << '\033' << GetColorForVerbosity(verbosity) << CategoryToString(category) << msg << "\033[0m\n";
-
-		for (const auto& callback : s_LogCallbacks)
-			callback(verbosity, category, msg);
-
-		if (verbosity >= Verbosity::Critical)
-			Platform::MessagePrompts::Error("Sphynx Engine Error", msg);
-
 		if (!s_Initialized)
 			Init();
-
-		if (verbosity < s_Verbosity)
-			return;
 		
+		const char* categoryStr = CategoryToString(category);
+		const char* verbosityStr = VerbosityToString(verbosity);
+
 		std::scoped_lock lock(s_Mutex);
-		s_LogFile << msg << '\n';
+		if (verbosity != Verbosity::Trace) {
+			if (s_ColorEnabled)
+				std::cout << '\033' << GetColorForVerbosity(verbosity);
+
+			std::cout << categoryStr << msg;
+
+			if (s_ColorEnabled)
+				std::cout << "\033[0m\n";
+			else
+				std::cout << '\n';
+
+			for (const auto& callback : s_LogCallbacks)
+				callback(verbosity, category, msg);
+		}
+
+		if (verbosity == Verbosity::Critical)
+			Platform::MessagePrompts::Error("Sphynx Engine Error", msg);
+
+		std::time_t time = std::time(nullptr);
+		std::tm tm;
+		localtime_s(&tm, &time);
+
+		std::string loggedMsg = std::format("{}:{}:{}: {} {} {}", tm.tm_hour, tm.tm_min, tm.tm_sec, verbosityStr, categoryStr, msg);
+		s_LogFile << loggedMsg << '\n';
 
 		if (verbosity >= Verbosity::Error)
-			s_ErrorMessageStack.push_back(msg);
+			s_ErrorMessageStack.push_back(loggedMsg);
 	}
 }

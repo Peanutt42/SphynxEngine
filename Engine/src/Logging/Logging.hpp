@@ -24,7 +24,7 @@ namespace Sphynx {
 			UI,
 			Building
 		};
-		constexpr static const char* CategoryToString(Logging::Category category);
+		static const char* CategoryToString(Category category);
 
 		enum class Verbosity {
 			Trace,
@@ -33,6 +33,7 @@ namespace Sphynx {
 			Error,
 			Critical
 		};
+		static const char* VerbosityToString(Verbosity verbosity);
 
 		static void Init();
 		static void Shutdown();
@@ -40,9 +41,6 @@ namespace Sphynx {
 		static void RegisterOnLogCallback(const std::function<void(Verbosity, Category, const std::string&)>& callback) {
 			s_LogCallbacks.push_back(callback);
 		}
-
-
-		static void RawLog(Verbosity verbosity, Category category, const std::string& msg);
 
 		template<typename... Args>
 		static std::string Log(Verbosity verbosity, Category category, std::format_string<Args...> msg, Args&&... args) {
@@ -82,40 +80,22 @@ namespace Sphynx {
 
 		static const std::vector<std::string>& GetErrorList() { return s_ErrorMessageStack; }
 
+
+	private:
+		static void RawLog(Verbosity verbosity, Category category, const std::string& msg);
+
 	private:
 		inline static bool s_Initialized = false;
 		inline static std::mutex s_Mutex;
+		inline static bool s_ColorEnabled = false;
 		
 		inline static std::vector<std::string> s_ErrorMessageStack;
-	
-		inline static Verbosity s_Verbosity = Verbosity::Info;
 
 		inline static std::vector<std::function<void(Verbosity, Category, const std::string&)>> s_LogCallbacks;
 
 		inline static std::ofstream s_LogFile;
 	};
-
-	constexpr const char* Logging::CategoryToString(Logging::Category category) {
-		switch (category) {
-		default:
-		case Logging::Category::General:		return "[General]        ";
-		case Logging::Category::Game:			return "[Game]           ";
-		case Logging::Category::Editor:			return "[Editor]         ";
-		case Logging::Category::Runtime:		return "[Runtime]        ";
-		case Logging::Category::Audio:			return "[Audio]          ";
-		case Logging::Category::AssetManagment:	return "[Assets]         ";
-		case Logging::Category::Serialization:	return "[Serialization]  ";
-		case Logging::Category::Memory:			return "[Memory]         ";
-		case Logging::Category::Networking:		return "[Networking]     ";
-		case Logging::Category::Scripting:		return "[Scripting]      ";
-		case Logging::Category::ECS:			return "[ECS]            ";
-		case Logging::Category::Physics:		return "[Physics]        ";
-		case Logging::Category::Rendering:		return "[Rendering]      ";
-		case Logging::Category::UI:				return "[UI]             ";
-		case Logging::Category::Building:		return "[Building]       ";
-		}
-	}
-
+		
 
 #if defined(DEBUG) || defined(RELEASE)
 
