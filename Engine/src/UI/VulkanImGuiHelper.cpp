@@ -235,17 +235,23 @@ namespace Sphynx::UI {
 			const ImU32 buttonColN = ColorWithMultipliedValue(Themes::Default::text, 0.9f);
 			const ImU32 buttonColH = ColorWithMultipliedValue(Themes::Default::text, 1.2f);
 			const ImU32 buttonColP = Themes::Default::textDarker;
+			ImColor backgroundH = Themes::Default::textDarker;
 			const ImVec2 buttonSize{ buttonWidth, buttonHeight };
 			constexpr float iconSize = 12.f;
 			const float iconPaddingWidth = (buttonWidth - iconSize) / 2;
 			const float iconPaddingHeight = (buttonHeight - iconSize) / 2;
+			const float backgroundAnimationDelta = Engine::DeltaTime() / .1f;
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonWidth * 3 - 2.f, windowPadding.y + 2.f));
 			if (ImGui::InvisibleButton("Minimize", buttonSize))
 				Rendering::VulkanContext::Window->Minimize();
 			if (ImGui::IsItemHovered())
-				ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Themes::Default::textDarker);
-
+				m_MinimizeOpacity = std::clamp(m_MinimizeOpacity + backgroundAnimationDelta, 0.f, 1.f);
+			else
+				m_MinimizeOpacity = std::clamp(m_MinimizeOpacity - backgroundAnimationDelta, 0.f, 1.f);
+			backgroundH.Value.w = m_MinimizeOpacity; 
+			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), backgroundH);
+			
 			const float padY = (buttonHeight - (float)m_MinimizeIcon->GetHeight()) / 2.0f;
 			UI::DrawButtonImage(*m_MinimizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -(buttonWidth - iconSize) / 2, -padY));
 
@@ -258,14 +264,22 @@ namespace Sphynx::UI {
 					Rendering::VulkanContext::Window->Maximize();
 			}
 			if (ImGui::IsItemHovered())
-				ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), Themes::Default::textDarker);
+				m_MaximizeOpacity = std::clamp(m_MaximizeOpacity + backgroundAnimationDelta, 0.f, 1.f);
+			else
+				m_MaximizeOpacity = std::clamp(m_MaximizeOpacity - backgroundAnimationDelta, 0.f, 1.f);
+			backgroundH.Value.w = m_MaximizeOpacity;
+			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), backgroundH);
 			UI::DrawButtonImage(isMaximized ? *m_RestoreIcon : *m_MaximizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonWidth * 1 - 2.f, windowPadding.y + 2.f));
 			if (ImGui::InvisibleButton("Close", buttonSize))
 				Engine::CloseNextFrame();
 			if (ImGui::IsItemHovered())
-				ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), IM_COL32(255, 0, 0, 255));
+				m_CloseOpacity = std::clamp(m_CloseOpacity + backgroundAnimationDelta, 0.f, 1.f);
+			else
+				m_CloseOpacity = std::clamp(m_CloseOpacity - backgroundAnimationDelta, 0.f, 1.f);
+			backgroundH = { 1.f, 0.f, 0.f, m_CloseOpacity };
+			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), backgroundH);
 			UI::DrawButtonImage(*m_CloseIcon, Themes::Default::text, ColorWithMultipliedValue(Themes::Default::text, 1.4f), buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
 
 			ImGui::EndHorizontal();
