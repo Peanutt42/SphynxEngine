@@ -3,6 +3,8 @@
 #include "EditorWindow.hpp"
 #include "HierarchyWindow.hpp"
 
+#include "Physics/PhysicsComponents.hpp"
+
 namespace Sphynx::Editor {
 	class PropertyWindow : public EditorWindow {
 	public:
@@ -21,10 +23,53 @@ namespace Sphynx::Editor {
 			if (BeginComponent<ECS::TransformComponent>("Transform", scene, entity)) {
 				ECS::TransformComponent* transform = scene.GetComponent<ECS::TransformComponent>(entity);
 				UI::Vec3("Position", transform->Position);
-				UI::Vec3("Rotation", transform->Rotation);
+				glm::vec3 rotation = glm::degrees(transform->Rotation);
+				if (UI::Vec3("Rotation", rotation))
+					transform->Rotation = glm::radians(rotation);
 				UI::Vec3("Scale", transform->Scale, 1.f);
 
 				EndComponent();
+			}
+
+			if (BeginComponent<Physics::RigidbodyComponent>("Rigidbody", scene, entity)) {
+				Physics::RigidbodyComponent* rb = scene.GetComponent<Physics::RigidbodyComponent>(entity);
+				ImGui::Checkbox("Dynamic", &rb->Dynamic);
+
+				EndComponent();
+			}
+			if (BeginComponent<Physics::BoxCollider>("BoxCollider", scene, entity)) {
+				Physics::BoxCollider* box = scene.GetComponent<Physics::BoxCollider>(entity);
+				UI::Vec3("HalfExtent", box->HalfExtent, 1.f);
+
+				EndComponent();
+			}
+			if (BeginComponent<Physics::SphereCollider>("SphereCollider", scene, entity)) {
+				Physics::SphereCollider* sphere = scene.GetComponent<Physics::SphereCollider>(entity);
+				ImGui::DragFloat("Radius", &sphere->Radius);
+
+				EndComponent();
+			}
+
+
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Separator();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			ImGui::Spacing();
+			if (ImGui::Button("Add Component"))
+				ImGui::OpenPopup("AddComponent");
+
+			if (ImGui::BeginPopup("AddComponent")) {
+				if (ImGui::BeginMenu("Physics")) {
+					DisplayAddComponentEntry<Physics::RigidbodyComponent>("Rigidbody");
+					DisplayAddComponentEntry<Physics::BoxCollider>("BoxCollider");
+					DisplayAddComponentEntry<Physics::SphereCollider>("SphereCollider");
+
+					ImGui::EndMenu();
+				}
+
+				ImGui::EndPopup();
 			}
 		}
 
@@ -34,7 +79,7 @@ namespace Sphynx::Editor {
 			if (!scene.HasComponent<T>(entity))
 				return false;
 
-			const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
+			const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding | ImGuiTreeNodeFlags_DefaultOpen;
 
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 
@@ -44,21 +89,27 @@ namespace Sphynx::Editor {
 			ImGui::PopStyleVar();
 			
 			
-			//ImGui::SameLine(contentRegionAvailable.x - lineHeight / 1.25f);
+			float lineHeight = ImGui::GetFont()->FontSize;
+			ImGui::SameLine(contentRegionAvailable.x - lineHeight / 1.25f);
 			//ImGui::PushFont(Fonts::Get(Fonts::Type::ExtraBold));
-			//float lineHeight = ImGui::GetFont()->FontSize;
-			//if (UI::ImageButton(EditorApplication::IconLibary().GetIconTexture(Icon::OptionsIcon), ImVec2{ lineHeight, lineHeight }))
-			//	ImGui::OpenPopup("ComponentSettings");
-
+			if (ImGui::Button("Settings", ImVec2{ lineHeight, lineHeight }))//if (UI::ImageButton(EditorApplication::IconLibary().GetIconTexture(Icon::OptionsIcon), ImVec2{ lineHeight, lineHeight }))
+				ImGui::OpenPopup("ComponentSettings");
 			//ImGui::PopFont();
 
+
 			if (ImGui::BeginPopup("ComponentSettings")) {
+				bool removedComponent = false;
 				if (ImGui::MenuItem("Remove component")) {
 					EditorApplication::SetSceneDirty(true);
 					scene.RemoveComponent<T>(entity);
+					removedComponent = true;
 				}
 
 				ImGui::EndPopup();
+				if (removedComponent) {
+					EndComponent();
+					return false;
+				}
 			}
 
 			return open;
@@ -66,6 +117,20 @@ namespace Sphynx::Editor {
 
 		void EndComponent() {
 			ImGui::TreePop();
+		}
+
+		template<typename T, typename... Args>
+		bool DisplayAddComponentEntry(const std::string_view entryName, Args&&... args) {
+			Scene& scene = EditorApplication::GetCurrentScene();
+			if (!scene.HasComponent<T>(HierarchyWindow::s_SelectedEntity)) {
+				if (ImGui::MenuItem(entryName.data())) {
+					scene.AddComponent<T>(HierarchyWindow::s_SelectedEntity, T(std::forward<Args>(args)...));
+					EditorApplication::SetSceneDirty(true);
+					ImGui::CloseCurrentPopup();
+					return true;
+				}
+			}
+			return false;
 		}
 	};
 }

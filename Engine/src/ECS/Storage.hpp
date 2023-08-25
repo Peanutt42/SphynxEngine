@@ -63,6 +63,7 @@ namespace Sphynx::ECS {
 
 			m_ComponentIndexes[entity] = index;
 			void* componentPtr = &m_Data[index];
+			std::memset(componentPtr, 0, m_ElementSize);
 			m_CopyFunc(componentPtr, srcComponent);
 			return componentPtr;
 		}

@@ -27,11 +27,13 @@ project "Engine"
 		"%{IncludeDirs.glfw}",
 		"%{IncludeDirs.Vulkan}",
 		"%{IncludeDirs.Tracy}",
-		"%{IncludeDirs.imgui}"
+		"%{IncludeDirs.imgui}",
+		"%{IncludeDirs.bullet}"
 	}
 
 	libdirs {
-		"%{LibaryDirs.Vulkan}"
+		"%{LibaryDirs.Vulkan}",
+		"%{LibaryDirs.bullet}"
 	}
 
 	links {
@@ -39,7 +41,10 @@ project "Engine"
 		"stb_image",
 		"imgui",
 		"glfw",
-		"%{Libaries.Vulkan}"
+		"%{Libaries.Vulkan}",
+		"%{Libaries.bullet_collision}",
+		"%{Libaries.bullet_dynamics}",
+		"%{Libaries.bullet_math}"
 	}
 
 	defines {

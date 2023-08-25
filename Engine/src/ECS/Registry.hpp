@@ -153,10 +153,13 @@ namespace Sphynx::ECS {
 					bool hasAllIncluded = true;
 					for (const auto& [realIndex, storage] : storages) {
 						if constexpr (needsComponents) {
-							if (!storage->TryGet(entity, &components[realIndex])) {
+							void* componentPtr = storage->TryGetRaw(entity);
+							if (!componentPtr) {
 								hasAllIncluded = false;
 								break;
 							}
+							else
+								components[realIndex] = componentPtr;
 						}
 						else {
 							if (!storage->Has(entity)) {
