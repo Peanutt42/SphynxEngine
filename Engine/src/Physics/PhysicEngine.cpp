@@ -58,26 +58,24 @@ namespace Sphynx::Physics {
 		}
 		
 		// update the physic world
-		auto updatePhysicWorldView = scene.View<ECS::TransformComponent, RigidbodyComponent>();
-		updatePhysicWorldView.ForEach([&](ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
+		for (auto [entity, transform, rb] : scene.View<ECS::TransformComponent, RigidbodyComponent>()) {
 			if (rb.Body)
 				_UpdateRigidbody(scene, entity, transform, rb);
-		});
+		}
+
 		
 		// Add newly added RigidbodyComponent
-		auto addRigidbodiesView = scene.View<ECS::TransformComponent, RigidbodyComponent>();
-		addRigidbodiesView.ForEach([&](ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
+		for (auto [entity, transform, rb] : scene.View<ECS::TransformComponent, RigidbodyComponent>()) {
 			if (!rb.Body)
 				_CreateRigidbody(scene, entity, transform, rb);
-		});
+		}
 
 		m_DynamicsWorld->stepSimulation(Engine::DeltaTime(), 4);
 
 		// Sync from the physic world
-		auto syncRigidbodyView = scene.View<ECS::TransformComponent, RigidbodyComponent>();
-		syncRigidbodyView.ForEach([&](ECS::EntityId entity, ECS::TransformComponent& transform, const RigidbodyComponent& rb) {
+		for (auto[entity, transform, rb] : scene.View<ECS::TransformComponent, RigidbodyComponent>()) {
 			_SyncRigidbody(transform, rb);
-		});
+		}
 	}
 
 	void PhysicEngine::_CreateRigidbody(Scene& scene, ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {

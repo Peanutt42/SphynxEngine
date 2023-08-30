@@ -135,13 +135,13 @@ namespace Sphynx::ECS {
 			return m_Data.size() / m_ElementSize;
 		}
 
-
+		template<typename T>
 		struct Iterator {
 			Iterator(Storage& storage, EntityId entity) : m_Storage(storage), m_Entity(entity) {
 				FindNext();
 			}
 
-			void* operator*() { return m_Current; }
+			std::pair<EntityId, T&> operator*() { return { m_Entity, *m_Component }; }
 
 			Iterator& operator++() {
 				++m_Entity;
@@ -156,7 +156,7 @@ namespace Sphynx::ECS {
 				while (m_Entity < (EntityId)m_Storage.m_ComponentIndexes.size()) {
 					const ComponentIndex index = m_Storage.m_ComponentIndexes[m_Entity];
 					if (index != InvalidComponentIndex) {
-						m_Current = &m_Storage.m_Data[index];
+						m_Component = (T*)&m_Storage.m_Data[index];
 						break;
 					}
 					m_Entity++;
@@ -166,10 +166,12 @@ namespace Sphynx::ECS {
 		private:
 			Storage& m_Storage;
 			EntityId m_Entity;
-			void* m_Current = nullptr;
+			T* m_Component = nullptr;
 		};
-		Iterator begin() { return Iterator{ *this, 0 }; }
-		Iterator end() { return Iterator{ *this, (EntityId)m_ComponentIndexes.size() }; }
+		template<typename T>
+		Iterator<T> BeginTIterator() { return Iterator<T>{ *this, 0 }; }
+		template<typename T>
+		Iterator<T> EndTIterator() { return Iterator<T>{ *this, (EntityId)m_ComponentIndexes.size() }; }
 
 	private:
 		size_t m_ElementSize = 0;

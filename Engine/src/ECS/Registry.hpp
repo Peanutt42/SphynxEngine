@@ -128,30 +128,30 @@ namespace Sphynx::ECS {
 
 		template<typename T, typename... Rest>
 		struct BasicView {
-			BasicView(Registry& registry) : m_Registry(registry) {	}
+			BasicView(Registry& registry) : m_Registry(registry)
+			{
+				m_Storages[0] = { 0, &m_Registry.CreateStorage<T>() };
+
+				int i = 1;
+				([this, &i]() {
+					m_Storages[i] = { i, &m_Registry.CreateStorage<Rest>() };
+					++i;
+				}(), ...);
+
+				std::ranges::sort(m_Storages, [](const auto& left, const auto& right) {
+					return left.second->Size() > right.second->Size();
+				});
+			}
 
 			template<typename Callback>
 			void ForEach(const Callback& callback) {
-				std::array<std::pair<int, Storage*>, 1 + sizeof...(Rest)> storages{};
-				storages[0] = { 0, &m_Registry.CreateStorage<T>() };
-
-				int i = 1;
-				([this, &storages, &i]() {
-					storages[i] = { i, &m_Registry.CreateStorage<Rest>() };
-					++i;
-					}(), ...);
-
-				std::ranges::sort(storages, [](const auto& left, const auto& right) {
-					return left.second->Size() > right.second->Size();
-					});
-
 				constexpr bool needsComponents = std::is_invocable_v<Callback, EntityId, T&, Rest&...>;
 
 				for (EntityId entity = 0; entity < m_Registry.m_NextEntityId; ++entity) {
 					std::array<void*, 1 + sizeof...(Rest)> components{};
 
 					bool hasAllIncluded = true;
-					for (const auto& [realIndex, storage] : storages) {
+					for (const auto& [realIndex, storage] : m_Storages) {
 						if constexpr (needsComponents) {
 							void* componentPtr = storage->TryGetRaw(entity);
 							if (!componentPtr) {
@@ -180,8 +180,61 @@ namespace Sphynx::ECS {
 				}
 			}
 
+			struct Iterator {
+				Iterator(const BasicView& view, EntityId entity)
+					: m_Registry(view.m_Registry), m_Storages(view.m_Storages), m_Entity(entity)
+				{
+					FindNext();
+				}
+
+				std::tuple<EntityId, T&, Rest&...> operator*() {
+					return GetTuple<T, Rest...>(std::index_sequence_for<T, Rest...>());
+				}
+
+				bool operator==(const Iterator& other) const { return m_Entity == other.m_Entity; }
+
+				Iterator& operator++() {
+					++m_Entity;
+					FindNext();
+					return *this;
+				}
+
+			private:
+				template<typename... Args, size_t... Indices>
+				std::tuple<EntityId, T&, Rest&...> GetTuple(std::index_sequence<Indices...>) {
+					return { m_Entity, *static_cast<typename std::tuple_element_t<Indices, std::tuple<Args...>>*>(m_Components[Indices])... };
+				}
+
+				void FindNext() {
+					while (m_Entity < m_Registry.m_NextEntityId) {
+						bool hasAllIncluded = true;
+						for (const auto& [realIndex, storage] : m_Storages) {
+							m_Components[realIndex] = storage->TryGetRaw(m_Entity);
+							if (!m_Components[realIndex]) {
+								hasAllIncluded = false;
+								break;
+							}
+						}
+						if (hasAllIncluded)
+							break;
+
+						++m_Entity;
+					}
+				}
+
+				Registry& m_Registry;
+				EntityId m_Entity = InvalidEntityId;
+				std::array<void*, 1 + sizeof...(Rest)> m_Components;
+
+				const std::array<std::pair<int, Storage*>, 1 + sizeof...(Rest)>& m_Storages;
+			};
+
+			Iterator begin() { return Iterator(*this, 0); }
+			Iterator end() { return Iterator(*this, m_Registry.m_NextEntityId); }
+
 		private:
 			Registry& m_Registry;
+			std::array<std::pair<int, Storage*>, 1 + sizeof...(Rest)> m_Storages;
 		};
 
 		template<typename T>
@@ -207,6 +260,9 @@ namespace Sphynx::ECS {
 			T& Get(const EntityId entity) {
 				return *m_Storage->Get<T>(entity);
 			}
+
+			Storage::Iterator<T> begin() { return m_Storage->BeginTIterator<T>(); }
+			Storage::Iterator<T> end() { return m_Storage->EndTIterator<T>(); }
 
 		private:
 			Registry& m_Registry;

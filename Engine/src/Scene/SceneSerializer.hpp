@@ -49,8 +49,7 @@ namespace Sphynx {
 			out << YAML::Key << "Name" << YAML::Value << scene.GetName();
 
 			out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-			auto entityView = scene.View<ECS::UUIDComponent>();
-			entityView.ForEach([&](ECS::EntityId entity) {
+			scene.ForEach([&](ECS::EntityId entity) {
 				SerializeEntity(scene, entity, out);
 			});
 			out << YAML::EndSeq;

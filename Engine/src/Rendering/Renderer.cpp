@@ -50,10 +50,9 @@ namespace Sphynx::Rendering {
 		m_RenderCommand.Camera = camera;
 
 		// TODO: actual impl.
-		auto view = scene.View<ECS::TransformComponent>();
-		view.ForEach([&](ECS::EntityId entity, const ECS::TransformComponent& transform) {
+		for (auto[entity, transform] : scene.View<ECS::TransformComponent>()) {
 			m_RenderCommand.ModelMatrices.emplace_back(transform.GetModelMatrix());
-		});
+		}
 	}
 
 	void Renderer::Begin() {
