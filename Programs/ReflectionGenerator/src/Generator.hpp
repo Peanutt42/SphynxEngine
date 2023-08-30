@@ -101,6 +101,15 @@ namespace Sphynx::Scripting {
 			outFile << "\t\t};\n";
 			outFile << "\t\treturn &s_Systems;\n";
 			outFile << "\t}\n";
+
+			// IsDebugConfiguration
+			outFile << "\t__declspec(dllexport) bool IsDebugConfiguration() {\n";
+			outFile << "#ifdef DEBUG\n";
+			outFile << "\t\treturn true;\n";
+			outFile << "#else\n";
+			outFile << "\t\treturn false;\n";
+			outFile << "#endif\n";
+			outFile << "\t}\n";
 			
 			outFile << "}\n";
 		}

@@ -34,6 +34,11 @@ project "TestProject"
 	targetdir("../Binaries")
 	objdir("../Binaries/Intermediates")
 
+	filter { "configurations:Dist" }
+	targetdir("../Binaries/Dist")
+	objdir("../Binaries/Dist/Intermediates")
+	filter {}
+
 	files {
 		"**.h",
 		"**.hpp",

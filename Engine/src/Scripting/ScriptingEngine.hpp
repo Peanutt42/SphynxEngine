@@ -20,6 +20,8 @@ namespace Sphynx::Scripting {
 		using GetConfigsFunc = std::vector<ConfigReflectionInfo>*(*)();
 		using GetSystemsFunc = std::vector<SystemReflectionInfo>*(*)();
 
+		using IsDebugConfigurationFunc = bool(*)();
+
 	private:
 		std::unique_ptr<Platform::DynamicLinkLibary> m_Module;
 		std::vector<ComponentReflectionInfo>* m_Components = nullptr;

@@ -35,3 +35,6 @@ Programs/CrashReporter/bin
 
 # generated cached files
 *.cached_shader
+
+# generated reflection info
+TestProject/Source/generated/Module.cpp
