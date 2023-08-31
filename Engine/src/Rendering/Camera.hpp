@@ -2,11 +2,6 @@
 
 #include "pch.hpp"
 
-#include <glm/gtc/quaternion.hpp>
-#define GLM_ENABLE_EXPERIMENTAL
-#define GLM_FORCE_SILENT_WARNINGS
-#include <glm/gtx/quaternion.hpp>
-
 namespace Sphynx::Rendering {
 	// safe, it will return 1920 / 1080 if the original aspect was nan
 	inline static float GetAspect(float x, float y) {

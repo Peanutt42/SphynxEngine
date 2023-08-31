@@ -91,6 +91,7 @@ project "Engine"
 
 	filter { "system:windows" }
 		defines { "WINDOWS" }
+		links { "Dbghelp.lib" }
 	filter { "system:linux" }
 		defines { "LINUX" }
 	filter { "system:macosx" }

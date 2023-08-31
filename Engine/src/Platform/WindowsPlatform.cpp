@@ -10,7 +10,6 @@
 #include <shlobj.h>
 #include <Psapi.h>
 #include <DbgHelp.h>
-#pragma comment(lib, "Dbghelp.lib")
 
 namespace Sphynx {
 	bool Platform::IsDebuggerAttached() {

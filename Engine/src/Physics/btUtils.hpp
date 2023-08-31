@@ -4,7 +4,10 @@
 
 #define BT_THREADSAFE 1
 #define BT_USE_DOUBLE_PRECISION
+#pragma warning (push)
+#pragma warning (disable: 4127) // expression could be constexpr
 #include "btBulletDynamicsCommon.h"
+#pragma warning (pop)
 
 namespace Sphynx::Physics {
 	glm::vec3 FromBtVec3(const btVector3& btVec3) {
