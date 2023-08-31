@@ -38,20 +38,17 @@ namespace Sphynx::ECS {
 			if (!IsValid(entity))
 				return false;
 
-			bool removeSuccessful = true;
-			for (auto& [id, storage] : m_Storages) {
-				if (!storage.Remove(entity))
-					removeSuccessful = false;
-			}
+			for (auto& [id, storage] : m_Storages)
+				storage.Remove(entity);
+			
 			m_AliveMap[entity] = false;
-			return removeSuccessful;
+			return true;
 		}
 
 		EntityId Dublicate(const EntityId entity) {
 			const EntityId dublicate = Create();
 			for (auto& [componentId, storage] : m_Storages) {
-				void* srcComponent = storage.GetRaw(entity);
-				if (srcComponent)
+				if (void* srcComponent = storage.GetRaw(entity))
 					storage.AddRaw(dublicate, srcComponent);
 			}
 			return dublicate;
@@ -71,11 +68,10 @@ namespace Sphynx::ECS {
 			if (!IsValid(entity))
 				return false;
 
-			const Storage* storage = FindStorage<T>();
-			if (!storage)
-				return false;
+			if (const Storage* storage = FindStorage<T>())
+				return storage->Has(entity);
 
-			return storage->Has(entity);
+			return false;
 		}
 
 		template<typename T>
@@ -83,11 +79,10 @@ namespace Sphynx::ECS {
 			if (!IsValid(entity))
 				return nullptr;
 
-			Storage* storage = FindStorage<T>();
-			if (!storage)
-				return nullptr;
+			if (Storage* storage = FindStorage<T>())
+				return storage->Get<T>(entity);
 
-			return storage->Get<T>(entity);
+			return nullptr;
 		}
 
 		template<typename T>
@@ -95,11 +90,10 @@ namespace Sphynx::ECS {
 			if (!IsValid(entity))
 				return false;
 
-			Storage* storage = FindStorage<T>();
-			if (!storage)
-				return false;
+			if (Storage* storage = FindStorage<T>())
+				storage->Remove(entity);
 
-			return storage->Remove(entity);
+			return false;
 		}
 
 		template<typename T>
@@ -112,7 +106,8 @@ namespace Sphynx::ECS {
 			return entity < m_NextEntityId && m_AliveMap[entity];
 		}
 
-		template<typename Callback>
+		template<typename Callback,
+				 typename = std::enable_if_t<std::is_invocable_v<Callback, EntityId>>>
 		void ForEach(const Callback& callback) {
 			for (EntityId entity = 0; entity < m_NextEntityId; ++entity) {
 				if (IsValid(entity))
@@ -143,7 +138,12 @@ namespace Sphynx::ECS {
 				});
 			}
 
-			template<typename Callback>
+			template<typename Callback,
+				typename = std::enable_if_t<
+				std::is_invocable_v<Callback, EntityId, T&, Rest&...> ||
+				std::is_invocable_v<Callback, EntityId>
+				>
+			>
 			void ForEach(const Callback& callback) {
 				constexpr bool needsComponents = std::is_invocable_v<Callback, EntityId, T&, Rest&...>;
 
@@ -243,7 +243,13 @@ namespace Sphynx::ECS {
 				m_Storage = &m_Registry.CreateStorage<T>();
 			}
 
-			template<typename Callback>
+			template<
+				typename Callback,
+				typename = std::enable_if_t<
+					std::is_invocable_v<Callback, EntityId, T&> ||
+					std::is_invocable_v<Callback, EntityId>
+				>
+			>
 			void ForEach(const Callback& callback) {
 				for (EntityId entity = 0; entity < m_Registry.m_NextEntityId; ++entity) {
 					if constexpr (std::is_invocable_v<Callback, EntityId, T&>) {
