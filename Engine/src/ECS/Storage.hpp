@@ -1,7 +1,6 @@
 #pragma once
 
-#include <vector>
-
+#include "pch.hpp"
 #include "EntityId.hpp"
 
 namespace Sphynx::ECS {
@@ -54,12 +53,12 @@ namespace Sphynx::ECS {
 				return GetRaw(entity);
 
 			if (entity >= m_ComponentIndexes.size())
-				m_ComponentIndexes.resize((size_t)entity + 1, InvalidComponentIndex);
+				m_ComponentIndexes.resize(((size_t)entity + 1) * 2, InvalidComponentIndex);
 
 			ComponentIndex index = m_NextComponentIndex;
 			m_NextComponentIndex += (ComponentIndex)m_ElementSize;
 			if (m_Data.size() < m_NextComponentIndex)
-				m_Data.resize(m_NextComponentIndex, 0);
+				m_Data.resize(m_NextComponentIndex * 2, 0);
 
 			m_ComponentIndexes[entity] = index;
 			void* componentPtr = &m_Data[index];
