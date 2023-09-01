@@ -37,10 +37,9 @@ namespace Sphynx {
 				s_ImGuiHelper = new UI::VulkanImGuiHelper();
 		}
 
-		s_UpdateTimer.Reset();
-
-
 		s_Application->OnCreate();
+
+		s_UpdateTimer.Reset();
 	}
 
 	void Engine::Shutdown() {
@@ -97,7 +96,7 @@ namespace Sphynx {
 			s_Window->Update();
 		}
 
-		if (s_Settings.MaxFPS > 0.f) {
+		if (s_Settings.MaxFPS > 0) {
 			float updateTime = s_UpdateTimer.ElapsedSeconds();
 			float timeLeft = (1.f / s_Settings.MaxFPS) - updateTime;
 			if (timeLeft > 0.f) {

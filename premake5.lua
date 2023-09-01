@@ -1,7 +1,7 @@
 outputdir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 EngineDir = "%{wks.location}/"
 
-include "dependencies.lua"
+include "vendor/dependencies.lua"
 
 workspace "SphynxEngine"
     architecture "x64"

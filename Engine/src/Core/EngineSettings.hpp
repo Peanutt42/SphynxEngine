@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreInclude.hpp"
-#include "ConsoleArguments.hpp"
 #include "Application.hpp"
 #include "ProjectSystem/Project.hpp"
 #include "Serialization/YAMLSerializer.hpp"
@@ -13,11 +12,20 @@ namespace Sphynx {
 		std::string WindowName;
 		bool Fullscreen = false;
 		bool CustomWindowControls = true;
-		float MaxFPS = -1.f;
+		int MaxFPS = 0;
 
-		void ParseArguments(const ConsoleArguments& arguments) {
-			if (arguments.HasArgument("-headless"))
-				Headless = true;
+		void ParseArguments(int argc, const char** argv) {
+			for (int i = 1; i < argc; i++) {
+				std::string_view arg(argv[i]);
+
+				if (arg == "-headless")
+					Headless = true;
+
+				if (arg.starts_with("-maxfps=")) {
+					if (auto result = StringToNumber<int>(arg.substr(std::size("-maxfps=") - 1)))
+						MaxFPS = *result;
+				}
+			}
 		}
 
 		void ParseConfigFile(const std::filesystem::path& filepath) {
@@ -25,7 +33,7 @@ namespace Sphynx {
 
 			YAML::Node data;
 			if (YAMLSerializer::LoadFile(filepathStr, data)) {
-				MaxFPS = data["MaxFPS"].as<float>();
+				MaxFPS = data["MaxFPS"].as<int>();
 			}
 		}
 	};

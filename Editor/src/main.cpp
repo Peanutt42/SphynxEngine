@@ -14,15 +14,11 @@ int GuardedMain(int argc, const char** argv) {
 	if (argc >= 2)
 		projectFilepath = argv[1];
 	
-	while (true) {
+	if (!std::filesystem::exists(projectFilepath))
 		projectFilepath = Sphynx::Platform::FileDialogs::OpenFile("Sphynx Engine Project", "*.seproj");
-		if (std::filesystem::exists(projectFilepath))
-			break;
+	if (!std::filesystem::exists(projectFilepath))
+		return 0;
 
-		bool answer = Sphynx::Platform::MessagePrompts::YesNo("Open Project", "Do you want to try again?");
-		if (answer == false)
-			return 0;
-	}
 	
 	// Load project
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
@@ -31,11 +27,10 @@ int GuardedMain(int argc, const char** argv) {
 		return 0;
 	}
 
-	Sphynx::ConsoleArguments arguments(argc, argv);
 
 	Sphynx::EngineSettings engineSettings;
 	engineSettings.ParseConfigFile(project->EngineConfigFilepath);
-	engineSettings.ParseArguments(arguments);
+	engineSettings.ParseArguments(argc, argv);
 	engineSettings.Headless = false; // forced
 	engineSettings.WindowName = "Sphynx Engine Editor";
 	engineSettings.Fullscreen = false;
