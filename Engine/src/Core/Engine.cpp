@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Engine.hpp"
+#include "CommandHandler.hpp"
 
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
@@ -26,7 +27,13 @@ namespace Sphynx {
 
 		s_ScriptingEngine = new Scripting::ScriptingEngine();
 
-		if (!s_Settings.Headless) {
+		if (s_Settings.Headless) {
+			ConsoleInput::Init();
+			ConsoleInput::SetInputCallback([](const std::string& command) {
+				CommandHandler::QueueCommand(command);
+			});
+		}
+		else {
 			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen, s_Settings.CustomWindowControls);
 
 			Input::Init(s_Window->GetGLFWHandle());
@@ -55,7 +62,9 @@ namespace Sphynx {
 
 		delete s_PhysicEngine;
 
-		if (!s_Settings.Headless) {
+		if (s_Settings.Headless)
+			ConsoleInput::Shutdown();
+		else {
 			if (s_Settings.ImGuiEnabled)
 				delete s_ImGuiHelper;
 
@@ -73,6 +82,8 @@ namespace Sphynx {
 
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
 		s_UpdateTimer.Reset();
+
+		CommandHandler::Update();
 
 		if (!s_Settings.Headless)
 			Input::Update();

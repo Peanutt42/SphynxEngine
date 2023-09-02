@@ -47,4 +47,21 @@ namespace Sphynx {
 		inline static std::array<bool, MOUSEBUTTON_COUNT> s_MouseButtonStates;
 		inline static std::array<bool, MOUSEBUTTON_COUNT> s_MouseButtonStateChanged;
 	};
+
+	class SE_API ConsoleInput {
+	public:
+		static void Init();
+
+		static void Shutdown();
+
+		using InputCallback = std::function<void(const std::string&)>;
+
+		static void SetInputCallback(const InputCallback& callback) {
+			s_InputCallback = callback;
+		}
+
+	private:
+		inline static std::thread s_InputThread;
+		inline static InputCallback s_InputCallback;
+	};
 }
