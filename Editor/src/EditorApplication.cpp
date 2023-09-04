@@ -48,7 +48,7 @@ namespace Sphynx::Editor {
 		// TODO: Do this also in code reloading (copy old, create new from updated systems
 		//		 and set old settings to new map while keeping new systems active by default
 		for (const auto& system : Engine::Scripting().GetSystems())
-			m_GameECSSystemActiveMap[system.FullName] = true;
+			m_GameECSSystems[system.FullName].Active = true;
 	}
 
 	void EditorApplication::OnDestroy() {
@@ -144,9 +144,10 @@ namespace Sphynx::Editor {
 		Engine::Physics().Update(*m_GameScene);
 
 		// Update ECS-Systems
+		Timer totalECSSystemTimer;
 		const std::vector<Scripting::SystemReflectionInfo>& systems = Engine::Scripting().GetSystems();
-		for (const auto& [name, active] : m_GameECSSystemActiveMap) {
-			if (!active)
+		for (auto& [name, systemInfo] : m_GameECSSystems) {
+			if (!systemInfo.Active)
 				continue;
 
 			auto findSystem = std::ranges::find_if(systems, [name](const auto& info) { return info.FullName == name; });
@@ -154,14 +155,29 @@ namespace Sphynx::Editor {
 				SE_WARN(Logging::Scripting, "Can't find systems '{}'", name);
 			}
 			else {
+				Timer timer;
 				findSystem->Update(m_GameScene.get());
+				systemInfo.LastDeltatime = timer.ElapsedSeconds();
 			}
 		}
+		m_GameTotalECSSystemDeltaTime = totalECSSystemTimer.ElapsedSeconds();
 	}
 
 	void EditorApplication::OnRuntimeStop() {
 		m_GameScene.reset();
 		m_State = EditorState::Editing;
+
+		m_GameTotalECSSystemDeltaTime = 0.f;
+		for (auto& [name, systemInfo] : m_GameECSSystems)
+			systemInfo.LastDeltatime = 0.f;
+	}
+
+	void EditorApplication::SetECSSystemActive(const std::string& name, bool active) {
+		auto& systemInfo = s_Instance->m_GameECSSystems[name];
+		systemInfo.Active = active;
+		if (!active)
+			systemInfo.LastDeltatime = 0.f;
+		
 	}
 
 

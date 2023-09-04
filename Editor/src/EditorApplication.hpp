@@ -13,6 +13,11 @@ namespace Sphynx::Editor {
 		Playing
 	};
 
+	struct ECSGameSystemInfo {
+		bool Active = true;
+		float LastDeltatime = 0.f;
+	};
+
 	class EditorApplication : public Application {
 	public:
 		EditorApplication();
@@ -34,13 +39,14 @@ namespace Sphynx::Editor {
 		static Scene& GetCurrentScene() { return s_Instance->m_State == EditorState::Editing ? GetEditingScene() : GetGameScene(); }
 		static void SetSceneDirty(bool dirty) { s_Instance->m_SceneDirty = dirty; }
 
-		static void SetECSSystemActive(const std::string& name, bool active) { s_Instance->m_GameECSSystemActiveMap[name] = active; }
-		static bool GetECSSystemActive(const std::string& name) {
-			auto find = s_Instance->m_GameECSSystemActiveMap.find(name);
-			if (find == s_Instance->m_GameECSSystemActiveMap.end())
-				return false;
-			return find->second;
+		static void SetECSSystemActive(const std::string& name, bool active);
+		static const ECSGameSystemInfo* GetECSSystem(const std::string& name) {
+			auto find = s_Instance->m_GameECSSystems.find(name);
+			if (find == s_Instance->m_GameECSSystems.end())
+				return nullptr;
+			return &find->second;
 		}
+		static float GetECSSystemDeltaTime() { return s_Instance->m_GameTotalECSSystemDeltaTime; }
 
 		static EditorState GetState() { return s_Instance->m_State; }
 		static Rendering::Camera& GetEditingCamera() { return s_Instance->m_EditingCamera; }
@@ -61,6 +67,7 @@ namespace Sphynx::Editor {
 		Rendering::Camera m_EditingCamera;
 		bool m_SceneDirty = false;
 		std::unique_ptr<Scene> m_GameScene;
-		std::unordered_map<std::string, bool> m_GameECSSystemActiveMap;
+		float m_GameTotalECSSystemDeltaTime = 0.f;
+		std::unordered_map<std::string, ECSGameSystemInfo> m_GameECSSystems;
 	};
 }
