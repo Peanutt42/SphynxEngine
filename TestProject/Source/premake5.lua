@@ -1,7 +1,7 @@
 outputdir = "%{cfg.system}-%{cfg.architecture}/%{cfg.buildcfg}"
 EngineDir = "../../"
 
-include "../../dependencies.lua"
+include "../../vendor/dependencies.lua"
 
 workspace "TestProject"
     architecture "x64"

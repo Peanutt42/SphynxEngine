@@ -1,6 +1,11 @@
 #include "pch.hpp"
 #include "Core/EntryPoint.hpp"
 #include "Core/Application.hpp"
+#include "Scene/Scene.hpp"
+#include "Scene/SceneSerializer.hpp"
+#include "Scripting/ScriptingEngine.hpp"
+#include "Rendering/Renderer.hpp"
+#include "Physics/PhysicEngine.hpp"
 
 namespace Sphynx {
 	class RuntimeApplication : public Application {
@@ -8,7 +13,11 @@ namespace Sphynx {
 
 
 		virtual void OnCreate() override {
+			m_Scene = std::make_unique<Scene>("Scene");
 
+			std::string errorMsg;
+			bool successful = SceneSerializer::Deserialize(Engine::GetProject()->StartSceneFilepath, *m_Scene, errorMsg);
+			SE_ASSERT(successful, "Failed to open scene: {}", errorMsg);
 		}
 
 		virtual void OnDestroy() override {
@@ -16,12 +25,21 @@ namespace Sphynx {
 		}
 
 		virtual void Update() override {
+			Engine::Physics().Update(*m_Scene);
 
+			for (const auto& system : Engine::Scripting().GetSystems())
+				system.Update((void*)m_Scene.get());
+
+			Engine::Renderer().SubmitScene(*m_Scene, Rendering::Camera{});
+			// TODO: Draw Quad with the scene tex
 		}
 
 		virtual void DrawUI() override {
 
 		}
+
+	private:
+		std::unique_ptr<Scene> m_Scene;
 	};
 }
 
