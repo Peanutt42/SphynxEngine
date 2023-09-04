@@ -29,6 +29,8 @@ namespace Sphynx::Editor {
 		Engine::ImGuiHelper().SetSaveFilepath("Editor/imgui.ini");
 		Engine::ImGuiHelper().SetMenubarCallback([this]() { OnDrawMenubar(); });
 
+		Engine::Renderer().SetDrawSceneTextureEnabled(false);
+
 		m_Windows.push_back(std::make_unique<LoggingOutputWindow>());
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
 		m_Windows.push_back(std::make_unique<PropertyWindow>());

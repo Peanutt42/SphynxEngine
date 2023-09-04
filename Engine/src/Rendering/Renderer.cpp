@@ -12,6 +12,14 @@ uint32_t g_DefaultFragment[] = {
 #include "../Resources/Shaders/Embedded/Default.frag.embed"
 };
 
+uint32_t g_ScreenQuadVertex[] = {
+#include "../Resources/Shaders/Embedded/ScreenQuad.vert.embed"
+};
+
+uint32_t g_ScreenQuadFragment[] = {
+#include "../Resources/Shaders/Embedded/ScreenQuad.frag.embed"
+};
+
 namespace Sphynx::Rendering {
 	Renderer::Renderer(Window& window, const std::function<void()>& resizeCallback)
 		: m_Window(window)
@@ -35,11 +43,16 @@ namespace Sphynx::Rendering {
 		m_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
 		m_DefaultShader->UploadToGPU();
 		m_DefaultShader->GetVulkanShader()->SetUniformBuffer("v_ubo", *VulkanContext::UniformBuffer);
+
+		m_ScreenQuadShader = std::make_unique<Shader>(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment));
+		m_ScreenQuadShader->UploadToGPU();
+		m_ScreenQuadShader->GetVulkanShader()->SetImageSampler("screen", VulkanContext::DefaultSampler, VulkanContext::SceneRenderpass->GetImageViews());
 	}
 
 	Renderer::~Renderer() {
 		SE_PROFILE_FUNCTION();
 
+		m_ScreenQuadShader.reset();
 		m_DefaultShader.reset();
 		m_CubeMesh.reset();
 		VulkanContext::Shutdown();
@@ -86,6 +99,11 @@ namespace Sphynx::Rendering {
 
 	void Renderer::End() {
 		SE_PROFILE_FUNCTION();
+
+		if (m_DrawSceneTexture) {
+			m_ScreenQuadShader->Bind();
+			VulkanContext::CommandBuffer.draw(6, 1, 0, 0);
+		}
 
 		VulkanContext::EndLastRenderpass();
 

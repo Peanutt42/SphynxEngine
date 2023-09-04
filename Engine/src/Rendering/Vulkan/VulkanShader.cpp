@@ -303,6 +303,27 @@ namespace Sphynx::Rendering {
         }
     }
 
+    void VulkanShader::SetImageSampler(const std::string& name, vk::Sampler sampler, const std::vector<vk::ImageView>& imageViews) {
+        std::optional<uint32> binding = _GetBinding(name);
+        if (!binding) {
+            SE_ERR(Logging::Rendering, "Failed to set image sampler, '{}' doesn't exist", name);
+            return;
+        }
+
+        for (size_t i = 0; i < m_DescriptorSets.size(); i++) {
+            vk::WriteDescriptorSet descriptorWrite{};
+            descriptorWrite.dstSet = m_DescriptorSets[i];
+            descriptorWrite.dstBinding = *binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+
+            vk::DescriptorImageInfo imageInfo{ sampler, imageViews[i], vk::ImageLayout::eShaderReadOnlyOptimal };
+            descriptorWrite.pImageInfo = &imageInfo;
+            VulkanContext::LogicalDevice.updateDescriptorSets(1, &descriptorWrite, 0, nullptr);
+        }
+    }
+
     void VulkanShader::Bind(vk::CommandBuffer commandBuffer) {
         commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_PipelineLayout, 0, 1, &m_DescriptorSets[VulkanContext::CurrentFrame], 0, nullptr);
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_Pipeline);

@@ -13,6 +13,8 @@ namespace Sphynx {
 
 
 		virtual void OnCreate() override {
+			Engine::Renderer().SetDrawSceneTextureEnabled(true);
+
 			m_Scene = std::make_unique<Scene>("Scene");
 
 			std::string errorMsg;

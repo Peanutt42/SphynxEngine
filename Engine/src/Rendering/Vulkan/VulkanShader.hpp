@@ -56,6 +56,7 @@ namespace Sphynx::Rendering {
 		~VulkanShader();
 
 		void SetUniformBuffer(const std::string& name, const VulkanUniformBuffer& uniformBuffer);
+		void SetImageSampler(const std::string& name, vk::Sampler sampler, const std::vector<vk::ImageView>& imageViews);
 
 		template<typename T>
 		void UpdateUniformBuffer(const std::string& name, const T& data) {

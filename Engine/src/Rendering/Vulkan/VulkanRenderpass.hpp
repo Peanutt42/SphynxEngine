@@ -24,6 +24,7 @@ namespace Sphynx::Rendering {
 		vk::Framebuffer GetFramebuffer(uint32 imageIndex);
 		vk::Image GetImage(uint32 imageIndex);
 		vk::ImageView GetImageView(uint32 imageIndex);
+		const std::vector<vk::ImageView>& GetImageViews() { return m_FramebufferImageViews; }
 
 		void Begin(vk::Framebuffer framebuffer, vk::CommandBuffer commandBuffer, vk::Extent2D extent);
 		void End(vk::CommandBuffer commandBuffer);
