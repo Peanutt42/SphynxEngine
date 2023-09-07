@@ -11,6 +11,7 @@
 
 #include <atomic>
 #include <mutex>
+#include <thread>
 
 #include <vector>
 #include <array>
@@ -19,7 +20,6 @@
 #include <unordered_set>
 #include <set>
 
-#include <xhash>
 #include <random>
 
 #include <cassert>

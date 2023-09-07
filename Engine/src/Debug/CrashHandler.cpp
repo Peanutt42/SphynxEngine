@@ -36,7 +36,7 @@ namespace Sphynx {
 		if (Platform::IsDebuggerAttached())
 			return;
 
-		Platform::Process::Run("Programs/CrashReporter/bin/CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
+		Platform::Process::Run("CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
 	}
 
 	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32 line, [[maybe_unused]] uintptr Reserved) {
@@ -128,7 +128,7 @@ namespace Sphynx {
 		out << YAML::EndMap;
 
 		out << YAML::EndMap;
-		YAMLSerializer::SaveFile("Logs/CrashReport.txt", out);
+		YAMLSerializer::SaveFile("CrashReport.txt", out);
 
 		std::cout << "Press any key to exit program, which will launch the crash reporter\n";
 

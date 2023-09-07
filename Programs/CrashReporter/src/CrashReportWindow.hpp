@@ -27,13 +27,13 @@ namespace Sphynx {
 	class CrashReporterWindow {
 	public:
 		CrashReporterWindow() {
-			if (!std::filesystem::exists("Logs/CrashReport.txt")) {
-				std::cout << "Couldn't find Logs/CrashReport.txt!\n";
+			if (!std::filesystem::exists("CrashReport.txt")) {
+				std::cout << "Couldn't find CrashReport.txt\n";
 				return;
 			}
-			
+
 			try {
-				YAML::Node data = YAML::LoadFile("Logs/CrashReport.txt");
+				YAML::Node data = YAML::LoadFile("CrashReport.txt");
 				m_CrashData.SystemInfo.OS = data["OS"].as<std::string>();
 				m_CrashData.SystemInfo.Architecture = data["Archetecture"].as<std::string>();
 				auto crashNode = data["Crash"];
@@ -77,12 +77,12 @@ namespace Sphynx {
 			}
 
 
-			if (!std::filesystem::exists("Logs/Engine.log")) {
-				std::cout << "Couldn't find Logs/Engine.log!\n";
+			if (!std::filesystem::exists("Engine.log")) {
+				std::cout << "Couldn't find Engine.log\n";
 				return;
 			}
 			else {
-				std::ifstream logFile("Logs/Engine.log");
+				std::ifstream logFile("Engine.log");
 				if (logFile.is_open()) {
 					std::stringstream ss;
 					ss << logFile.rdbuf();
@@ -157,8 +157,9 @@ namespace Sphynx {
 			}
 			else {
 				if (ImGui::BeginPopupModal("Failed to open the crash data")) {
-					ImGui::TextUnformatted("Couldn't open crash data,\n"
-						"it should have been in Logs/CrashReport.txt!");
+                    std::string errorMsg = "Couldn't open crash data,\n"
+                                           "it should have been in CrashReport.txt!";
+					ImGui::TextUnformatted(errorMsg.c_str());
 
 					ImGui::EndPopup();
 				}
@@ -173,8 +174,9 @@ namespace Sphynx {
 			}
 			else {
 				if (ImGui::BeginPopupModal("Failed to open log file")) {
-					ImGui::TextUnformatted("Couldn't open log file,\n"
-											"see Logs/Engine.log!");
+                    std::string errorMsg = "Couldn't open log file,\n"
+                                           "see Engine.log!";
+					ImGui::TextUnformatted(errorMsg.c_str());
 					ImGui::EndPopup();
 				}
 				ImGui::OpenPopup("Failed to open log file");

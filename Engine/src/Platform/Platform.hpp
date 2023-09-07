@@ -21,36 +21,11 @@ namespace Sphynx {
 		using ExceptionCallback = std::function<void(const std::string& reason, void* context)>;
 		static void SetExceptionCallback(const ExceptionCallback& callback);
 
-		static std::string WideToNarrow(const std::wstring& wstr) {
-			std::locale loc("");
-			std::string result(wstr.size(), 0);
-			for (size_t i = 0; i < result.size(); i++)
-				result[i] = std::use_facet<std::ctype<wchar_t>>(loc).narrow(wstr[i]);
-			return result;
-		}
-		
-		static std::wstring NarrowToWide(const std::string& str) {
-			std::locale loc("");
-			std::wstring result(str.size(), 0);
-			for (size_t i = 0; i < result.size(); i++)
-				result[i] = std::use_facet<std::ctype<wchar_t>>(loc).widen(str[i]);
-			return result;
-		}
-
-
-		// Sets the working directory <levelsUp> times to the upper parent folder
-		static void SetWorkingDirToParentFolder(size_t levelsUp) {
-			std::filesystem::path currentPath = std::filesystem::current_path();
-			for (size_t i = 0; i < levelsUp; i++)
-				currentPath = currentPath.parent_path();
-			std::filesystem::current_path(currentPath);
-		}
-
 		class SE_API MessagePrompts {
 		public:
-			static void Info(const std::string_view title, const std::string_view msg);
-			static void Error(const std::string_view title, const std::string_view msg);
-			static bool YesNo(const std::string_view title, const std::string_view msg);
+			static void Info(std::string_view title, std::string_view msg);
+			static void Error(std::string_view title, std::string_view msg);
+			static bool YesNo(std::string_view title, std::string_view msg);
 		};
 
 		class SE_API FileDialogs {
@@ -105,5 +80,22 @@ namespace Sphynx {
 		private:
 			DLLPlatformData* m_PlatformData = nullptr;
 		};
+
+
+        static std::string WideToNarrow(const std::wstring& wstr) {
+            std::locale loc("");
+            std::string result(wstr.size(), 0);
+            for (size_t i = 0; i < result.size(); i++)
+                result[i] = std::use_facet<std::ctype<wchar_t>>(loc).narrow(wstr[i], '?');
+            return result;
+        }
+
+        static std::wstring NarrowToWide(const std::string& str) {
+            std::locale loc("");
+            std::wstring result(str.size(), 0);
+            for (size_t i = 0; i < result.size(); i++)
+                result[i] = std::use_facet<std::ctype<wchar_t>>(loc).widen(str[i]);
+            return result;
+        }
 	};
 }

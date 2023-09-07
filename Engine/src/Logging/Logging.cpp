@@ -58,10 +58,7 @@ namespace Sphynx {
 
 		s_ColorEnabled = Platform::ConsoleSupportsColor();
 
-		if (!std::filesystem::exists("Logs"))
-			std::filesystem::create_directory("Logs");
-
-		s_LogFile.open("Logs/Engine.log");
+		s_LogFile.open("Engine.log");
 		if (!s_LogFile.is_open())
 			CrashHandler::OnCrash("Failed to create Logfile!");
 

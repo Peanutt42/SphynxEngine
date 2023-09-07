@@ -35,7 +35,8 @@ namespace Sphynx {
 		filepathStr.resize(MAX_PATH);
 		GetModuleFileNameW(nullptr, filepathStr.data(), (DWORD)filepathStr.size());
 		std::filesystem::path filepath = filepathStr;
-		std::filesystem::current_path(filepath.parent_path());
+        if (std::filesystem::exists(filepath))
+            std::filesystem::current_path(filepath.parent_path());
 	}
 
 
@@ -168,7 +169,7 @@ namespace Sphynx {
 			else
 				output += "writing/reading address ";
 
-			if (record->ExceptionInformation[1] == (ULONG)nullptr)
+			if (record->ExceptionInformation[1] == (ULONG)0)
 				output += "nullptr";
 			else {
 				std::stringstream addressHex;
@@ -213,15 +214,15 @@ namespace Sphynx {
 	}
 
 
-	void Platform::MessagePrompts::Info(const std::string_view title, const std::string_view msg) {
+	void Platform::MessagePrompts::Info(std::string_view title, std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_USERICON | MB_OK);
 	}
 
-	void Platform::MessagePrompts::Error(const std::string_view title, const std::string_view msg) {
+	void Platform::MessagePrompts::Error(std::string_view title, std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_ICONERROR | MB_OK);
 	}
 
-	bool Platform::MessagePrompts::YesNo(const std::string_view title, const std::string_view msg) {
+	bool Platform::MessagePrompts::YesNo(std::string_view title, std::string_view msg) {
 		return MessageBoxA(NULL, msg.data(), title.data(), MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
 
@@ -319,7 +320,7 @@ namespace Sphynx {
 			return false;
 		}
 
-		STARTUPINFO si;
+		STARTUPINFOW si;
 		ZeroMemory(&si, sizeof(si));
 		si.cb = sizeof(si);
 

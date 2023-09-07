@@ -6,7 +6,7 @@
 #include "TestComponent.hpp"
 
 namespace TestProject {
-	System();
+    System()
 	class TestSystem {
 	public:
 		static void Update(Sphynx::Scene& scene) {
@@ -15,7 +15,7 @@ namespace TestProject {
 			});
 
 			for (auto[entity, test] : scene.View<TestComponent>()) {
-				SE_INFO("{} - {}", entity, test.AInt++);
+				SE_INFO(Sphynx::Logging::Game, "{} - {}", entity, test.AInt++);
 			}
 		}
 	};

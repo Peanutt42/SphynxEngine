@@ -6,8 +6,6 @@
 
 int GuardedMain(int argc, const char** argv) {
 	Sphynx::Platform::SetWorkingDirToExe();
-	// SphynxEngine/bin/$Platform/$Config/Editor/Editor.exe
-	Sphynx::Platform::SetWorkingDirToParentFolder(4);
 
 	// Get project filepath
 	std::filesystem::path projectFilepath;

@@ -19,7 +19,7 @@ namespace Sphynx {
 			if (m_Position + size >= m_Buffer.size())
 				m_Buffer.resize(m_Position + size);
 			
-			std::memcpy(m_Buffer.data() + m_Position, data, size);
+			memcpy(m_Buffer.data() + m_Position, data, size);
 			m_Position += size;
 		}
 

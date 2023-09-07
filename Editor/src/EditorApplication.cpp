@@ -26,7 +26,7 @@ namespace Sphynx::Editor {
 		ImGui::SetCurrentContext(Engine::ImGuiHelper().GetContext());
 
 		Engine::ImGuiHelper().EnableDocking();
-		Engine::ImGuiHelper().SetSaveFilepath("Editor/imgui.ini");
+		Engine::ImGuiHelper().SetSaveFilepath("imgui.ini");
 		Engine::ImGuiHelper().SetMenubarCallback([this]() { OnDrawMenubar(); });
 
 		Engine::Renderer().SetDrawSceneTextureEnabled(false);

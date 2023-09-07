@@ -29,6 +29,9 @@ Programs/CrashReporter/bin
 *.vcxproj.filters
 *.sln
 
+# CLion/Rider
+**/.idea
+
 # Logging
 *.log
 /Logs

@@ -5,19 +5,19 @@
 #include "Vulkan/VulkanContext.hpp"
 
 uint32_t g_DefaultVertex[] = {
-#include "../Resources/Shaders/Embedded/Default.vert.embed"
+#include "../../Resources/Shaders/Embedded/Default.vert.embed"
 };
 
 uint32_t g_DefaultFragment[] = {
-#include "../Resources/Shaders/Embedded/Default.frag.embed"
+#include "../../Resources/Shaders/Embedded/Default.frag.embed"
 };
 
 uint32_t g_ScreenQuadVertex[] = {
-#include "../Resources/Shaders/Embedded/ScreenQuad.vert.embed"
+#include "../../Resources/Shaders/Embedded/ScreenQuad.vert.embed"
 };
 
 uint32_t g_ScreenQuadFragment[] = {
-#include "../Resources/Shaders/Embedded/ScreenQuad.frag.embed"
+#include "../../Resources/Shaders/Embedded/ScreenQuad.frag.embed"
 };
 
 namespace Sphynx::Rendering {
@@ -37,7 +37,7 @@ namespace Sphynx::Rendering {
 		VulkanContext::Init(m_Window);
 
 		MeshData data;
-		data.LoadMesh("Engine/Resources/Meshes/cube.semesh");
+		data.LoadMesh("Resources/Meshes/cube.semesh");
 		m_CubeMesh = std::make_unique<Mesh>(data);
 
 		m_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));

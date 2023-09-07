@@ -16,9 +16,9 @@ namespace Sphynx::UI {
 			ImGuiIO& io = ImGui::GetIO();
 			constexpr float defaultSize = 18.f;
 
-			auto regular = io.Fonts->AddFontFromFileTTF("Engine/Resources/Fonts/OpenSans/static/OpenSans-Regular.ttf", defaultSize);
-			io.Fonts->AddFontFromFileTTF("Engine/Resources/Fonts/OpenSans/static/OpenSans-Bold.ttf", defaultSize);
-			io.Fonts->AddFontFromFileTTF("Engine/Resources/Fonts/OpenSans/static/OpenSans-ExtraBold.ttf", defaultSize);
+			auto regular = io.Fonts->AddFontFromFileTTF("Resources/Fonts/OpenSans/static/OpenSans-Regular.ttf", defaultSize);
+			io.Fonts->AddFontFromFileTTF("Resources/Fonts/OpenSans/static/OpenSans-Bold.ttf", defaultSize);
+			io.Fonts->AddFontFromFileTTF("Resources/Fonts/OpenSans/static/OpenSans-ExtraBold.ttf", defaultSize);
 
 			io.FontDefault = regular;
 		}

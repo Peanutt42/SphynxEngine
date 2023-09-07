@@ -13,7 +13,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "../Resources/Icons/WindowToolbarIcons.embed"
+#include "../../Resources/Icons/WindowToolbarIcons.embed"
 
 namespace Sphynx::UI {
 	VulkanImGuiHelper::VulkanImGuiHelper() {
@@ -171,8 +171,8 @@ namespace Sphynx::UI {
 										 ImGui::GetCursorScreenPos().y + titlebarHeight };
 			auto* bgDrawList = ImGui::GetBackgroundDrawList();
 			bgDrawList->AddRectFilled(titlebarMin, titlebarMax, Themes::Default::titlebar);
-			
-			ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth() - windowPadding.y * 2.0f, ImGui::GetFrameHeightWithSpacing() });
+
+            ImGui::BeginGroup();//ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth() - windowPadding.y * 2.0f, ImGui::GetFrameHeightWithSpacing() });
 
 			static float moveOffsetX;
 			static float moveOffsetY;
@@ -199,7 +199,7 @@ namespace Sphynx::UI {
 
 			// Draw Menubar
 			if (m_MenubarCallback) {
-				ImGui::SuspendLayout();
+				ImGui::EndGroup();//ImGui::SuspendLayout();
 
 				ImGui::SetItemAllowOverlap();
 				ImGui::SetCursorPos(ImVec2(6.f + windowPadding.x, 6.0f + titlebarVerticalOffset));
@@ -218,7 +218,7 @@ namespace Sphynx::UI {
 				if (ImGui::IsItemHovered())
 					m_TitlebarHovered = false;
 
-				ImGui::ResumeLayout();
+				ImGui::BeginGroup();//ImGui::ResumeLayout();
 			}
 
 			{
@@ -282,7 +282,7 @@ namespace Sphynx::UI {
 			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), backgroundH);
 			UI::DrawButtonImage(*m_CloseIcon, Themes::Default::text, ColorWithMultipliedValue(Themes::Default::text, 1.4f), buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
 
-			ImGui::EndHorizontal();
+			ImGui::EndGroup();//ImGui::EndHorizontal();
 
 			ImGui::SetCursorPosY(titlebarHeight);
 		}
