@@ -19,6 +19,12 @@ namespace Sphynx::Rendering {
 		void EndSingleUseCommandbuffer(vk::CommandBuffer commandbuffer);
 
 	private:
+		VulkanCommandPool(const VulkanCommandPool&) = delete;
+		VulkanCommandPool(VulkanCommandPool&&) = delete;
+		VulkanCommandPool& operator=(const VulkanCommandPool&) = delete;
+		VulkanCommandPool& operator=(VulkanCommandPool&&) = delete;
+
+	private:
 		vk::CommandPool m_Pool;
 		std::vector<vk::CommandBuffer> m_CommandBuffers;
 	};

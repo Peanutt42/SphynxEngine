@@ -16,6 +16,11 @@ namespace Sphynx::Scripting {
 		const std::vector<SystemReflectionInfo>& GetSystems() const { return *m_Systems; }
 
 	private:
+		ScriptingEngine(const ScriptingEngine&) = delete;
+		ScriptingEngine(ScriptingEngine&&) = delete;
+		ScriptingEngine& operator=(const ScriptingEngine&) = delete;
+		ScriptingEngine& operator=(ScriptingEngine&&) = delete;
+
 		using GetComponentsFunc = std::vector<ComponentReflectionInfo>*(*)();
 		using GetConfigsFunc = std::vector<ConfigReflectionInfo>*(*)();
 		using GetSystemsFunc = std::vector<SystemReflectionInfo>*(*)();

@@ -25,6 +25,11 @@ namespace Sphynx::UI {
 		ImGuiContext* GetContext();
 
 	private:
+		VulkanImGuiHelper(const VulkanImGuiHelper&) = delete;
+		VulkanImGuiHelper(VulkanImGuiHelper&&) = delete;
+		VulkanImGuiHelper& operator=(const VulkanImGuiHelper&) = delete;
+		VulkanImGuiHelper& operator=(VulkanImGuiHelper&&) = delete;
+
 		void _DrawTitlebar();
 
 	private:

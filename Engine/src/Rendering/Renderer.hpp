@@ -31,6 +31,12 @@ namespace Sphynx::Rendering {
 		void* GetSceneTextureID();
 
 	private:
+		Renderer(const Renderer&) = delete;
+		Renderer(Renderer&&) = delete;
+		Renderer& operator=(const Renderer&) = delete;
+		Renderer& operator=(Renderer&&) = delete;
+
+	private:
 		Window& m_Window;
 		std::unique_ptr<Mesh> m_CubeMesh;
 		std::unique_ptr<Shader> m_DefaultShader;

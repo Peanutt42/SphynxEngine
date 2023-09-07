@@ -17,8 +17,12 @@ namespace Sphynx::Rendering {
 		VulkanInstance(bool validation);
 		~VulkanInstance();
 
-
 	private:
+		VulkanInstance(const VulkanInstance&) = delete;
+		VulkanInstance(VulkanInstance&&) = delete;
+		VulkanInstance& operator=(const VulkanInstance&) = delete;
+		VulkanInstance& operator=(VulkanInstance&&) = delete;
+
 		void _ConfigureExtensions(vk::InstanceCreateInfo& createInfo);
 
 		// Returns if validation layers are usable (local VulkanSDK installation is required for validation layers!)

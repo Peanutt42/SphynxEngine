@@ -30,6 +30,12 @@ namespace Sphynx::Rendering {
 		void End(vk::CommandBuffer commandBuffer);
 
 	private:
+		VulkanRenderpass(const VulkanRenderpass&) = delete;
+		VulkanRenderpass(VulkanRenderpass&&) = delete;
+		VulkanRenderpass& operator=(const VulkanRenderpass&) = delete;
+		VulkanRenderpass& operator=(VulkanRenderpass&&) = delete;
+
+	private:
 		vk::RenderPass m_Renderpass;
 
 		// own framebuffers
