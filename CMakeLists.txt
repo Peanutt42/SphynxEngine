@@ -1,5 +1,28 @@
 cmake_minimum_required(VERSION 3.26)
 
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+	set(CMAKE_MSVC_RUNTIME_LIBRARY  "MultiThreadedDebugDLL")
+else()
+	set(CMAKE_MSVC_RUNTIME_LIBRARY  "MultiThreadedDLL")
+endif()
+
+include(CMakeMacros.cmake)
+
+if (MSVC)
+	set(flags_configs
+			CMAKE_C_FLAGS
+			CMAKE_CXX_FLAGS
+	)
+	foreach(flags ${flags_configs})
+		if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+			set(${flags} "${${flags}} /MTd")
+		else()
+			set(${flags} "${${flags}} /MT")
+		endif()
+		message(STATUS "${flags}: ${${flags}}")
+	endforeach()
+endif()
+
 project(SphynxEngine)
 
 set(CMAKE_CONFIGURATION_TYPES
@@ -9,46 +32,6 @@ set(CMAKE_CONFIGURATION_TYPES
 		CACHE STRING "Build Configurations" FORCE)
 
 set(SE_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Resources")
-macro(copy_resources_folder _TARGET BIN_DIR)
-	add_custom_command(
-			TARGET ${_TARGET}
-			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_directory ${SE_RESOURCE_DIR} "${BIN_DIR}/Resources"
-			COMMENT "Copying ${SE_RESOURCE_DIR} to ${BIN_DIR}/Resources"
-	)
-endmacro()
-
-macro(copy_file _TARGET SOURCE DEST)
-	add_custom_command(
-			TARGET ${_TARGET}
-			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE}" "${DEST}"
-			COMMENT "Copying ${SOURCE} to ${DEST}"
-	)
-endmacro()
-
-macro(define_configuration _TARGET)
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		target_compile_definitions(${_TARGET} PUBLIC DEBUG)
-	elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
-		target_compile_definitions(${_TARGET} PUBLIC RELEASE)
-	elseif (CMAKE_BUILD_TYPE STREQUAL "Dist")
-		target_compile_definitions(${_TARGET} PUBLIC DIST)
-	else()
-		message(FATAL_ERROR "Invalid build type: ${CMAKE_BUILD_TYPE}")
-	endif()
-endmacro()
-macro(define_platform _TARGET)
-	if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-		target_compile_definitions(${_TARGET} PUBLIC WINDOWS)
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-		target_compile_definitions(${_TARGET} PUBLIC LINUX)
-	elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-		target_compile_definitions(${_TARGET} PUBLIC MACOS)
-	else()
-		message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
-	endif()
-endmacro()
 
 add_subdirectory(vendor)
 add_subdirectory(vendor/yaml)

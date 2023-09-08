@@ -3,6 +3,7 @@ cmake_minimum_required(VERSION 3.26)
 set(VENDOR_NO_PARENT TRUE)
 set(VENDOR_DIR "${CMAKE_CURRENT_SOURCE_DIR}/../vendor")
 include(../vendor/CMakeLists.txt)
+include(../CMakeMacros.cmake)
 
 project(TestProject)
 
@@ -37,22 +38,5 @@ add_custom_command(
 )
 
 
-if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-	target_compile_definitions(TestProject PUBLIC DEBUG)
-elseif (CMAKE_BUILD_TYPE STREQUAL "Release")
-	target_compile_definitions(TestProject PUBLIC RELEASE)
-elseif (CMAKE_BUILD_TYPE STREQUAL "Dist")
-	target_compile_definitions(TestProject PUBLIC DIST)
-else()
-	message(FATAL_ERROR "Invalid build type: ${CMAKE_BUILD_TYPE}")
-endif()
-
-if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
-	target_compile_definitions(TestProject PUBLIC WINDOWS)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	target_compile_definitions(TestProject PUBLIC LINUX)
-elseif (CMAKE_SYSTEM_NAME STREQUAL "Darwin")
-	target_compile_definitions(TestProject PUBLIC MACOS)
-else()
-	message(FATAL_ERROR "Unsupported platform: ${CMAKE_SYSTEM_NAME}")
-endif()
+define_configuration(TestProject)
+define_platform(TestProject)
