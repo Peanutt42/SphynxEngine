@@ -15,7 +15,7 @@ namespace Sphynx {
 		int MaxFPS = 0;
 
 		void ParseArguments(int argc, const char** argv) {
-			for (int i = 1; i < argc; i++) {
+			for (int i = 0; i < argc; i++) {
 				std::string_view arg(argv[i]);
 
 				if (arg == "-headless")

@@ -8,21 +8,6 @@ endif()
 
 include(CMakeMacros.cmake)
 
-if (MSVC)
-	set(flags_configs
-			CMAKE_C_FLAGS
-			CMAKE_CXX_FLAGS
-	)
-	foreach(flags ${flags_configs})
-		if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-			set(${flags} "${${flags}} /MTd")
-		else()
-			set(${flags} "${${flags}} /MT")
-		endif()
-		message(STATUS "${flags}: ${${flags}}")
-	endforeach()
-endif()
-
 project(SphynxEngine)
 
 set(CMAKE_CONFIGURATION_TYPES

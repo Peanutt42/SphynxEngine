@@ -71,12 +71,12 @@ namespace Sphynx::Rendering {
     }
 
     void SpirvHelper::GetReflectionInfo(const std::vector<uint32>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo) {
-        spirv_cross::Compiler compiler(spirvCode);
+        spirv_cross::Compiler compiler(spirvCode.data(), spirvCode.size());
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
         for (auto& uniformBuffer : resources.uniform_buffers) {
             uint32 binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
-            std::string name = compiler.get_name(uniformBuffer.id);
+            const std::string& name = compiler.get_name(uniformBuffer.id);
 
             const auto& type = compiler.get_type(uniformBuffer.base_type_id);
             size_t size = compiler.get_declared_struct_size(type);
@@ -84,7 +84,7 @@ namespace Sphynx::Rendering {
         }
         for (auto& sampler : resources.sampled_images) {
             uint32 binding = compiler.get_decoration(sampler.id, spv::DecorationBinding);
-            std::string name = compiler.get_name(sampler.id);
+            const std::string& name = compiler.get_name(sampler.id);
             outInfo.DescriptorBindings[binding] = { vk::DescriptorType::eCombinedImageSampler, stage, name };
         }
 

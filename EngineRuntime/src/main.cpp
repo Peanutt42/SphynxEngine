@@ -13,7 +13,8 @@ namespace Sphynx {
 
 
 		virtual void OnCreate() override {
-			Engine::Renderer().SetDrawSceneTextureEnabled(true);
+			if (!Engine::GetSettings().Headless)
+                Engine::Renderer().SetDrawSceneTextureEnabled(true);
 
 			m_Scene = std::make_unique<Scene>("Scene");
 
@@ -32,8 +33,10 @@ namespace Sphynx {
 			for (const auto& system : Engine::Scripting().GetSystems())
 				system.Update((void*)m_Scene.get());
 
-			Engine::Renderer().SubmitScene(*m_Scene, Rendering::Camera{});
-			// TODO: Draw Quad with the scene tex
+            if (!Engine::GetSettings().Headless) {
+                Engine::Renderer().SubmitScene(*m_Scene, Rendering::Camera{});
+                // TODO: Draw Quad with the scene tex
+            }
 		}
 
 		virtual void DrawUI() override {
