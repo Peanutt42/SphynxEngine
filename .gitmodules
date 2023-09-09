@@ -7,3 +7,6 @@
 [submodule "vendor/assimp"]
 	path = vendor/assimp
 	url = https://github.com/assimp/assimp.git
+[submodule "vendor/shaderc"]
+	path = vendor/shaderc
+	url = https://github.com/Peanutt42/shaderc.git

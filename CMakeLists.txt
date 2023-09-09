@@ -27,6 +27,7 @@ add_subdirectory(vendor/Tracy)
 add_subdirectory(vendor/glad)
 add_subdirectory(vendor/gtest)
 add_subdirectory(vendor/assimp)
+add_subdirectory(vendor/shaderc)
 
 add_subdirectory(Engine)
 add_subdirectory(Editor)
