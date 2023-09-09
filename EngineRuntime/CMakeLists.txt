@@ -16,6 +16,8 @@ add_dependencies(EngineRuntime Engine)
 
 target_link_libraries(EngineRuntime PRIVATE Engine)
 
+target_precompile_headers(EngineRuntime PUBLIC src/pch.hpp)
+
 copy_resources_folder(EngineRuntime ${CMAKE_CURRENT_BINARY_DIR})
 
 define_configuration(EngineRuntime)

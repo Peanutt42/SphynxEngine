@@ -21,5 +21,7 @@ target_link_libraries(Tests PRIVATE
 		imgui
 )
 
+target_precompile_headers(Tests PUBLIC src/pch.hpp)
+
 define_configuration(CrashReporter)
 define_platform(CrashReporter)

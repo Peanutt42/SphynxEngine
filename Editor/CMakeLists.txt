@@ -22,8 +22,8 @@ target_link_libraries(Editor PRIVATE
 		shaderc
 )
 
+target_precompile_headers(Editor PUBLIC src/pch.hpp)
 
-#copy_file(Editor ${SHADERC_DLL} "${CMAKE_CURRENT_BINARY_DIR}/${SHADERC_DLL_NAME}")
 copy_resources_folder(Editor ${CMAKE_CURRENT_BINARY_DIR})
 
 set(EDITOR_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)

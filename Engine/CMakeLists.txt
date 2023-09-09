@@ -56,6 +56,8 @@ target_compile_features(Engine PRIVATE cxx_std_20)
 
 target_compile_definitions(Engine PRIVATE SE_EXPORT)
 
+target_precompile_headers(Engine PUBLIC src/pch.hpp)
+
 define_configuration(Engine)
 define_platform(Engine)
 
