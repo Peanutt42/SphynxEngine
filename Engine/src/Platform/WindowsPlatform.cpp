@@ -93,7 +93,10 @@ namespace Sphynx {
 			if (SymGetSymFromAddr64(process, stackFrame.AddrPC.Offset, &displacement, symbol)) {
 				std::string symbolName = symbol->Name;
 
-				if (symbolName == __FUNCTION__) {
+				if (symbolName == __FUNCTION__ ||
+                    symbolName == "Sphynx::OnProcessCrashed" ||
+                    symbolName == "Sphynx::CrashHandler::OnCrash")
+                {
 					stacktrace.clear();
 					continue;
 				}

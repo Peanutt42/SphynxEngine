@@ -43,15 +43,15 @@ namespace Sphynx::Rendering {
 			MaxFramesInFlight = swapChainSupport.Capabilities.maxImageCount;
 
 
-		SwapChain = std::make_unique<VulkanSwapChain>();
+		SwapChain = new VulkanSwapChain();
 
-		SceneRenderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::First, SwapChain->GetFormat());
+		SceneRenderpass = new VulkanRenderpass(RenderPassUsage::First, SwapChain->GetFormat());
 
-		Renderpass = std::make_unique<VulkanRenderpass>(RenderPassUsage::Last, SwapChain->GetFormat());
+		Renderpass = new VulkanRenderpass(RenderPassUsage::Last, SwapChain->GetFormat());
 
 		SwapChain->CreateFramebuffers(Renderpass->GetHandle());
 
-		CommandPool = std::make_unique<VulkanCommandPool>();
+		CommandPool = new VulkanCommandPool();
 
 		_CreateSyncObjects();
 
@@ -59,7 +59,7 @@ namespace Sphynx::Rendering {
 
 		DefaultSampler = VulkanTexture::CreateSampler();
 
-		UniformBuffer = std::make_unique<VulkanUniformBuffer>(sizeof(UniformBufferData));
+		UniformBuffer = new VulkanUniformBuffer(sizeof(UniformBufferData));
 
 		// TODO: Change tutorial sizes to more acurate ones
 		// NOTE: you can change these values at runtime
@@ -85,27 +85,27 @@ namespace Sphynx::Rendering {
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create descriptor pool");
 
 
-		InstanceBuffer = std::make_unique<VulkanInstanceBuffer<InstanceData>>(MaxFramesInFlight);
+		InstanceBuffer = new VulkanInstanceBuffer<InstanceData>(MaxFramesInFlight);
 	}
 
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
 
-		InstanceBuffer.reset();
+		delete InstanceBuffer;
 
 		LogicalDevice.destroySampler(DefaultSampler);
 
-		UniformBuffer.reset();
+        delete UniformBuffer;
 
 		_DestroySyncObjects();
 
-		CommandPool.reset();
+        delete CommandPool;
 
-		Renderpass.reset();
+        delete Renderpass;
 
-		SceneRenderpass.reset();
+        delete SceneRenderpass;
 
-		SwapChain.reset();
+        delete SwapChain;
 
 		LogicalDevice.destroyDescriptorPool(DescriptorPool, nullptr);
 

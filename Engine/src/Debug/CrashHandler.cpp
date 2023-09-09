@@ -130,11 +130,11 @@ namespace Sphynx {
 		out << YAML::EndMap;
 		YAMLSerializer::SaveFile("CrashReport.txt", out);
 
+        Sphynx::Logging::Shutdown(); // make sure log files are finished
+
 		std::cout << "Press any key to exit program, which will launch the crash reporter\n";
 
 		std::cin.get();
-
-		Sphynx::Engine::Shutdown();
 
 		std::exit(1);
 	}

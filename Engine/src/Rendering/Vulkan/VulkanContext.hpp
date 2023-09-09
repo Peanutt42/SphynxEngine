@@ -41,9 +41,9 @@ namespace Sphynx::Rendering {
 		inline static vk::Device LogicalDevice;
 		inline static vk::Queue GraphicsQueue;
 		inline static vk::Queue PresentQueue;
-		inline static std::unique_ptr<VulkanSwapChain> SwapChain;
-		inline static std::unique_ptr<VulkanRenderpass> Renderpass;
-		inline static std::unique_ptr<VulkanCommandPool> CommandPool;
+		inline static VulkanSwapChain* SwapChain = nullptr;
+		inline static VulkanRenderpass* Renderpass = nullptr;
+		inline static VulkanCommandPool* CommandPool = nullptr;
 
 		inline static std::vector<vk::Semaphore> ImageAvailableSemaphores;
 		inline static std::vector<vk::Semaphore> RenderFinishedSemaphores;
@@ -51,18 +51,18 @@ namespace Sphynx::Rendering {
 
 		inline static vk::CommandBuffer CommandBuffer;
 
-		inline static std::unique_ptr<VulkanRenderpass> SceneRenderpass;
+		inline static VulkanRenderpass* SceneRenderpass = nullptr;
 		inline static uint32 SceneWidth = 1920;
 		inline static uint32 SceneHeight = 1080;
 		inline static std::vector<vk::DescriptorSet> SceneTextureDescriptorSets;
 
-		inline static std::unique_ptr<VulkanInstanceBuffer<InstanceData>> InstanceBuffer;
+		inline static VulkanInstanceBuffer<InstanceData>* InstanceBuffer = nullptr;
 
 		inline static vk::Sampler DefaultSampler;
 
 		inline static vk::SharingMode SharingMode;
 
-		inline static std::unique_ptr<VulkanUniformBuffer> UniformBuffer;
+		inline static VulkanUniformBuffer* UniformBuffer = nullptr;
 
 		inline static uint32 MaxFramesInFlight = 2;
 		inline static uint32 CurrentFrame = 0;
