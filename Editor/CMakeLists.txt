@@ -17,12 +17,11 @@ add_dependencies(Editor Engine)
 
 target_link_libraries(Editor PRIVATE
 		Engine
-		${ASSIMP_LIB}
+		assimp
 		${SHADERC_LIB}
 )
 
 
-copy_file(Editor ${ASSIMP_DLL} "${CMAKE_CURRENT_BINARY_DIR}/${ASSIMP_DLL_NAME}")
 copy_file(Editor ${SHADERC_DLL} "${CMAKE_CURRENT_BINARY_DIR}/${SHADERC_DLL_NAME}")
 copy_resources_folder(Editor ${CMAKE_CURRENT_BINARY_DIR})
 
