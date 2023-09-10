@@ -20,9 +20,9 @@ namespace Sphynx {
 		{
 			std::string filepathStr = filepath.string();
 
-			YAML::Node data;
-			if (!YAMLSerializer::LoadFile(filepathStr, data))
-				SE_ERR("Failed to open Project file {}", filepathStr);
+			auto result = YAMLSerializer::LoadFile(filepathStr);
+			result.expect("Failed to open Project file");
+			YAML::Node& data = *result;
 			Name = data["Name"].as<std::string>();
 			EngineVersion = data["EngineVersion"].as<Version>();
 			StartSceneFilepath = Folderpath / "Assets" / data["StartScene"].as<std::string>();

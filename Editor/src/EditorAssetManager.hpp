@@ -22,14 +22,19 @@ namespace Sphynx::Editor {
 					convertedFilepath.replace_extension(".semesh");
 					if (!std::filesystem::exists(convertedFilepath)) {
 						Rendering::MeshData data;
-						MeshImporter::Import(path, data);
-						data.SaveMesh(convertedFilepath);
+						auto result = MeshImporter::Import(path, data);
+						if (result)
+							data.SaveMesh(convertedFilepath);
+						else
+							SE_WARN(Logging::Editor, "Failed to load mesh: {}", result.get_error());
 					}
 				}
 
 				if (fileExtension == ".glsl") {
 					std::vector<uint32> vertexCode, fragmentCode;
-					ShaderImporter::Import(path, vertexCode, fragmentCode);
+					auto result = ShaderImporter::Import(path, vertexCode, fragmentCode);
+					if (result.is_error())
+						SE_WARN(Logging::Editor, "Failed to load shader: {}", result.get_error());
 				}
 			}
 		}

@@ -18,9 +18,8 @@ namespace Sphynx {
 
 			m_Scene = std::make_unique<Scene>("Scene");
 
-			std::string errorMsg;
-			bool successful = SceneSerializer::Deserialize(Engine::GetProject()->StartSceneFilepath, *m_Scene, errorMsg);
-			SE_ASSERT(successful, "Failed to open scene: {}", errorMsg);
+			SceneSerializer::Deserialize(Engine::GetProject()->StartSceneFilepath, *m_Scene)
+				.expect("Failed to open start scene");
 		}
 
 		virtual void OnDestroy() override {

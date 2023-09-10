@@ -42,9 +42,8 @@ namespace Sphynx::Editor {
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
 		m_SceneFilepath = Engine::GetProject()->StartSceneFilepath;
-		std::string loadSceneError;
-		if (!SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene, loadSceneError))
-			SE_ERR(Logging::Editor, "Failed to load scene {}: {}", m_SceneFilepath.string(), loadSceneError);
+		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene)
+			.expect("Failed to load start scene {}", m_SceneFilepath.string());
 
 		// TODO: Save it in a config
 		// TODO: Do this also in code reloading (copy old, create new from updated systems
@@ -202,9 +201,8 @@ namespace Sphynx::Editor {
 			return;
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
-		std::string loadDErrorMsg;
-		if (!SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene, loadDErrorMsg))
-			SE_ERR(Logging::Editor, "Failed to open scene {}: {}", m_SceneFilepath.string(), loadDErrorMsg);
+		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene)
+			.expect("Failed to open scene {}", m_SceneFilepath.string());
 	}
 
 	void EditorApplication::SaveCurrentScene() {

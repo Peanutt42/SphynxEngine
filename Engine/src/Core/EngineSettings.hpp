@@ -28,13 +28,17 @@ namespace Sphynx {
 			}
 		}
 
-		void ParseConfigFile(const std::filesystem::path& filepath) {
+		Result<bool, std::string> ParseConfigFile(const std::filesystem::path& filepath) {
 			std::string filepathStr = filepath.string();
 
-			YAML::Node data;
-			if (YAMLSerializer::LoadFile(filepathStr, data)) {
-				MaxFPS = data["MaxFPS"].as<int>();
-			}
+			auto result = YAMLSerializer::LoadFile(filepathStr);
+			if (result.is_error())
+				return Error<bool>("Failed to parse config file: {}", result.get_error());
+
+			YAML::Node& data = *result;
+			MaxFPS = data["MaxFPS"].as<int>();
+
+			return true;
 		}
 	};
 

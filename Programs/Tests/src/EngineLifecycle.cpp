@@ -11,7 +11,7 @@ public:
 };
 
 TEST(Engine, HeadlessEngineLifecyle) {
-	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>("TestProject/TestProject.seproj");
+	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>("../../../../TestProject/TestProject.seproj");
 
 	Sphynx::EngineSettings engineSettings {
 		.Headless = true,

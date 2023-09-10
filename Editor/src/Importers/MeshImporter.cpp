@@ -6,7 +6,7 @@
 #include <assimp/postprocess.h>
 
 namespace Sphynx::Editor {
-	void MeshImporter::Import(const std::filesystem::path& filepath, Rendering::MeshData& outData) {
+	Result<bool, std::string> MeshImporter::Import(const std::filesystem::path& filepath, Rendering::MeshData& outData) {
 		std::string filepathStr = filepath.string();
 
 		auto extension = filepath.extension();
@@ -19,9 +19,8 @@ namespace Sphynx::Editor {
 			Assimp::Importer importer;
 			const aiScene* scene = importer.ReadFile(filepathStr, aiProcess_Triangulate | aiProcess_FlipUVs | aiProcess_JoinIdenticalVertices | aiProcess_GenSmoothNormals | aiProcess_OptimizeGraph | aiProcess_OptimizeMeshes);
 
-			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-				SE_FATAL(Logging::Rendering, "Failed to load 3d model file '{}' with assimp: {}", filepathStr, importer.GetErrorString());
-			}
+			if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode)
+				return Error<bool>("Failed to load 3d model file '{}' with assimp: {}", filepathStr, importer.GetErrorString());
 			else {
 				auto processNode = [&](aiNode* node) {
 					uint32 indexOffset = 0;
@@ -72,5 +71,7 @@ namespace Sphynx::Editor {
 				outData.SaveMesh(peMeshFilepath);
 			}
 		}
+
+		return true;
 	}
 }

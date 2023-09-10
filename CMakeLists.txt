@@ -33,9 +33,9 @@ add_subdirectory(Engine)
 add_subdirectory(Editor)
 add_subdirectory(EngineRuntime)
 
+add_subdirectory(Programs/Tests)
 add_subdirectory(Programs/CrashReporter)
 add_subdirectory(Programs/ReflectionGenerator)
-add_subdirectory(Programs/Tests)
 
 file(MAKE_DIRECTORY "bin/Debug")
 file(MAKE_DIRECTORY "bin/Release")

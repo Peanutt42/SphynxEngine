@@ -1,5 +1,7 @@
 file(GLOB_RECURSE TESTS_SOURCES "src/*.cpp")
 
+set(TESTS_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
+
 add_executable(Tests ${TESTS_SOURCES})
 
 target_include_directories(Tests PUBLIC
@@ -23,5 +25,5 @@ target_link_libraries(Tests PRIVATE
 
 target_precompile_headers(Tests PUBLIC src/pch.hpp)
 
-define_configuration(CrashReporter)
-define_platform(CrashReporter)
+define_configuration(Tests)
+define_platform(Tests)

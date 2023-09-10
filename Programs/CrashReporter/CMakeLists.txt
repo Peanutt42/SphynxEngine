@@ -31,8 +31,10 @@ target_link_libraries(CrashReporter PRIVATE
 
 copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${EDITOR_BIN_DIR})
 copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${ENGINERUNTIME_BIN_DIR})
+copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${TESTS_BIN_DIR})
 add_dependencies(Editor CrashReporter)
 add_dependencies(EngineRuntime CrashReporter)
+add_dependencies(Tests CrashReporter)
 
 define_configuration(CrashReporter)
 define_platform(CrashReporter)

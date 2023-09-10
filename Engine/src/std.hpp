@@ -5,6 +5,8 @@
 
 #include <iostream>
 
+#include <variant>
+
 #include <string>
 #include <string_view>
 #include <format>

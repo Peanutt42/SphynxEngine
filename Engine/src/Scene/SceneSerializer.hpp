@@ -92,16 +92,16 @@ namespace Sphynx {
 			}
 		}
 
-		static bool Deserialize(const std::filesystem::path& filepath, Scene& outScene, std::string& outErrorMsg) {
+		static Result<bool, std::string> Deserialize(const std::filesystem::path& filepath, Scene& outScene) {
 			std::string filepathStr = filepath.string();
 			
-			YAML::Node data;
-			if (!YAMLSerializer::LoadFile(filepathStr.c_str(), data)) {
-				outErrorMsg = std::format("Failed to open scene file {}", filepathStr);
-				return false;
-			}
+			auto result = YAMLSerializer::LoadFile(filepathStr.c_str());
+			if (result.is_error())
+				return Error<bool>("Failed to open scene file {}: {}", filepathStr, result.get_error());
 
 			try {
+				YAML::Node& data = *result;
+
 				outScene.SetName(data["Name"].as<std::string>());
 
 				auto entitiesNode = data["Entities"];
@@ -110,9 +110,9 @@ namespace Sphynx {
 				}
 			}
 			catch (const std::exception& e) {
-				outErrorMsg = e.what();
-				return false;
+				return Error<bool>("Failed to parse scene file {} ({})", filepathStr, e.what());
 			}
+
 			return true;
 		}
 	};

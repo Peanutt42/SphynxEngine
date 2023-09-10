@@ -7,6 +7,7 @@
 #include "EngineApi.hpp"
 #include "IntTypes.hpp"
 #include "UUID.hpp"
+#include "Result.hpp"
 
 #include "Math/Transform.hpp"
 #include "Logging/Logging.hpp"
