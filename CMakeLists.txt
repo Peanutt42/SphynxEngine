@@ -36,7 +36,3 @@ add_subdirectory(EngineRuntime)
 add_subdirectory(Programs/Tests)
 add_subdirectory(Programs/CrashReporter)
 add_subdirectory(Programs/ReflectionGenerator)
-
-file(MAKE_DIRECTORY "bin/Debug")
-file(MAKE_DIRECTORY "bin/Release")
-file(MAKE_DIRECTORY "bin/Dist")

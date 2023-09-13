@@ -64,7 +64,8 @@ int GuardedMain(int argc, const char** argv) {
 	// Load project
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
 	if (project->EngineVersion != Sphynx::Engine::Version) {
-		Sphynx::Platform::MessagePrompts::Error("Project's engine version", std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version));
+		std::string error = std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion.ToString(), Sphynx::Engine::Version.ToString());
+		Sphynx::Platform::MessagePrompts::Error("Project's engine version", error);
 		return 0;
 	}
 
