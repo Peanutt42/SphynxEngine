@@ -5,6 +5,10 @@
 #include "ProjectSystem/Project.hpp"
 
 namespace Sphynx {
+	namespace Audio {
+		class AudioEngine;
+	}
+
 	namespace Rendering {
 		class Window;
 		class Renderer;
@@ -39,6 +43,7 @@ namespace Sphynx {
 
 		static std::shared_ptr<Project> GetProject() { return s_Project; }
 
+		static Audio::AudioEngine& Audio() { return *s_AudioEngine; }
 		static Scripting::ScriptingEngine& Scripting() { return *s_ScriptingEngine; }
 		static Rendering::Renderer& Renderer() { return *s_Renderer; }
 		static Physics::PhysicEngine& Physics() { return *s_PhysicEngine; }
@@ -59,6 +64,7 @@ namespace Sphynx {
 
 		inline static std::shared_ptr<Application> s_Application;
 
+		inline static Audio::AudioEngine* s_AudioEngine = nullptr;
 		inline static Rendering::Window* s_Window = nullptr;
 		inline static Rendering::Renderer* s_Renderer = nullptr;
 		inline static Physics::PhysicEngine* s_PhysicEngine = nullptr;

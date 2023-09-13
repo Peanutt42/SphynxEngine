@@ -10,3 +10,9 @@
 [submodule "vendor/shaderc"]
 	path = vendor/shaderc
 	url = https://github.com/Peanutt42/shaderc.git
+[submodule "vendor/openal-soft"]
+	path = vendor/openal-soft
+	url = https://github.com/kcat/openal-soft.git
+[submodule "vendor/libsndfile"]
+	path = vendor/libsndfile
+	url = https://github.com/libsndfile/libsndfile.git

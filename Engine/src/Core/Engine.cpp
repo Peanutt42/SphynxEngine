@@ -2,6 +2,7 @@
 #include "Engine.hpp"
 #include "CommandHandler.hpp"
 
+#include "Audio/AudioEngine.hpp"
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
 #include "Physics/PhysicEngine.hpp"
@@ -34,6 +35,8 @@ namespace Sphynx {
 			});
 		}
 		else {
+			s_AudioEngine = new Audio::AudioEngine();
+
 			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen, s_Settings.CustomWindowControls);
 
 			Input::Init(s_Window->GetGLFWHandle());
@@ -70,6 +73,8 @@ namespace Sphynx {
 
 			delete s_Renderer;
 			delete s_Window;
+
+			delete s_AudioEngine;
 		}
 
 		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
@@ -105,6 +110,8 @@ namespace Sphynx {
 			s_Renderer->End();
 
 			s_Window->Update();
+
+			s_AudioEngine->Update();
 		}
 
 		if (s_Settings.MaxFPS > 0) {

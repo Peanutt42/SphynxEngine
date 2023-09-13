@@ -19,6 +19,8 @@ target_include_directories(Engine PUBLIC
 		${GLM_INCLUDE_DIR}
 		${YAML_INCLUDE_DIR}
 		${STBI_INCLUDE_DIR}
+		${SNDFILE_INCLUDE_DIR}
+		${ALSOFT_INCLUDE_DIR}
 		${GLFW_INCLUDE_DIR}
 		${VULKAN_INCLUDE_DIR}
 		${TRACY_INCLUDE_DIR}
@@ -47,6 +49,8 @@ target_link_libraries(Engine PRIVATE
 		${BULLET_COLLISION_LIB}
 		${BULLET_DYNAMICS_LIB}
 		${BULLET_MATH_LIB}
+		sndfile
+		OpenAL
 )
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 	target_link_libraries(Engine PRIVATE Dbghelp.lib)
