@@ -12,12 +12,18 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Draw() override {
+			ImGui::Text("Total: %.3f ms", EditorApplication::GetECSSystemDeltaTime() * 1000.f);
+
 			for (const auto& system : Engine::Scripting().GetSystems()) {
-				bool active = EditorApplication::GetECSSystemActive(system.FullName);
+				const ECSGameSystemInfo* systemInfo = EditorApplication::GetECSSystem(system.FullName);
+				if (!systemInfo)
+					continue;
+
+				bool active = systemInfo->Active;
 				if (ImGui::Checkbox("##", &active))
 					EditorApplication::SetECSSystemActive(system.FullName, active);
 				ImGui::SameLine();
-				ImGui::Text("%s", system.FullName.c_str());
+				ImGui::Text("%s: %.3f ms", system.FullName.c_str(), systemInfo->LastDeltatime * 1000.f);
 			}
 		}
 	};

@@ -32,7 +32,7 @@ namespace Sphynx::Rendering {
 		static void GetReflectionInfo(const std::vector<uint32>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo);
 	};
 	
-	struct SE_API ShaderCreateInfo {
+	struct ShaderCreateInfo {
 		std::vector<uint32> VertexCode;
 		std::vector<uint32> FragmentCode;
 
@@ -56,6 +56,7 @@ namespace Sphynx::Rendering {
 		~VulkanShader();
 
 		void SetUniformBuffer(const std::string& name, const VulkanUniformBuffer& uniformBuffer);
+		void SetImageSampler(const std::string& name, vk::Sampler sampler, const std::vector<vk::ImageView>& imageViews);
 
 		template<typename T>
 		void UpdateUniformBuffer(const std::string& name, const T& data) {
@@ -67,6 +68,11 @@ namespace Sphynx::Rendering {
 		void Bind(vk::CommandBuffer commandBuffer);
 
 	private:
+		VulkanShader(const VulkanShader&) = delete;
+		VulkanShader(VulkanShader&&) = delete;
+		VulkanShader& operator=(const VulkanShader&) = delete;
+		VulkanShader& operator=(VulkanShader&&) = delete;
+
 		std::optional<uint32> _GetBinding(const std::string& name);
 
 	private:

@@ -29,6 +29,11 @@ namespace Sphynx::Rendering {
 		vk::SwapchainKHR GetHandle() { return m_SwapChain; }
 
 	private:
+		VulkanSwapChain(const VulkanSwapChain&) = delete;
+		VulkanSwapChain(VulkanSwapChain&&) = delete;
+		VulkanSwapChain& operator=(const VulkanSwapChain&) = delete;
+		VulkanSwapChain& operator=(VulkanSwapChain&&) = delete;
+
 		void Create();
 		void Cleanup();
 

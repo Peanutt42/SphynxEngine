@@ -11,7 +11,7 @@ namespace Sphynx::Rendering {
 				(memProperties.memoryTypes[i].propertyFlags & properties) == properties)
 				return i;
 		}
-		return {};
+		return std::nullopt;
 	}
 
 	

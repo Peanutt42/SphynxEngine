@@ -32,7 +32,9 @@ namespace Sphynx::Rendering {
 
 	private:
 		Mesh(const Mesh&) = delete;
+		Mesh(Mesh&&) = delete;
 		Mesh& operator=(const Mesh&) = delete;
+		Mesh& operator=(Mesh&&) = delete;
 
 	private:
 		VulkanBuffer* m_VertexBuffer = nullptr;

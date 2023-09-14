@@ -71,12 +71,12 @@ namespace Sphynx::Rendering {
     }
 
     void SpirvHelper::GetReflectionInfo(const std::vector<uint32>& spirvCode, vk::ShaderStageFlags stage, ShaderReflectionInfo& outInfo) {
-        spirv_cross::Compiler compiler(spirvCode);
+        spirv_cross::Compiler compiler(spirvCode.data(), spirvCode.size());
         spirv_cross::ShaderResources resources = compiler.get_shader_resources();
 
         for (auto& uniformBuffer : resources.uniform_buffers) {
             uint32 binding = compiler.get_decoration(uniformBuffer.id, spv::DecorationBinding);
-            std::string name = compiler.get_name(uniformBuffer.id);
+            const std::string& name = compiler.get_name(uniformBuffer.id);
 
             const auto& type = compiler.get_type(uniformBuffer.base_type_id);
             size_t size = compiler.get_declared_struct_size(type);
@@ -84,7 +84,7 @@ namespace Sphynx::Rendering {
         }
         for (auto& sampler : resources.sampled_images) {
             uint32 binding = compiler.get_decoration(sampler.id, spv::DecorationBinding);
-            std::string name = compiler.get_name(sampler.id);
+            const std::string& name = compiler.get_name(sampler.id);
             outInfo.DescriptorBindings[binding] = { vk::DescriptorType::eCombinedImageSampler, stage, name };
         }
 
@@ -299,6 +299,27 @@ namespace Sphynx::Rendering {
             vk::DescriptorBufferInfo bufferInfo{ buffers[i], 0, (uint32)uniformBuffer.Size };
             descriptorWrite.pBufferInfo = &bufferInfo;
 
+            VulkanContext::LogicalDevice.updateDescriptorSets(1, &descriptorWrite, 0, nullptr);
+        }
+    }
+
+    void VulkanShader::SetImageSampler(const std::string& name, vk::Sampler sampler, const std::vector<vk::ImageView>& imageViews) {
+        std::optional<uint32> binding = _GetBinding(name);
+        if (!binding) {
+            SE_ERR(Logging::Rendering, "Failed to set image sampler, '{}' doesn't exist", name);
+            return;
+        }
+
+        for (size_t i = 0; i < m_DescriptorSets.size(); i++) {
+            vk::WriteDescriptorSet descriptorWrite{};
+            descriptorWrite.dstSet = m_DescriptorSets[i];
+            descriptorWrite.dstBinding = *binding;
+            descriptorWrite.dstArrayElement = 0;
+            descriptorWrite.descriptorCount = 1;
+            descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+
+            vk::DescriptorImageInfo imageInfo{ sampler, imageViews[i], vk::ImageLayout::eShaderReadOnlyOptimal };
+            descriptorWrite.pImageInfo = &imageInfo;
             VulkanContext::LogicalDevice.updateDescriptorSets(1, &descriptorWrite, 0, nullptr);
         }
     }

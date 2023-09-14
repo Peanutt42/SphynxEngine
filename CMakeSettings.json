@@ -1,0 +1,28 @@
+﻿{
+  "configurations": [
+    {
+      "name": "Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}/bin/Debug",
+      "installRoot": "${projectDir}/install"
+    },
+    {
+      "name": "Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}/bin/Release",
+      "installRoot": "${projectDir}/install"
+    },
+    {
+      "name": "Dist",
+      "generator": "Ninja",
+      "configurationType": "Dist",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}/bin/Dist",
+      "installRoot": "${projectDir}/install"
+    }
+  ]
+}

@@ -29,9 +29,15 @@ Programs/CrashReporter/bin
 *.vcxproj.filters
 *.sln
 
+# CLion/Rider
+**/.idea
+
 # Logging
 *.log
 /Logs
 
 # generated cached files
 *.cached_shader
+
+# generated reflection info
+TestProject/Source/generated/Module.cpp

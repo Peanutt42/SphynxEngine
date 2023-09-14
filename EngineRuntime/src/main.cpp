@@ -1,6 +1,11 @@
 #include "pch.hpp"
 #include "Core/EntryPoint.hpp"
 #include "Core/Application.hpp"
+#include "Scene/Scene.hpp"
+#include "Scene/SceneSerializer.hpp"
+#include "Scripting/ScriptingEngine.hpp"
+#include "Rendering/Renderer.hpp"
+#include "Physics/PhysicEngine.hpp"
 
 namespace Sphynx {
 	class RuntimeApplication : public Application {
@@ -8,7 +13,13 @@ namespace Sphynx {
 
 
 		virtual void OnCreate() override {
+			if (!Engine::GetSettings().Headless)
+                Engine::Renderer().SetDrawSceneTextureEnabled(true);
 
+			m_Scene = std::make_unique<Scene>("Scene");
+
+			SceneSerializer::Deserialize(Engine::GetProject()->StartSceneFilepath, *m_Scene)
+				.expect("Failed to open start scene");
 		}
 
 		virtual void OnDestroy() override {
@@ -16,50 +27,56 @@ namespace Sphynx {
 		}
 
 		virtual void Update() override {
+			Engine::Physics().Update(*m_Scene);
 
+			for (const auto& system : Engine::Scripting().GetSystems())
+				system.Update((void*)m_Scene.get());
+
+            if (!Engine::GetSettings().Headless) {
+                Engine::Renderer().SubmitScene(*m_Scene, Rendering::Camera{});
+                // TODO: Draw Quad with the scene tex
+            }
 		}
 
 		virtual void DrawUI() override {
 
 		}
+
+	private:
+		std::unique_ptr<Scene> m_Scene;
 	};
 }
 
 int GuardedMain(int argc, const char** argv) {
 	Sphynx::Platform::SetWorkingDirToExe();
-	// SphynxEngine/bin/$Platform/$Config/Editor/Editor.exe
-	Sphynx::Platform::SetWorkingDirToParentFolder(4);
 
 	// Get project filepath
 	std::filesystem::path projectFilepath;
 	if (argc >= 2)
 		projectFilepath = argv[1];
 	
-	while (true) {
+	if (!std::filesystem::exists(projectFilepath))
 		projectFilepath = Sphynx::Platform::FileDialogs::OpenFile("Sphynx Engine Project", "*.seproj");
-		if (std::filesystem::exists(projectFilepath))
-			break;
+	if (!std::filesystem::exists(projectFilepath))
+		return 0;
 
-		bool answer = Sphynx::Platform::MessagePrompts::YesNo("Open Project", "Do you want to try again?");
-		if (answer == false)
-			return 0;
-	}
 
 	// Load project
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
 	if (project->EngineVersion != Sphynx::Engine::Version) {
-		Sphynx::Platform::MessagePrompts::Error("Project's engine version", std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version));
+		std::string error = std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion.ToString(), Sphynx::Engine::Version.ToString());
+		Sphynx::Platform::MessagePrompts::Error("Project's engine version", error);
 		return 0;
 	}
 
 	// Create application
 	std::shared_ptr<Sphynx::RuntimeApplication> application = std::make_unique<Sphynx::RuntimeApplication>();
 
-	Sphynx::ConsoleArguments arguments(argc, argv);
+	
 
 	Sphynx::EngineSettings engineSettings;
 	engineSettings.ParseConfigFile(project->EngineConfigFilepath);
-	engineSettings.ParseArguments(arguments);
+	engineSettings.ParseArguments(argc, argv);
 	engineSettings.WindowName = "Sphynx Engine Runtime";
 	engineSettings.Fullscreen = true;
 	engineSettings.ImGuiEnabled = false;

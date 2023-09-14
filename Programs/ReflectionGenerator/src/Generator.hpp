@@ -24,7 +24,7 @@ namespace Sphynx::Scripting {
 			outFile << "extern \"C\" {\n";
 
 			// GetComponents
-			outFile << "\t__declspec(dllexport) std::vector<Sphynx::Scripting::ComponentReflectionInfo>* GetComponents() {\n";
+			outFile << "\tDLL_EXPORT std::vector<Sphynx::Scripting::ComponentReflectionInfo>* GetComponents() {\n";
 			outFile << "\t\tstatic std::vector<Sphynx::Scripting::ComponentReflectionInfo> s_Components = {\n";
 			{
 				size_t nextTypeID = 0;
@@ -55,7 +55,7 @@ namespace Sphynx::Scripting {
 
 
 			// GetConfigs
-			outFile << "\t__declspec(dllexport) std::vector<Sphynx::Scripting::ConfigReflectionInfo>* GetConfigs() {\n";
+			outFile << "\tDLL_EXPORT std::vector<Sphynx::Scripting::ConfigReflectionInfo>* GetConfigs() {\n";
 			outFile << "\t\tstatic std::vector<Sphynx::Scripting::ConfigReflectionInfo> s_Configs = {\n";
 			{
 				size_t nextTypeID = 0;
@@ -85,7 +85,7 @@ namespace Sphynx::Scripting {
 			outFile << "\t}\n";
 
 			// GetSystems
-			outFile << "\t__declspec(dllexport) std::vector<Sphynx::Scripting::SystemReflectionInfo>* GetSystems() {\n";
+			outFile << "\tDLL_EXPORT std::vector<Sphynx::Scripting::SystemReflectionInfo>* GetSystems() {\n";
 			outFile << "\t\tstatic std::vector<Sphynx::Scripting::SystemReflectionInfo> s_Systems = {\n";
 			{
 				size_t nextTypeID = 0;
@@ -100,6 +100,15 @@ namespace Sphynx::Scripting {
 			}
 			outFile << "\t\t};\n";
 			outFile << "\t\treturn &s_Systems;\n";
+			outFile << "\t}\n";
+
+			// IsDebugConfiguration
+			outFile << "\tDLL_EXPORT bool IsDebugConfiguration() {\n";
+			outFile << "#ifdef DEBUG\n";
+			outFile << "\t\treturn true;\n";
+			outFile << "#else\n";
+			outFile << "\t\treturn false;\n";
+			outFile << "#endif\n";
 			outFile << "\t}\n";
 			
 			outFile << "}\n";

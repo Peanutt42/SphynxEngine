@@ -119,8 +119,13 @@ namespace Sphynx::Rendering {
 		return Validation;
 	}
 
-	VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT /*messageSeverity*/, VkDebugUtilsMessageTypeFlagsEXT /*messageType*/, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/) {
-		SE_ERR(Logging::Rendering, "[Validation Layer]: {}", pCallbackData->pMessage);
+	VKAPI_ATTR VkBool32 VKAPI_CALL debugCallback(VkDebugUtilsMessageSeverityFlagBitsEXT messageSeverity, VkDebugUtilsMessageTypeFlagsEXT /*messageType*/, const VkDebugUtilsMessengerCallbackDataEXT* pCallbackData, void* /*pUserData*/) {
+		if (messageSeverity & VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT) {
+			SE_WARN(Logging::Rendering, "[Validation Layer]: {}", pCallbackData->pMessage);
+		}
+		else {
+			SE_ERR(Logging::Rendering, "[Validation Layer]: {}", pCallbackData->pMessage);
+		}
 		
 		return VK_FALSE;
 	}

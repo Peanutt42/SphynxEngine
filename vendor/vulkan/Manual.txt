@@ -16,7 +16,7 @@ After installing, create a new folder named after the VulkanSDK version
         - %VulkanSDK/Lib/shaderc_shared.dll
         - %VulkanSDK/Lib/shaderc_sharedd.dll
 
-maybe you need to replace the glslangValidator.exe in Engine/Resources/Shaders with the %VulkanSDK/Bin/glslangValidator.exe
+maybe you need to replace the glslangValidator.exe in Resources/Shaders with the %VulkanSDK/Bin/glslangValidator.exe
 
 Now to use the wanted VulkanSDK version, go to dependencies.lua and change "VulkanSDKVersion" to the VulkanSDK version
 

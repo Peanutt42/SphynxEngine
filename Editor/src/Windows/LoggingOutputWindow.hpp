@@ -1,6 +1,7 @@
 #pragma once
 
 #include "EditorWindow.hpp"
+#include "Core/CommandHandler.hpp"
 
 namespace Sphynx::Editor {
 	class LoggingOutputWindow : public EditorWindow {
@@ -24,8 +25,11 @@ namespace Sphynx::Editor {
 				s_Logs.clear();
 				s_Logs.reserve(1024);
 			}
+			
+			constexpr int consoleInputHeight = 45;
 
-			if (ImGui::BeginChild("scrolling", ImVec2(0, 0), true, ImGuiWindowFlags_HorizontalScrollbar)) {
+			ImVec2 availableRegion = ImGui::GetContentRegionAvail();
+			if (ImGui::BeginChild("scrolling", { availableRegion.x, availableRegion.y - consoleInputHeight }, true, ImGuiWindowFlags_HorizontalScrollbar)) {
 				ImGuiListClipper clipper;
 				clipper.Begin((int)s_Logs.size());
 				while (clipper.Step()) {
@@ -55,6 +59,15 @@ namespace Sphynx::Editor {
 					ImGui::SetScrollHereY(1.0f);
 
 				ImGui::EndChild();
+			}
+
+			static std::string s_Input;
+			// TODO: ImGuiInputTextFlags_CallbackCompletion & ImGuiInputTextFlags_CallbackHistory
+			//		 for input history and tab completion
+			if (ImGui::InputText("##console input text", &s_Input, ImGuiInputTextFlags_EnterReturnsTrue)) {
+				CommandHandler::QueueCommand(s_Input);
+				s_Input.clear();
+				ImGui::SetKeyboardFocusHere(-1);
 			}
 		}
 

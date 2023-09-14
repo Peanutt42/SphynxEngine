@@ -6,36 +6,30 @@
 
 int GuardedMain(int argc, const char** argv) {
 	Sphynx::Platform::SetWorkingDirToExe();
-	// SphynxEngine/bin/$Platform/$Config/Editor/Editor.exe
-	Sphynx::Platform::SetWorkingDirToParentFolder(4);
 
 	// Get project filepath
 	std::filesystem::path projectFilepath;
 	if (argc >= 2)
 		projectFilepath = argv[1];
 	
-	while (true) {
+	if (!std::filesystem::exists(projectFilepath))
 		projectFilepath = Sphynx::Platform::FileDialogs::OpenFile("Sphynx Engine Project", "*.seproj");
-		if (std::filesystem::exists(projectFilepath))
-			break;
+	if (!std::filesystem::exists(projectFilepath))
+		return 0;
 
-		bool answer = Sphynx::Platform::MessagePrompts::YesNo("Open Project", "Do you want to try again?");
-		if (answer == false)
-			return 0;
-	}
 	
 	// Load project
 	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
 	if (project->EngineVersion != Sphynx::Engine::Version) {
-		Sphynx::Platform::MessagePrompts::Error("Project's engine version", std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion, Sphynx::Engine::Version));
+		std::string error = std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion.ToString(), Sphynx::Engine::Version.ToString());
+		Sphynx::Platform::MessagePrompts::Error("Project's engine version missmatch", error);
 		return 0;
 	}
 
-	Sphynx::ConsoleArguments arguments(argc, argv);
 
 	Sphynx::EngineSettings engineSettings;
 	engineSettings.ParseConfigFile(project->EngineConfigFilepath);
-	engineSettings.ParseArguments(arguments);
+	engineSettings.ParseArguments(argc, argv);
 	engineSettings.Headless = false; // forced
 	engineSettings.WindowName = "Sphynx Engine Editor";
 	engineSettings.Fullscreen = false;
@@ -48,7 +42,7 @@ int GuardedMain(int argc, const char** argv) {
 	};
 
 	Sphynx::Engine::Init(initInfo);
-	
+
 	while (!Sphynx::Engine::ShouldClose()) {
 		Sphynx::Engine::Update();
 	}

@@ -5,6 +5,7 @@
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#include <psapi.h>
 
 #include <filesystem>
 #include <iostream>
@@ -18,11 +19,12 @@ void crash(std::string_view msg) {
 }
 
 int main(const int argc, const char** argv) {
-	if (argc < 1) {
-		crash("There should always be atleast one cmd arg");
-	}
-
-	std::filesystem::current_path(std::filesystem::path(argv[0]).parent_path().parent_path());
+	std::wstring exeFilepathStr;
+    exeFilepathStr.resize(MAX_PATH);
+	GetModuleFileNameW(nullptr, exeFilepathStr.data(), (DWORD)exeFilepathStr.size());
+	std::filesystem::path filepath = exeFilepathStr;
+	if (std::filesystem::exists(filepath))
+        std::filesystem::current_path(filepath.parent_path());
 
 	if (argc != 2) {
 		crash("Usage: [process_id]");
@@ -64,7 +66,7 @@ int main(const int argc, const char** argv) {
 	
 	if (exitCode != 0) {
 		std::cout << "Crash detected!\n";
-		
+
 		CrashReporterGUIRun();
 	}
 	else

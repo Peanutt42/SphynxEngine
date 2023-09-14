@@ -10,8 +10,6 @@ namespace Sphynx::Rendering {
 		Window(const std::string_view title, bool maximized = true, bool fullscreen = false, bool customWindowControls = true);
 		~Window();
 
-		Window(const Window&) = delete;
-
 		void Update();
 
 		bool ShouldClose();
@@ -50,6 +48,11 @@ namespace Sphynx::Rendering {
 		void SetTitlebarhitTestCallback(const std::function<bool()>& callback) { m_TitlebarhitTest = callback; }
 
 	private:
+		Window(const Window&) = delete;
+		Window(Window&&) = delete;
+		Window& operator=(const Window&) = delete;
+		Window& operator=(Window&&) = delete;
+
 		static void _FramebufferResizedCallback(GLFWwindow* window, int width, int height);
 		static void _WindowResizedCallback(GLFWwindow* window, int width, int height);
 		static void _WindowPositionCallback(GLFWwindow* window, int xpos, int ypos);

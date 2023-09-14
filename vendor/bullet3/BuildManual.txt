@@ -1,0 +1,7 @@
+Clone repo: https://github.com/bulletphysics/bullet3.git
+run build_visual_studio_vr_pybullet_double_dynamic.bat
+build all projects
+Copy all necessary files from bin/:
+	BulletCollision
+	BulletDynamics
+	LinearMath

@@ -18,7 +18,9 @@ namespace Sphynx::Rendering {
 
 	private:
 		Image(const Image&) = delete;
+		Image(Image&&) = delete;
 		Image& operator=(const Image&) = delete;
+		Image& operator=(Image&&) = delete;
 
 	private:
 		VulkanTexture* m_Texture = nullptr;

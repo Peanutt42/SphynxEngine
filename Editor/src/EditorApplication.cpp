@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "EditorApplication.hpp"
 #include "EditorAssetManager.hpp"
+#include "Physics/PhysicEngine.hpp"
 
 #include "Scene/SceneSerializer.hpp"
 
@@ -25,8 +26,10 @@ namespace Sphynx::Editor {
 		ImGui::SetCurrentContext(Engine::ImGuiHelper().GetContext());
 
 		Engine::ImGuiHelper().EnableDocking();
-		Engine::ImGuiHelper().SetSaveFilepath("Editor/imgui.ini");
+		Engine::ImGuiHelper().SetSaveFilepath("imgui.ini");
 		Engine::ImGuiHelper().SetMenubarCallback([this]() { OnDrawMenubar(); });
+
+		Engine::Renderer().SetDrawSceneTextureEnabled(false);
 
 		m_Windows.push_back(std::make_unique<LoggingOutputWindow>());
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
@@ -39,15 +42,14 @@ namespace Sphynx::Editor {
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
 		m_SceneFilepath = Engine::GetProject()->StartSceneFilepath;
-		std::string loadSceneError;
-		if (!SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene, loadSceneError))
-			SE_ERR(Logging::Editor, "Failed to load scene {}: {}", m_SceneFilepath.string(), loadSceneError);
+		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene)
+			.expect("Failed to load start scene {}", m_SceneFilepath.string());
 
 		// TODO: Save it in a config
 		// TODO: Do this also in code reloading (copy old, create new from updated systems
 		//		 and set old settings to new map while keeping new systems active by default
 		for (const auto& system : Engine::Scripting().GetSystems())
-			m_GameECSSystemActiveMap[system.FullName] = true;
+			m_GameECSSystems[system.FullName].Active = true;
 	}
 
 	void EditorApplication::OnDestroy() {
@@ -77,10 +79,14 @@ namespace Sphynx::Editor {
 			if (Input::IsKeyPressed(KeyCode::O))
 				OpenScene();
 		}
+
+		if (Input::IsKeyPressed(KeyCode::F5))
+			OnRuntimeStart();
+		if (Input::IsKeyPressed(KeyCode::F8))
+			OnRuntimeStop();
 		
-		if (m_State == EditorState::Playing) {
-			UpdateGame();
-		}
+		if (m_State == EditorState::Playing)
+			OnRuntimeUpdate();
 
 		Engine::Renderer().SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
 	}
@@ -128,11 +134,21 @@ namespace Sphynx::Editor {
 		}
 	}
 
-	void EditorApplication::UpdateGame() {
+	void EditorApplication::OnRuntimeStart() {
+		m_State = EditorState::Playing;
+		m_GameScene = std::make_unique<Scene>(*m_EditingScene);
+		Engine::Physics().ClearWorld();
+	}
+
+	void EditorApplication::OnRuntimeUpdate() {
+		// Update Physics
+		Engine::Physics().Update(*m_GameScene);
+
 		// Update ECS-Systems
+		Timer totalECSSystemTimer;
 		const std::vector<Scripting::SystemReflectionInfo>& systems = Engine::Scripting().GetSystems();
-		for (const auto& [name, active] : m_GameECSSystemActiveMap) {
-			if (!active)
+		for (auto& [name, systemInfo] : m_GameECSSystems) {
+			if (!systemInfo.Active)
 				continue;
 
 			auto findSystem = std::ranges::find_if(systems, [name](const auto& info) { return info.FullName == name; });
@@ -140,9 +156,29 @@ namespace Sphynx::Editor {
 				SE_WARN(Logging::Scripting, "Can't find systems '{}'", name);
 			}
 			else {
+				Timer timer;
 				findSystem->Update(m_GameScene.get());
+				systemInfo.LastDeltatime = timer.ElapsedSeconds();
 			}
 		}
+		m_GameTotalECSSystemDeltaTime = totalECSSystemTimer.ElapsedSeconds();
+	}
+
+	void EditorApplication::OnRuntimeStop() {
+		m_GameScene.reset();
+		m_State = EditorState::Editing;
+
+		m_GameTotalECSSystemDeltaTime = 0.f;
+		for (auto& [name, systemInfo] : m_GameECSSystems)
+			systemInfo.LastDeltatime = 0.f;
+	}
+
+	void EditorApplication::SetECSSystemActive(const std::string& name, bool active) {
+		auto& systemInfo = s_Instance->m_GameECSSystems[name];
+		systemInfo.Active = active;
+		if (!active)
+			systemInfo.LastDeltatime = 0.f;
+		
 	}
 
 
@@ -165,9 +201,8 @@ namespace Sphynx::Editor {
 			return;
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
-		std::string loadDErrorMsg;
-		if (!SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene, loadDErrorMsg))
-			SE_ERR(Logging::Editor, "Failed to open scene {}: {}", m_SceneFilepath.string(), loadDErrorMsg);
+		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene)
+			.expect("Failed to open scene {}", m_SceneFilepath.string());
 	}
 
 	void EditorApplication::SaveCurrentScene() {

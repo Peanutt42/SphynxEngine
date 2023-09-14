@@ -137,20 +137,18 @@ namespace Sphynx {
 			return true;
 		}
 
-		static bool LoadFile(const std::filesystem::path& filepath, YAML::Node& outData) {
-			if (!std::filesystem::exists(filepath)) {
-				SE_ERR(Logging::Serialization, "{} doesn't exist!", filepath.string());
-				return false;
-			}
-			
+		static Result<YAML::Node, std::string> LoadFile(const std::filesystem::path& filepath) {
+			if (!std::filesystem::exists(filepath))
+				return Error<YAML::Node>("{} doesn't exist!", filepath.string());
+
+			YAML::Node data;
 			try {
-				outData = YAML::LoadFile(filepath.string());
+				data = YAML::LoadFile(filepath.string());
 			}
 			catch (const YAML::Exception& e) {
-				SE_ERR(Logging::Serialization, "Failed to open yaml file {},\n    yaml exception: {}", filepath.string(), e.what());
-				return false;
+				return Error<YAML::Node>("Failed to open yaml file {},\n    yaml exception: {}", filepath.string(), e.what());
 			}
-			return true;
+			return data;
 		}
 	};
 }

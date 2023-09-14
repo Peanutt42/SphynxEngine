@@ -10,11 +10,23 @@
 #include <shlobj.h>
 #include <Psapi.h>
 #include <DbgHelp.h>
-#pragma comment(lib, "Dbghelp.lib")
 
 namespace Sphynx {
 	bool Platform::IsDebuggerAttached() {
 		return IsDebuggerPresent();
+	}
+
+
+	bool Platform::ConsoleSupportsColor() {
+		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
+		if (hOut == INVALID_HANDLE_VALUE)
+			return false;
+		
+		DWORD consoleMode;
+		if (!GetConsoleMode(hOut, &consoleMode))
+			return false;
+
+		return consoleMode & ENABLE_VIRTUAL_TERMINAL_PROCESSING;
 	}
 
 
@@ -23,7 +35,8 @@ namespace Sphynx {
 		filepathStr.resize(MAX_PATH);
 		GetModuleFileNameW(nullptr, filepathStr.data(), (DWORD)filepathStr.size());
 		std::filesystem::path filepath = filepathStr;
-		std::filesystem::current_path(filepath.parent_path());
+        if (std::filesystem::exists(filepath))
+            std::filesystem::current_path(filepath.parent_path());
 	}
 
 
@@ -80,7 +93,10 @@ namespace Sphynx {
 			if (SymGetSymFromAddr64(process, stackFrame.AddrPC.Offset, &displacement, symbol)) {
 				std::string symbolName = symbol->Name;
 
-				if (symbolName == __FUNCTION__) {
+				if (symbolName == __FUNCTION__ ||
+                    symbolName == "Sphynx::OnProcessCrashed" ||
+                    symbolName == "Sphynx::CrashHandler::OnCrash")
+                {
 					stacktrace.clear();
 					continue;
 				}
@@ -156,7 +172,7 @@ namespace Sphynx {
 			else
 				output += "writing/reading address ";
 
-			if (record->ExceptionInformation[1] == (ULONG)nullptr)
+			if (record->ExceptionInformation[1] == (ULONG)0)
 				output += "nullptr";
 			else {
 				std::stringstream addressHex;
@@ -201,15 +217,15 @@ namespace Sphynx {
 	}
 
 
-	void Platform::MessagePrompts::Info(const std::string_view title, const std::string_view msg) {
+	void Platform::MessagePrompts::Info(std::string_view title, std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_USERICON | MB_OK);
 	}
 
-	void Platform::MessagePrompts::Error(const std::string_view title, const std::string_view msg) {
+	void Platform::MessagePrompts::Error(std::string_view title, std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_ICONERROR | MB_OK);
 	}
 
-	bool Platform::MessagePrompts::YesNo(const std::string_view title, const std::string_view msg) {
+	bool Platform::MessagePrompts::YesNo(std::string_view title, std::string_view msg) {
 		return MessageBoxA(NULL, msg.data(), title.data(), MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
 
@@ -301,13 +317,13 @@ namespace Sphynx {
 
 
 
-	void Platform::Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
+	bool Platform::Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
 		if (!std::filesystem::exists(filepath)) {
-			SE_FATAL(Logging::General, "Can't find process to start in {}", filepath.string());
-			return;
+			SE_ERR(Logging::General, "Can't find process to start in {}", filepath.string());
+			return false;
 		}
 
-		STARTUPINFO si;
+		STARTUPINFOW si;
 		ZeroMemory(&si, sizeof(si));
 		si.cb = sizeof(si);
 
@@ -319,10 +335,12 @@ namespace Sphynx {
 		if (CreateProcessW(nullptr, _args.data(), nullptr, nullptr, false, DETACHED_PROCESS, nullptr, nullptr, &si, &pi)) {
 			CloseHandle(pi.hProcess);
 			CloseHandle(pi.hThread);
-			return;
+			return true;
 		}
-		else
-			SE_FATAL(Logging::General, "Failed to start process {}", filepath.string());
+		else {
+			SE_ERR(Logging::General, "Failed to start process {}", filepath.string());
+			return false;
+		}
 	}
 
 	unsigned long Platform::Process::GetCurrentProcessId() {
@@ -345,10 +363,9 @@ namespace Sphynx {
 		HMODULE Module = nullptr;
 	};
 	Platform::DynamicLinkLibary::DynamicLinkLibary(const std::filesystem::path& filepath) {
-		m_PlatformData = new DLLPlatformData();
-
 		SE_ASSERT(std::filesystem::exists(filepath), "{} doesn't exist!", filepath.string());
 
+		m_PlatformData = new DLLPlatformData();
 		m_PlatformData->Module = LoadLibraryW(filepath.native().c_str());
 		SE_ASSERT(m_PlatformData->Module, "Failed to open {}", filepath.string());
 	}

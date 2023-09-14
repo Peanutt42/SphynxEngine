@@ -1,8 +1,11 @@
 #include "pch.hpp"
 #include "Engine.hpp"
+#include "CommandHandler.hpp"
 
+#include "Audio/AudioEngine.hpp"
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
+#include "Physics/PhysicEngine.hpp"
 #include "Scripting/ScriptingEngine.hpp"
 #include "UI/VulkanImGuiHelper.hpp"
 
@@ -21,9 +24,19 @@ namespace Sphynx {
 
 		s_Application = initInfo.Application;
 
+		s_PhysicEngine = new Physics::PhysicEngine();
+
 		s_ScriptingEngine = new Scripting::ScriptingEngine();
 
-		if (!s_Settings.Headless) {
+		if (s_Settings.Headless) {
+			ConsoleInput::Init();
+			ConsoleInput::SetInputCallback([](const std::string& command) {
+				CommandHandler::QueueCommand(command);
+			});
+		}
+		else {
+			s_AudioEngine = new Audio::AudioEngine();
+
 			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen, s_Settings.CustomWindowControls);
 
 			Input::Init(s_Window->GetGLFWHandle());
@@ -34,10 +47,9 @@ namespace Sphynx {
 				s_ImGuiHelper = new UI::VulkanImGuiHelper();
 		}
 
-		s_UpdateTimer.Reset();
-
-
 		s_Application->OnCreate();
+
+		s_UpdateTimer.Reset();
 	}
 
 	void Engine::Shutdown() {
@@ -51,12 +63,18 @@ namespace Sphynx {
 
 		delete s_ScriptingEngine;
 
-		if (!s_Settings.Headless) {
+		delete s_PhysicEngine;
+
+		if (s_Settings.Headless)
+			ConsoleInput::Shutdown();
+		else {
 			if (s_Settings.ImGuiEnabled)
 				delete s_ImGuiHelper;
 
 			delete s_Renderer;
 			delete s_Window;
+
+			delete s_AudioEngine;
 		}
 
 		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
@@ -69,6 +87,8 @@ namespace Sphynx {
 
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
 		s_UpdateTimer.Reset();
+
+		CommandHandler::Update();
 
 		if (!s_Settings.Headless)
 			Input::Update();
@@ -90,9 +110,11 @@ namespace Sphynx {
 			s_Renderer->End();
 
 			s_Window->Update();
+
+			s_AudioEngine->Update();
 		}
 
-		if (s_Settings.MaxFPS > 0.f) {
+		if (s_Settings.MaxFPS > 0) {
 			float updateTime = s_UpdateTimer.ElapsedSeconds();
 			float timeLeft = (1.f / s_Settings.MaxFPS) - updateTime;
 			if (timeLeft > 0.f) {

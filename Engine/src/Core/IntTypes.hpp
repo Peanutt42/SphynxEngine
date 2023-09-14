@@ -18,4 +18,15 @@ namespace Sphynx {
 
 	using intptr = intptr_t;
 	using uintptr = uintptr_t;
+
+
+	template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
+	std::optional<T> StringToNumber(const std::string_view str) {
+		T value;
+		auto result = std::from_chars(str.data(), str.data() + str.size(), value);
+		if (result.ec == std::errc())
+			return value;
+		else
+			return std::nullopt;
+	}
 }

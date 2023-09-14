@@ -5,97 +5,92 @@
 #include "Logging/Logging.hpp"
 #include "Debug/StackTrace.hpp"
 
-namespace Sphynx {
-	class SE_API Platform {
-	public:
-		static bool IsDebuggerAttached();
+namespace Sphynx::Platform {
+	SE_API bool IsDebuggerAttached();
 
-		static void SetWorkingDirToExe();
+    SE_API bool ConsoleSupportsColor();
 
-		// context argument is only windows specific and not needed when not inside crash handeling
-		static StackTrace GenerateStackTrace(void* customContext = nullptr);
+    SE_API void SetWorkingDirToExe();
 
-		// context is only windows specific
-		using ExceptionCallback = std::function<void(const std::string& reason, void* context)>;
-		static void SetExceptionCallback(const ExceptionCallback& callback);
+    SE_API float GetCPUUsage();
 
-		static std::string WideToNarrow(const std::wstring& wstr) {
-			std::locale loc("");
-			std::string result(wstr.size(), 0);
-			for (size_t i = 0; i < result.size(); i++)
-				result[i] = std::use_facet<std::ctype<wchar_t>>(loc).narrow(wstr[i]);
-			return result;
-		}
-		
-		static std::wstring NarrowToWide(const std::string& str) {
-			std::locale loc("");
-			std::wstring result(str.size(), 0);
-			for (size_t i = 0; i < result.size(); i++)
-				result[i] = std::use_facet<std::ctype<wchar_t>>(loc).widen(str[i]);
-			return result;
-		}
+    // context argument is only windows specific and not needed when not inside crash handeling
+    SE_API StackTrace GenerateStackTrace(void* customContext = nullptr);
 
+    // context is only windows specific
+    using ExceptionCallback = std::function<void(const std::string& reason, void* context)>;
+    SE_API void SetExceptionCallback(const ExceptionCallback& callback);
 
-		// Sets the working directory <levelsUp> times to the upper parent folder
-		static void SetWorkingDirToParentFolder(size_t levelsUp) {
-			std::filesystem::path currentPath = std::filesystem::current_path();
-			for (size_t i = 0; i < levelsUp; i++)
-				currentPath = currentPath.parent_path();
-			std::filesystem::current_path(currentPath);
-		}
+    namespace MessagePrompts {
+        SE_API void Info(std::string_view title, std::string_view msg);
+        SE_API void Error(std::string_view title, std::string_view msg);
+        SE_API bool YesNo(std::string_view title, std::string_view msg);
+    }
 
-		class SE_API MessagePrompts {
-		public:
-			static void Info(const std::string_view title, const std::string_view msg);
-			static void Error(const std::string_view title, const std::string_view msg);
-			static bool YesNo(const std::string_view title, const std::string_view msg);
-		};
+    namespace FileDialogs {
+        SE_API std::filesystem::path OpenFile(const std::string& filterName, const std::string& filter);
+        SE_API std::filesystem::path SaveFile(const std::string& filterName, const std::string& filter);
 
-		class SE_API FileDialogs {
-		public:
-			static std::filesystem::path OpenFile(const std::string& filterName, const std::string& filter);
-			static std::filesystem::path SaveFile(const std::string& filterName, const std::string& filter);
-
-			static std::filesystem::path OpenFolder();
-		};
+        SE_API std::filesystem::path OpenFolder();
+    }
 
 
-		class SE_API Process {
-		public:
-			static void Run(const std::filesystem::path& filepath, const std::wstring& args);
+    namespace Process {
+        SE_API bool Run(const std::filesystem::path& filepath, const std::wstring& args);
 
-			static unsigned long GetCurrentProcessId();
+        SE_API unsigned long GetCurrentProcessId();
 
-			static std::string GetCurrentName();
-		};
-
-
-		class SE_API Thread {
-		public:
-			static unsigned int GetCurrentId();
-		};
+        SE_API std::string GetCurrentName();
+    }
 
 
-		struct DLLPlatformData;
-		class SE_API DynamicLinkLibary {
-		public:
-			DynamicLinkLibary(const std::filesystem::path& filepath);
-			~DynamicLinkLibary();
+    namespace Thread {
+        SE_API unsigned int GetCurrentId();
+    };
 
-			DynamicLinkLibary(const DynamicLinkLibary&) = delete;
 
-			template<typename Func>
-			Func LoadFunction(const std::string_view name) {
-				Func function = (Func)_GetFuncAddress(name.data());
-				SE_ASSERT(function, Logging::Scripting, "Failed to get function '{}'", name);
-				return function;
-			}
+    struct DLLPlatformData;
+    class SE_API DynamicLinkLibary {
+    public:
+        DynamicLinkLibary(const std::filesystem::path& filepath);
+        ~DynamicLinkLibary();
 
-		private:
-			void* _GetFuncAddress(const char* name);
+        template<typename Func>
+        std::optional<Func> LoadFunction(const std::string_view name) {
+            if (!m_PlatformData)
+                return std::nullopt;
+            Func function = (Func)_GetFuncAddress(name.data());
+            if (!function)
+                return std::nullopt;
+            return function;
+        }
 
-		private:
-			DLLPlatformData* m_PlatformData = nullptr;
-		};
-	};
+    private:
+        void* _GetFuncAddress(const char* name);
+
+        DynamicLinkLibary(const DynamicLinkLibary&) = delete;
+        DynamicLinkLibary(DynamicLinkLibary&&) = delete;
+        DynamicLinkLibary& operator=(const DynamicLinkLibary&) = delete;
+        DynamicLinkLibary& operator=(DynamicLinkLibary&&) = delete;
+
+    private:
+        DLLPlatformData* m_PlatformData = nullptr;
+    };
+
+
+    inline static std::string WideToNarrow(const std::wstring& wstr) {
+        std::locale loc("");
+        std::string result(wstr.size(), 0);
+        for (size_t i = 0; i < result.size(); i++)
+            result[i] = std::use_facet<std::ctype<wchar_t>>(loc).narrow(wstr[i], '?');
+        return result;
+    }
+
+    inline static std::wstring NarrowToWide(const std::string& str) {
+        std::locale loc("");
+        std::wstring result(str.size(), 0);
+        for (size_t i = 0; i < result.size(); i++)
+            result[i] = std::use_facet<std::ctype<wchar_t>>(loc).widen(str[i]);
+        return result;
+    }
 }

@@ -82,4 +82,22 @@ namespace Sphynx {
 	void Input::SetCursorMode(CursorMode mode) {
 		glfwSetInputMode(s_Window, GLFW_CURSOR, GLFW_CURSOR_NORMAL + (int)mode);
 	}
+
+
+
+	void ConsoleInput::Init() {
+		s_InputThread = std::thread([]() {
+			while (true) {
+				std::string command;
+				std::getline(std::cin, command);
+				if (s_InputCallback)
+					s_InputCallback(command);
+			}
+		});
+	}
+
+	void ConsoleInput::Shutdown() {
+		// input thread can be stuck reading input so we don't have to join
+		s_InputThread.detach();
+	}
 }

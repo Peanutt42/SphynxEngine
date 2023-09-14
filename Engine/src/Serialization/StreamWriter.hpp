@@ -13,7 +13,7 @@ namespace Sphynx {
 		virtual void SetStreamPosition(size_t position) = 0;
 		virtual void WriteData(const char* data, size_t size) = 0;
 
-		operator bool() const { return IsStreamGood(); }
+		explicit operator bool() const { return IsStreamGood(); }
 
 		template<typename T>
 		void Write(const T& type) {

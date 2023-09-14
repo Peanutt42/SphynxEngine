@@ -1,7 +1,6 @@
 #pragma once
 
 #include "CoreInclude.hpp"
-#include "ConsoleArguments.hpp"
 #include "Application.hpp"
 #include "ProjectSystem/Project.hpp"
 #include "Serialization/YAMLSerializer.hpp"
@@ -13,20 +12,33 @@ namespace Sphynx {
 		std::string WindowName;
 		bool Fullscreen = false;
 		bool CustomWindowControls = true;
-		float MaxFPS = -1.f;
+		int MaxFPS = 0;
 
-		void ParseArguments(const ConsoleArguments& arguments) {
-			if (arguments.HasArgument("-headless"))
-				Headless = true;
+		void ParseArguments(int argc, const char** argv) {
+			for (int i = 0; i < argc; i++) {
+				std::string_view arg(argv[i]);
+
+				if (arg == "-headless")
+					Headless = true;
+
+				if (arg.starts_with("-maxfps=")) {
+					if (auto result = StringToNumber<int>(arg.substr(std::size("-maxfps=") - 1)))
+						MaxFPS = *result;
+				}
+			}
 		}
 
-		void ParseConfigFile(const std::filesystem::path& filepath) {
+		Result<bool, std::string> ParseConfigFile(const std::filesystem::path& filepath) {
 			std::string filepathStr = filepath.string();
 
-			YAML::Node data;
-			if (YAMLSerializer::LoadFile(filepathStr, data)) {
-				MaxFPS = data["MaxFPS"].as<float>();
-			}
+			auto result = YAMLSerializer::LoadFile(filepathStr);
+			if (result.is_error())
+				return Error<bool>("Failed to parse config file: {}", result.get_error());
+
+			YAML::Node& data = *result;
+			MaxFPS = data["MaxFPS"].as<int>();
+
+			return true;
 		}
 	};
 

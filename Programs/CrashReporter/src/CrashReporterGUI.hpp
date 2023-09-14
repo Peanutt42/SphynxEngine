@@ -135,8 +135,29 @@ namespace Sphynx {
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("Fonts/OpenSans/static/OpenSans-Regular.ttf", 18.f);
-		io.IniFilename = "imgui.ini";
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("Resources/Fonts/OpenSans/static/OpenSans-Regular.ttf", 18.f);
+		io.IniFilename = nullptr;
+        const char* iniFile =
+        "[Window][DockingSpace]\n"
+        "Pos=0,0\n"
+        "Size=1200,800\n"
+        "Collapsed=0\n"
+        "\n"
+        "[Window][Debug##Default]\n"
+        "Pos=60,60\n"
+        "Size=400,400\n"
+        "Collapsed=0\n"
+        "\n"
+        "[Window][Crash Report]\n"
+        "Pos=0,24\n"
+        "Size=1200,776\n"
+        "Collapsed=0\n"
+        "DockId=0x10586157,0\n"
+        "\n"
+        "[Docking][Data]\n"
+        "DockSpace ID=0x10586157 Window=0x403722FD Pos=0,24 Size=1200,776 CentralNode=1 Selected=0x637884D7\n"
+        "";
+        ImGui::LoadIniSettingsFromMemory(iniFile, std::strlen(iniFile));
 
 		ImGui::StyleColorsDark();
 

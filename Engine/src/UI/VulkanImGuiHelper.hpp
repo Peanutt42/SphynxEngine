@@ -25,6 +25,11 @@ namespace Sphynx::UI {
 		ImGuiContext* GetContext();
 
 	private:
+		VulkanImGuiHelper(const VulkanImGuiHelper&) = delete;
+		VulkanImGuiHelper(VulkanImGuiHelper&&) = delete;
+		VulkanImGuiHelper& operator=(const VulkanImGuiHelper&) = delete;
+		VulkanImGuiHelper& operator=(VulkanImGuiHelper&&) = delete;
+
 		void _DrawTitlebar();
 
 	private:
@@ -35,5 +40,9 @@ namespace Sphynx::UI {
 		std::unique_ptr<Rendering::Image> m_MaximizeIcon;
 		std::unique_ptr<Rendering::Image> m_RestoreIcon;
 		std::unique_ptr<Rendering::Image> m_CloseIcon;
+
+		float m_MinimizeOpacity = 0.f;
+		float m_MaximizeOpacity = 0.f;
+		float m_CloseOpacity = 0.f;
 	};
 }

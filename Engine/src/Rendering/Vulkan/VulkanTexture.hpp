@@ -37,6 +37,12 @@ namespace Sphynx::Rendering {
 		vk::DescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
 
 	private:
+		VulkanTexture(const VulkanTexture&) = delete;
+		VulkanTexture(VulkanTexture&&) = delete;
+		VulkanTexture& operator=(const VulkanTexture&) = delete;
+		VulkanTexture& operator=(VulkanTexture&&) = delete;
+
+	private:
 		uint32 m_Width = 0, m_Height = 0;
 		std::vector<byte> m_Data;
 		vk::Format m_VulkanFormat = vk::Format::eUndefined;

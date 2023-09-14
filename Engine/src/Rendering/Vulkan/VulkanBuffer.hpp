@@ -20,5 +20,11 @@ namespace Sphynx::Rendering {
 		void Set(BufferView data);
 		void Get(std::vector<byte>& outData);
 		void Copy(vk::CommandBuffer commandBuffer, vk::Buffer dst);
+
+	private:
+		VulkanBuffer(const VulkanBuffer&) = delete;
+		VulkanBuffer(VulkanBuffer&&) = delete;
+		VulkanBuffer& operator=(const VulkanBuffer&) = delete;
+		VulkanBuffer& operator=(VulkanBuffer&&) = delete;
 	};
 }

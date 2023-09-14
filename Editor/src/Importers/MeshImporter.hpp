@@ -6,6 +6,6 @@
 namespace Sphynx::Editor {
 	class MeshImporter {
 	public:
-		static void Import(const std::filesystem::path& filepath, Rendering::MeshData& outData);
+		static Result<bool, std::string> Import(const std::filesystem::path& filepath, Rendering::MeshData& outData);
 	};
 }
