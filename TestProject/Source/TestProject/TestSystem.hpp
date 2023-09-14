@@ -15,7 +15,7 @@ namespace TestProject {
 			});
 
 			for (auto[entity, test] : scene.View<TestComponent>()) {
-				SE_INFO(Sphynx::Logging::Game, "{} - {}", entity, test.AInt++);
+				//SE_INFO(Sphynx::Logging::Game, "{} - {}", entity, test.AInt++);
 			}
 		}
 	};
