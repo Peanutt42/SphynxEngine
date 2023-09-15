@@ -88,12 +88,15 @@ namespace Sphynx::Rendering {
 
 		VulkanContext::InstanceBuffer->Set(m_RenderCommand.ModelMatrices);
 
+		VulkanContext::Begin();
+
 		VulkanContext::BeginSceneRenderpass();
 		// Draw Scene
 		m_DefaultShader->Bind();
 		VulkanContext::InstanceBuffer->Bind();
 		m_CubeMesh->Draw((uint32)m_RenderCommand.ModelMatrices.size());
 		VulkanContext::EndSceneRenderpass();
+
 		VulkanContext::BeginLastRenderpass();
 	}
 

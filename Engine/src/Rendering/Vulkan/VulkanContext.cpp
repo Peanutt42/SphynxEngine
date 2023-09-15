@@ -118,7 +118,7 @@ namespace Sphynx::Rendering {
 		Instance.reset();
 	}
 
-	void VulkanContext::BeginSceneRenderpass() {
+	void VulkanContext::Begin() {
 		SE_PROFILE_FUNCTION();
 
 		vk::Result result = LogicalDevice.waitForFences(1, &InFlightFences[CurrentFrame], VK_TRUE, UINT64_MAX);
@@ -131,13 +131,17 @@ namespace Sphynx::Rendering {
 			return;
 		}
 		else if (result != vk::Result::eSuccess && result != vk::Result::eSuboptimalKHR)
-			SE_FATAL(Logging::Rendering, "Failed to acquire swapchain image!");
+		SE_FATAL(Logging::Rendering, "Failed to acquire swapchain image!");
 
 		// only reset if we are submitting work
 		result = LogicalDevice.resetFences(1, &InFlightFences[CurrentFrame]);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to reset inFlightFence");
 
 		CommandBuffer = CommandPool->BeginRecording(CurrentFrame);
+	}
+
+	void VulkanContext::BeginSceneRenderpass() {
+		SE_PROFILE_FUNCTION();
 
 		SceneRenderpass->Begin(SceneRenderpass->GetFramebuffer(CurrentImage), CommandBuffer, vk::Extent2D(SceneWidth, SceneHeight));
 	}
