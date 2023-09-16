@@ -20,9 +20,6 @@ namespace Sphynx::Editor {
 
 	class EditorApplication : public Application {
 	public:
-		EditorApplication();
-		~EditorApplication();
-
 		virtual void OnCreate() override;
 		virtual void OnDestroy() override;
 

@@ -13,7 +13,6 @@ namespace Sphynx {
 		virtual void Update() = 0;
 		virtual void DrawUI() = 0;
 
-	private:
 		Application(const Application&) = delete;
 		Application(Application&&) = delete;
 		Application& operator=(const Application&) = delete;

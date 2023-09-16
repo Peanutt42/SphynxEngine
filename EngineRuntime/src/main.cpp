@@ -18,7 +18,7 @@ namespace Sphynx {
 
 			m_Scene = std::make_unique<Scene>("Scene");
 
-			SceneSerializer::Deserialize(Engine::GetProject()->StartSceneFilepath, *m_Scene)
+			SceneSerializer::Deserialize(Engine::GetProject().StartSceneFilepath, *m_Scene)
 				.expect("Failed to open start scene");
 		}
 
@@ -60,34 +60,23 @@ int GuardedMain(int argc, const char** argv) {
 	if (!std::filesystem::exists(projectFilepath))
 		return 0;
 
+	Sphynx::Project project(projectFilepath);
 
-	// Load project
-	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
-	if (project->EngineVersion != Sphynx::Engine::Version) {
-		std::string error = std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion.ToString(), Sphynx::Engine::Version.ToString());
+	if (project.EngineVersion != Sphynx::Engine::Version) {
+		std::string error = std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project.EngineVersion.ToString(), Sphynx::Engine::Version.ToString());
 		Sphynx::Platform::MessagePrompts::Error("Project's engine version", error);
 		return 0;
 	}
 
-	// Create application
-	std::shared_ptr<Sphynx::RuntimeApplication> application = std::make_unique<Sphynx::RuntimeApplication>();
+	Sphynx::EngineSettings settings;
+	settings.ParseConfigFile(project.EngineConfigFilepath);
+	settings.ParseArguments(argc, argv);
+	settings.WindowName = "Sphynx Engine Runtime - " + project.Name;
+	settings.Fullscreen = true;
+	settings.ImGuiEnabled = false;
 
-	
-
-	Sphynx::EngineSettings engineSettings;
-	engineSettings.ParseConfigFile(project->EngineConfigFilepath);
-	engineSettings.ParseArguments(argc, argv);
-	engineSettings.WindowName = "Sphynx Engine Runtime";
-	engineSettings.Fullscreen = true;
-	engineSettings.ImGuiEnabled = false;
-
-	Sphynx::EngineInitInfo initInfo {
-		.Settings = engineSettings,
-		.Project = project,
-		.Application = application
-	};
-
-	Sphynx::Engine::Init(initInfo);
+	Sphynx::RuntimeApplication application;
+	Sphynx::Engine::Init(settings, project, application);
 	
 	while (!Sphynx::Engine::ShouldClose()) {
 		Sphynx::Engine::Update();

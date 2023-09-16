@@ -41,10 +41,4 @@ namespace Sphynx {
 			return true;
 		}
 	};
-
-	struct EngineInitInfo {
-		EngineSettings Settings;
-		std::shared_ptr<Project> Project;
-		std::shared_ptr<Application> Application;
-	};	
 }

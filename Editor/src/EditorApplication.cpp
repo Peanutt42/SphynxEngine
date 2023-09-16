@@ -13,15 +13,10 @@
 #include "Windows/ViewportWindow.hpp"
 
 namespace Sphynx::Editor {
-	EditorApplication::EditorApplication() {
-		s_Instance = this;
-	}
-	EditorApplication::~EditorApplication() {
-		s_Instance = nullptr;
-	}
-
 	void EditorApplication::OnCreate() {
 		SE_PROFILE_FUNCTION();
+
+		s_Instance = this;
 
 		ImGui::SetCurrentContext(Engine::ImGuiHelper().GetContext());
 
@@ -41,7 +36,7 @@ namespace Sphynx::Editor {
 		EditorAssetManager::LoadAssets();
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
-		m_SceneFilepath = Engine::GetProject()->StartSceneFilepath;
+		m_SceneFilepath = Engine::GetProject().StartSceneFilepath;
 		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene)
 			.expect("Failed to load start scene {}", m_SceneFilepath.string());
 
@@ -58,6 +53,8 @@ namespace Sphynx::Editor {
 		m_Windows.clear();
 		m_EditingScene.reset();
 		m_GameScene.reset();
+
+		s_Instance = nullptr;
 	}
 	
 	void EditorApplication::Update() {

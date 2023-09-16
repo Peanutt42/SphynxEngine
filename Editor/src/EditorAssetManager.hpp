@@ -9,7 +9,7 @@ namespace Sphynx::Editor {
 	class EditorAssetManager {
 	public:
 		static void LoadAssets() {
-			const std::filesystem::path assetPath = Engine::GetProject()->Folderpath / "Assets";
+			const std::filesystem::path assetPath = Engine::GetProject().Folderpath / "Assets";
 			for (const auto& directoryEntry : std::filesystem::recursive_directory_iterator(assetPath)) {
 				const std::filesystem::path path = directoryEntry.path();
 				const std::filesystem::path fileExtension = path.extension();

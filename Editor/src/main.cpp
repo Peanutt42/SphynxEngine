@@ -17,31 +17,23 @@ int GuardedMain(int argc, const char** argv) {
 	if (!std::filesystem::exists(projectFilepath))
 		return 0;
 
-	
-	// Load project
-	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>(projectFilepath);
-	if (project->EngineVersion != Sphynx::Engine::Version) {
-		std::string error = std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project->EngineVersion.ToString(), Sphynx::Engine::Version.ToString());
+	Sphynx::Project project(projectFilepath);
+	if (project.EngineVersion != Sphynx::Engine::Version) {
+		std::string error = std::format("The project's version ({}) is a diffrent version than this Engine version ({})", project.EngineVersion.ToString(), Sphynx::Engine::Version.ToString());
 		Sphynx::Platform::MessagePrompts::Error("Project's engine version missmatch", error);
 		return 0;
 	}
 
+	Sphynx::EngineSettings settings;
+	settings.ParseConfigFile(project.EngineConfigFilepath);
+	settings.ParseArguments(argc, argv);
+	settings.Headless = false; // forced
+	settings.WindowName = "Sphynx Engine Editor - " + project.Name;
+	settings.Fullscreen = false;
+	settings.ImGuiEnabled = true;
 
-	Sphynx::EngineSettings engineSettings;
-	engineSettings.ParseConfigFile(project->EngineConfigFilepath);
-	engineSettings.ParseArguments(argc, argv);
-	engineSettings.Headless = false; // forced
-	engineSettings.WindowName = "Sphynx Engine Editor";
-	engineSettings.Fullscreen = false;
-	engineSettings.ImGuiEnabled = true;
-
-	Sphynx::EngineInitInfo initInfo {
-		.Settings = engineSettings,
-		.Project = project,
-		.Application = std::make_shared<Sphynx::Editor::EditorApplication>()
-	};
-
-	Sphynx::Engine::Init(initInfo);
+	Sphynx::Editor::EditorApplication application;
+	Sphynx::Engine::Init(settings, project, application);
 
 	while (!Sphynx::Engine::ShouldClose()) {
 		Sphynx::Engine::Update();

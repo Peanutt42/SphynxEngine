@@ -28,7 +28,7 @@ namespace Sphynx {
 
 	class SE_API Engine {
 	public:
-		static void Init(const EngineInitInfo& initInfo);
+		static void Init(const EngineSettings& settings, Project& project, Application& application);
 		static void Shutdown();
 
 		static void Update();
@@ -41,7 +41,7 @@ namespace Sphynx {
 
 		static EngineSettings& GetSettings() { return s_Settings; }
 
-		static std::shared_ptr<Project> GetProject() { return s_Project; }
+		static Project& GetProject() { return *s_Project; }
 
 		static Audio::AudioEngine& Audio() { return *s_AudioEngine; }
 		static Scripting::ScriptingEngine& Scripting() { return *s_ScriptingEngine; }
@@ -60,9 +60,9 @@ namespace Sphynx {
 		inline static float s_DeltaTime = 0.f;
 		inline static Timer s_UpdateTimer;
 
-		inline static std::shared_ptr<Project> s_Project;
+		inline static Project* s_Project = nullptr;
 
-		inline static std::shared_ptr<Application> s_Application;
+		inline static Application* s_Application = nullptr;
 
 		inline static Audio::AudioEngine* s_AudioEngine = nullptr;
 		inline static Rendering::Window* s_Window = nullptr;

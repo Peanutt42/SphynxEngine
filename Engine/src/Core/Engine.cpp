@@ -10,19 +10,19 @@
 #include "UI/VulkanImGuiHelper.hpp"
 
 namespace Sphynx {
-	void Engine::Init(const EngineInitInfo& initInfo) {
+	void Engine::Init(const EngineSettings& settings, Project& project, Application& application) {
 		CrashHandler::Init();
 		CrashHandler::StartCrashReporter();
 
-		s_Settings = initInfo.Settings;
+		s_Settings = settings;
 
 		Logging::Init();
 
 		SE_INFO("=== SPHYNX ENGINE INIT ===");
 
-		s_Project = initInfo.Project;
+		s_Project = &project;
 
-		s_Application = initInfo.Application;
+		s_Application = &application;
 
 		s_PhysicEngine = new Physics::PhysicEngine();
 
@@ -54,12 +54,9 @@ namespace Sphynx {
 
 	void Engine::Shutdown() {
 		s_Application->OnDestroy();
-		s_Application.reset();
 
 		if (!s_Settings.Headless)
 			s_Renderer->WaitBeforeClose();
-		
-		s_Project.reset();
 
 		delete s_ScriptingEngine;
 

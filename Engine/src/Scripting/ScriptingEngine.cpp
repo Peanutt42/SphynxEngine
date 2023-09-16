@@ -4,7 +4,7 @@
 
 namespace Sphynx::Scripting {
 	ScriptingEngine::ScriptingEngine() {
-		m_Module = std::make_unique<Platform::DynamicLinkLibary>(Engine::GetProject()->BinaryFilepath);
+		m_Module = std::make_unique<Platform::DynamicLinkLibary>(Engine::GetProject().BinaryFilepath);
 		
 		auto isDebugConfigurationFunc = m_Module->LoadFunction<IsDebugConfigurationFunc>("IsDebugConfiguration");
 		SE_ASSERT(isDebugConfigurationFunc, Logging::Scripting, "Can't find 'IsDebugConfiguration' function");
