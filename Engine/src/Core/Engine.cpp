@@ -130,4 +130,19 @@ namespace Sphynx {
 			return true;
 		return false;
 	}
+
+	void Engine::ForceShutdown() {
+		Shutdown();
+
+		std::exit(0);
+	}
+
+	void Engine::ForceShutdown(bool error, std::string_view msg) {
+		if (error)
+			Platform::MessagePrompts::Error("Forced Engine Shutdown", msg);
+		else
+			Platform::MessagePrompts::Info("Forced Engine Shutdown", msg);
+
+		ForceShutdown();
+	}
 }

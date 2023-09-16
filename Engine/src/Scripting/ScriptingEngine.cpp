@@ -7,23 +7,27 @@ namespace Sphynx::Scripting {
 		m_Module = std::make_unique<Platform::DynamicLinkLibary>(Engine::GetProject().BinaryFilepath);
 		
 		auto isDebugConfigurationFunc = m_Module->LoadFunction<IsDebugConfigurationFunc>("IsDebugConfiguration");
-		SE_ASSERT(isDebugConfigurationFunc, Logging::Scripting, "Can't find 'IsDebugConfiguration' function");
+		if (!isDebugConfigurationFunc) Engine::ForceShutdown(true, "Can't find 'IsDebugConfiguration' function");
 		bool isBuiltWithDEBUG = (*isDebugConfigurationFunc)();
 #ifdef DEBUG
-		SE_ASSERT(isBuiltWithDEBUG, Logging::Scripting, "The Engine was built with DEBUG configuration but not the game module!");
+		if (!isBuiltWithDEBUG)
+			Engine::ForceShutdown(true, "The Engine was built with DEBUG configuration but not the game module!");
 #else
-		SE_ASSERT(!isBuiltWithDEBUG, Logging::Scripting, "The Engine wasn't built with DEBUG configuration but the game module was!");
+		if (isBuiltWithDEBUG)
+			Engine::ForceShutdown(true, "The Engine wasn't built with DEBUG configuration but the game module was!");
 #endif
 			
 
 		auto getComponentsFunc = m_Module->LoadFunction<GetComponentsFunc>("GetComponents");
-		SE_ASSERT(getComponentsFunc, Logging::Scripting, "Can't find 'GetComponents' function");
+		if (!getComponentsFunc) Engine::ForceShutdown(true, "Can't find 'GetComponents' function");
 		m_Components = (*getComponentsFunc)();
+
 		auto getConfigsFunc = m_Module->LoadFunction<GetConfigsFunc>("GetConfigs");
-		SE_ASSERT(getConfigsFunc, Logging::Scripting, "Can't find 'GetConfigs' function");
+		if (!getConfigsFunc) Engine::ForceShutdown(true, "Can't find 'GetConfigs' function");
 		m_Configs = (*getConfigsFunc)();
+
 		auto getSystemsFunc = m_Module->LoadFunction<GetSystemsFunc>("GetSystems");
-		SE_ASSERT(getSystemsFunc, Logging::Scripting, "Can't find 'GetSystems' function");
+		if (!getSystemsFunc) Engine::ForceShutdown(true, "Can't find 'GetSystems' function");
 		m_Systems = (*getSystemsFunc)();
 	}
 

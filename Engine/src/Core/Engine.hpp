@@ -35,6 +35,11 @@ namespace Sphynx {
 
 		static void CloseNextFrame() { s_Quit.store(true); }
 
+		// this is for user errors, not engine internal crashes
+		static void ForceShutdown();
+		// this is for user errors, not engine internal crashes
+		static void ForceShutdown(bool error, std::string_view msg);
+
 		static bool ShouldClose();
 
 		static float DeltaTime() { return s_DeltaTime; }
