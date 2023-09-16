@@ -38,7 +38,5 @@ add_custom_command(
 		COMMENT "Running ReflectionGenerator"
 )
 
-#file(WRITE ${GENERATED_MODULE_PATH} "To be generated!")
-
 define_configuration(TestProject)
 define_platform(TestProject)
