@@ -31,7 +31,7 @@ int main(int argc, const char** argv) {
     if (argc != 4) {
         std::cout << "usage: [Input] [Output] [EngineDir]\n";
         std::cin.get();
-        return 0;
+        return 1;
     }
 
     std::string engineDir = argv[3];
@@ -44,8 +44,15 @@ int main(int argc, const char** argv) {
     std::vector<Sphynx::Scripting::SystemReflectionInfo> systems;
     std::vector<std::string> filenames;
 
-    std::string inputDir = argv[1];
-    remove_char(inputDir, '\"');
+    std::string inputDirStr = argv[1];
+    remove_char(inputDirStr, '\"');
+
+	std::filesystem::path inputDir = inputDirStr;
+	if (!std::filesystem::exists(inputDir)) {
+		std::cout << "Input \"" << inputDirStr << "\" doesn't exist!" << std::endl;
+		return 1;
+	}
+
     for (const auto& directoryEntry : std::filesystem::recursive_directory_iterator(inputDir)) {
         const std::filesystem::path& path = directoryEntry.path();
 
@@ -65,26 +72,38 @@ int main(int argc, const char** argv) {
             std::filesystem::path relativePath = std::filesystem::relative(path, std::filesystem::current_path());
 
             Sphynx::Scripting::Tokenizer tokenizer(code);
-            if (!tokenizer.IsSuccessful())
-                std::cout << "[ReflectionGenerator] Tokenizer failed: " << tokenizer.GetErrorMessage() << '\n';
+            if (!tokenizer.IsSuccessful()) {
+				std::cout << "[ReflectionGenerator] Tokenizer failed: " << tokenizer.GetErrorMessage() << '\n';
+				return 1;
+			}
+
+			size_t nextComponentIndex = components.size();
+			size_t nextConfigIndex = configs.size();
+			size_t nextSystemIndex = systems.size();
             Sphynx::Scripting::Parser parser(tokenizer.GetTokens(), relativePath.string(), components, configs, systems);
-            if (!parser.IsSuccessful())
-                std::cout << "[ReflectionGenerator] Parser failed: " << parser.GetErrorMessagee() << '\n';
-            if (extension == ".hpp" || extension == ".h")
-                filenames.push_back(path.string());
+            if (!parser.IsSuccessful()) {
+				std::cout << "[ReflectionGenerator] Parser failed: " << parser.GetErrorMessagee() << '\n';
+				return 1;
+			}
+            filenames.push_back(path.string());
+
+
+			for (size_t i = nextComponentIndex; i < components.size(); i++)
+				std::cout << components[i].FullName << std::endl;
+			for (size_t i = nextConfigIndex; i < configs.size(); i++)
+				std::cout << configs[i].FullName << std::endl;
+			for (size_t i = nextSystemIndex; i < systems.size(); i++)
+				std::cout << systems[i].FullName << std::endl;
         }
     }
 
-    std::string generatedFolderStr = argv[2];
-    remove_char(generatedFolderStr, '\"');
-    std::cout << std::filesystem::current_path().string() << "/" << generatedFolderStr << std::endl;
-    std::filesystem::path generatedFolder = generatedFolderStr;
-    if (!std::filesystem::exists(generatedFolder))
-        std::filesystem::create_directory(generatedFolder);
 
-    Sphynx::Scripting::Generator::Generate(components, configs, systems, filenames, generatedFolder / "Module.cpp", engineDir);
+	std::string outputPathStr = argv[2];
+	remove_char(outputPathStr, '\"');
+	std::filesystem::path outputPath = outputPathStr;
+    Sphynx::Scripting::Generator::Generate(components, configs, systems, filenames, outputPath, engineDir);
 
-    std::cout << "[ReflectionGenerator] Finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count() << "ms\n";
+    std::cout << "[ReflectionGenerator] Finished in " << std::chrono::duration_cast<std::chrono::milliseconds>(std::chrono::high_resolution_clock::now() - start).count() << "ms -> " << outputPathStr << std::endl;
 #ifdef WINDOWS
 	}
 	else {

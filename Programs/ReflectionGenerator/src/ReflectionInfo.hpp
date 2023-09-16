@@ -3,6 +3,10 @@
 #include <vector>
 #include <string>
 
+namespace Sphynx {
+	class Scene;
+}
+
 namespace Sphynx::Scripting {
 	struct VariableReflectionInfo {
 		std::string Type;
@@ -33,6 +37,6 @@ namespace Sphynx::Scripting {
 		std::string FullName;
 
 		// Used in runtime
-		void(*Update)(void* scene) = nullptr;
+		void(*Update)(Sphynx::Scene& scene) = nullptr;
 	};
 }

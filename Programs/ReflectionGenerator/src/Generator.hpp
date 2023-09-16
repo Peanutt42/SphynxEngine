@@ -93,7 +93,7 @@ namespace Sphynx::Scripting {
 					outFile << "\t\t\t{\n";
 					outFile << "\t\t\t\t" << nextTypeID << ",\n";
 					outFile << "\t\t\t\t\"" << system.FullName << "\",\n";
-					outFile << "\t\t\t\t[](void* scene) { " << system.FullName << "::Update(*(Sphynx::Scene*)scene); }\n";
+					outFile << "\t\t\t\t" << system.FullName <<  "\n";
 					outFile << "\t\t\t},\n";
 					nextTypeID++;
 				}

@@ -154,7 +154,7 @@ namespace Sphynx::Editor {
 			}
 			else {
 				Timer timer;
-				findSystem->Update(m_GameScene.get());
+				findSystem->Update(*m_GameScene);
 				systemInfo.LastDeltatime = timer.ElapsedSeconds();
 			}
 		}

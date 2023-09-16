@@ -6,17 +6,28 @@
 #include "TestComponent.hpp"
 
 namespace TestProject {
-    System()
-	class TestSystem {
-	public:
-		static void Update(Sphynx::Scene& scene) {
-			scene.ForEach([&](Sphynx::ECS::EntityId entity) {
-				scene.AddComponent<TestComponent>(entity, TestComponent{});
-			});
+	System()
+	void TestSystem(Sphynx::Scene& scene) {
+		scene.ForEach([&](Sphynx::ECS::EntityId entity) {
+			scene.AddComponent<TestComponent>(entity, TestComponent{});
+		});
 
-			for (auto[entity, test] : scene.View<TestComponent>()) {
-				//SE_INFO(Sphynx::Logging::Game, "{} - {}", entity, test.AInt++);
-			}
+		for (auto[entity, test] : scene.View<TestComponent>()) {
+			SE_INFO(Sphynx::Logging::Game, "{} - {}", entity, test.AInt++);
 		}
-	};
+	}
+
+	// you can also just declare the system and implement it later
+	System()
+	void TestSystem2(Sphynx::Scene& scene);
+
+	void TestSystem2(Sphynx::Scene& scene) {
+		scene.ForEach([&](Sphynx::ECS::EntityId entity) {
+			scene.AddComponent<TestComponent>(entity, TestComponent{});
+		});
+
+		for (auto[entity, test] : scene.View<TestComponent>()) {
+			SE_INFO(Sphynx::Logging::Game, "{} - {}", entity, test.AInt++);
+		}
+	}
 }

@@ -42,103 +42,46 @@ namespace Sphynx::Scripting {
 					Expect(TokenType::RIGHT_PAREN);
 					Match(TokenType::SEMICOLON);
 
-					bool isPublic = true;
-					SystemReflectionInfo& systemInfo = m_Systems.emplace_back();
-					ParseStructClassDefinition(isPublic, systemInfo.FullName);
-					size_t systemLevel = 1;
-					while (!Finished()) {
-						if (Match(TokenType::LEFT_BRACKET))
-							systemLevel++;
-						else if (Match(TokenType::RIGHT_BRACKET)) {
-							systemLevel--;
-							if (systemLevel <= 0) {
-								Match(TokenType::SEMICOLON);
-								break;
-							}
-						}
-						else if (Match(TokenType::PUBLIC_KW)) {
-							isPublic = true;
-							Match(TokenType::COLON);
-						}
-						else if (Match(TokenType::PRIVATE_KW) || Match(TokenType::PROTECTED_KW)) {
-							isPublic = false;
-							Match(TokenType::COLON);
-						}
-						//else if (Match(TokenType::HIDE_PROPERTY_PROP)) {
-						//	hideNextProperty = true;
-						//	Match(TokenType::SEMICOLON);
-						//}
-						else if (m_TokenIter->Type == TokenType::IDENTIFIER) {
-							//if (hideNextProperty) {
-							//	hideNextProperty = false;
-							//	while (!Finished() && m_TokenIter->Type != TokenType::SEMICOLON) {
-							//		Advance();
-							//		if (m_TokenIter->Type == TokenType::LEFT_BRACKET) {
-							//			while (!Finished() && m_TokenIter->Type != TokenType::RIGHT_BRACKET)
-							//				Advance();
-							//			Match(TokenType::SEMICOLON);
-							//			Advance();
-							//			break;
-							//		}
-							//	}
-							//}
-							//else if (isPublic) {
-							//	std::vector<std::vector<Token>::const_iterator> variableIters;
-							//	for (; m_TokenIter != m_Tokens.cend() && IsTokenInsideOfType(*m_TokenIter);
-							//		++m_TokenIter)
-							//	{
-							//		if (m_TokenIter->Code == "static" ||
-							//			m_TokenIter->Code == "constexpr")
-							//			break;
-							//		if (m_TokenIter->Code == "inline")
-							//			continue;
-							//		variableIters.push_back(m_TokenIter);
-							//	}
-							//
-							//	if (variableIters.size() > 0 && m_TokenIter->Type != TokenType::LEFT_PAREN && variableIters.back()->Type == TokenType::IDENTIFIER) {
-							//		VariableReflectionInfo& variable = component.Variables.emplace_back();
-							//		for (size_t i = 0; i < variableIters.size() - 1; i++) {
-							//			variable.Type += variableIters[i]->Code;
-							//			if (IsVariableAttribute(variableIters[i]->Code))
-							//				variable.Type += ' ';
-							//		}
-							//		variable.Name = variableIters.back()->Code;
-							//	}
-							//	while (!Finished() && m_TokenIter->Type != TokenType::SEMICOLON) {
-							//		Advance();
-							//		if (m_TokenIter->Type == TokenType::LEFT_BRACKET) {
-							//			while (!Finished() && m_TokenIter->Type != TokenType::RIGHT_BRACKET)
-							//				Advance();
-							//			Match(TokenType::SEMICOLON);
-							//			Advance();
-							//			break;
-							//		}
-							//	}
-							//}
-							//else
-								Advance();
-						}
-						else if (m_TokenIter->Type == TokenType::CLASS_KW || m_TokenIter->Type == TokenType::STRUCT_KW) {
-							size_t beginSystemLevel = systemLevel;
-							while (!Finished() && m_TokenIter->Type != TokenType::LEFT_BRACKET)
-								Advance();
-							Advance();
+					Expect(TokenType::IDENTIFIER); // return type
 
-							while (!Finished()) {
-								if (Match(TokenType::LEFT_BRACKET))
-									systemLevel++;
-								else if (Match(TokenType::RIGHT_BRACKET)) {
-									systemLevel--;
-									if (systemLevel <= beginSystemLevel) {
-										Match(TokenType::SEMICOLON);
-										break;
-									}
-								}
-								Advance();
-							}
+					if (m_TokenIter->Type != TokenType::IDENTIFIER) {
+						m_ErrorMessage = "expected the system's function name -> identifier!";
+						return;
+					}
+
+					SystemReflectionInfo& systemInfo = m_Systems.emplace_back();
+
+					std::string currentNamespace;
+					for (const auto& [namespaceLevel, name] : m_CurrentNamespaceStack)
+						currentNamespace += name + "::";
+					systemInfo.FullName = currentNamespace + m_TokenIter->Code;
+
+					// Find function definition
+					bool hasDefinition = false;
+					while (!Finished()) {
+						if (Match(TokenType::LEFT_BRACKET)) {
+							hasDefinition = true;
+							break;
 						}
-						else
-							Advance();
+						if (Match(TokenType::SEMICOLON))
+							break;
+						Advance();
+					}
+
+					if (hasDefinition) {
+						// skip definition
+						int bracketLevel = 1;
+						while (!Finished()) {
+							if (Match(TokenType::LEFT_BRACKET))
+								bracketLevel++;
+							else if (Match(TokenType::RIGHT_BRACKET)) {
+								bracketLevel--;
+								if (bracketLevel <= 0)
+									break;
+							}
+							else
+								Advance();
+						}
 					}
 				}
 				else if (Match(TokenType::NAMESPACE_KW)) {

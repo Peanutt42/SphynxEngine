@@ -7,9 +7,10 @@ include(../CMakeMacros.cmake)
 
 project(TestProject)
 
-file(GLOB_RECURSE TESTPROJECT_SOURCES "Source/*.cpp")
-file(GLOB_RECURSE TESTPROJECT_HEADERS "Source/*.hpp")
-set(GENERATED_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Source/generated/Module.cpp")
+file(GLOB_RECURSE TESTPROJECT_SOURCES "Source/TestProject/*.cpp")
+file(GLOB_RECURSE TESTPROJECT_HEADERS "Source/TestProject/*.hpp")
+set(GENERATED_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Source/generated.cpp")
+set(REFLECTION_GENERATOR_BIN "${CMAKE_CURRENT_SOURCE_DIR}/../Programs/ReflectionGenerator/bin/ReflectionGenerator.exe")
 
 add_library(TestProject SHARED ${GENERATED_MODULE_PATH} ${TESTPROJECT_SOURCES} ${TESTPROJECT_HEADERS})
 
@@ -31,11 +32,17 @@ target_compile_features(TestProject PRIVATE cxx_std_20)
 target_compile_definitions(TestProject PRIVATE SE_GAME_MODULE)
 
 add_custom_command(
-		PRE_BUILD
 		OUTPUT ${GENERATED_MODULE_PATH}
-		# ../ before Source because the working dir is in Binaries
-		COMMAND "${CMAKE_CURRENT_SOURCE_DIR}/../Programs/ReflectionGenerator/bin/ReflectionGenerator.exe" ../Source/TestProject ../Source/generated ../../..
+		COMMAND ${REFLECTION_GENERATOR_BIN} Source/TestProject ${GENERATED_MODULE_PATH} ../..
+		DEPENDS ${REFLECTION_GENERATOR_BIN}
+		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		COMMENT "Running ReflectionGenerator"
+)
+
+add_custom_command(
+		TARGET TestProject
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E remove ../Source/generated.cpp
 )
 
 define_configuration(TestProject)
