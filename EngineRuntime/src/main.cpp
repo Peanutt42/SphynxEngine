@@ -30,7 +30,7 @@ namespace Sphynx {
 			Engine::Physics().Update(*m_Scene);
 
 			for (const auto& system : Engine::Scripting().GetSystems())
-				system.Update((void*)m_Scene.get());
+				system.Update(*m_Scene);
 
             if (!Engine::GetSettings().Headless) {
                 Engine::Renderer().SubmitScene(*m_Scene, Rendering::Camera{});

@@ -4,7 +4,13 @@
 
 namespace Sphynx::Scripting {
 	ScriptingEngine::ScriptingEngine() {
-		m_Module = std::make_unique<Platform::DynamicLinkLibary>(Engine::GetProject().BinaryFilepath);
+		std::filesystem::path copiedDLLPath = Engine::GetProject().BinaryFilepath.filename();
+		std::error_code error;
+		std::filesystem::copy(Engine::GetProject().BinaryFilepath, copiedDLLPath, std::filesystem::copy_options::update_existing, error);
+		if (error)
+			Engine::ForceShutdown(true, std::format("Failed to copy game module {} to {}", std::filesystem::absolute(Engine::GetProject().BinaryFilepath).string(), std::filesystem::absolute(copiedDLLPath).string()));
+		
+		m_Module = std::make_unique<Platform::DynamicLinkLibary>(copiedDLLPath);
 		
 		auto isDebugConfigurationFunc = m_Module->LoadFunction<IsDebugConfigurationFunc>("IsDebugConfiguration");
 		if (!isDebugConfigurationFunc) Engine::ForceShutdown(true, "Can't find 'IsDebugConfiguration' function");

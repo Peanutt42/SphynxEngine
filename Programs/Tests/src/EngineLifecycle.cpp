@@ -11,22 +11,17 @@ public:
 };
 
 TEST(Engine, HeadlessEngineLifecyle) {
-	std::shared_ptr<Sphynx::Project> project = std::make_shared<Sphynx::Project>("../../../../TestProject/TestProject.seproj");
-
-	Sphynx::EngineSettings engineSettings {
+		Sphynx::EngineSettings engineSettings {
 		.Headless = true,
 		.ImGuiEnabled = false,
 		.WindowName = "Headless Engine Lifecycle Test",
 		.Fullscreen = false,
 	};
 
-	Sphynx::EngineInitInfo initInfo{
-		.Settings = engineSettings,
-		.Project = project,
-		.Application = std::make_shared<NullApplication>(),
-	};
+	Sphynx::Project project("../../../../TestProject/TestProject.seproj");
+	NullApplication application;
 
-	Sphynx::Engine::Init(initInfo);
+	Sphynx::Engine::Init(engineSettings, project, application);
 	Sphynx::Engine::Update();
 	Sphynx::Engine::Shutdown();
 }

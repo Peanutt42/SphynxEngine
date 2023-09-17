@@ -55,7 +55,7 @@ namespace Sphynx {
 	void Engine::Shutdown() {
 		s_Application->OnDestroy();
 
-		if (!s_Settings.Headless)
+		if (!s_Settings.Headless && s_Renderer)
 			s_Renderer->WaitBeforeClose();
 
 		delete s_ScriptingEngine;

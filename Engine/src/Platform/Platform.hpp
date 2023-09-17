@@ -12,8 +12,6 @@ namespace Sphynx::Platform {
 
     SE_API void SetWorkingDirToExe();
 
-    SE_API float GetCPUUsage();
-
     // context argument is only windows specific and not needed when not inside crash handeling
     SE_API StackTrace GenerateStackTrace(void* customContext = nullptr);
 
