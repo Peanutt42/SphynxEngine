@@ -17,14 +17,9 @@ endif()
 target_include_directories(Engine PUBLIC
 		${ENGINE_INCLUDE_DIR}
 		${GLM_INCLUDE_DIR}
-		${YAML_INCLUDE_DIR}
-		${STBI_INCLUDE_DIR}
-		${SNDFILE_INCLUDE_DIR}
-		${ALSOFT_INCLUDE_DIR}
-		${GLFW_INCLUDE_DIR}
-		${VULKAN_INCLUDE_DIR}
 		${TRACY_INCLUDE_DIR}
 		${IMGUI_INCLUDE_DIR}
+		${Vulkan_INCLUDE_DIRS}
 		${BULLET_INCLUDE_DIR}
 )
 
@@ -44,8 +39,8 @@ target_link_libraries(Engine PUBLIC
 		tracy
 )
 target_link_libraries(Engine PRIVATE
-		${VULKAN_LIB}
-		${SPIRV_CROSS_LIB}
+		${Vulkan_LIBRARIES}
+		${Vulkan_SPIRV_CROSS_LIB}
 		${BULLET_COLLISION_LIB}
 		${BULLET_DYNAMICS_LIB}
 		${BULLET_MATH_LIB}

@@ -6,7 +6,7 @@ else()
 	set(CMAKE_MSVC_RUNTIME_LIBRARY  "MultiThreadedDLL")
 endif()
 
-include(CMakeMacros.cmake)
+include("vendor/Macros.cmake")
 
 project(SphynxEngine)
 
@@ -17,6 +17,8 @@ set(CMAKE_CONFIGURATION_TYPES
 		CACHE STRING "Build Configurations" FORCE)
 
 set(SE_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Resources")
+
+set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/cmake_install")
 
 add_subdirectory(vendor)
 add_subdirectory(vendor/yaml)
@@ -29,7 +31,6 @@ add_subdirectory(vendor/openal-soft)
 add_subdirectory(vendor/gtest)
 add_subdirectory(vendor/assimp)
 add_subdirectory(vendor/libsndfile)
-add_subdirectory(vendor/shaderc)
 
 add_subdirectory(Engine)
 add_subdirectory(Editor)

@@ -6,8 +6,6 @@ add_executable(EngineRuntime ${ENGINERUNTIME_SOURCES})
 
 target_include_directories(EngineRuntime PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}/src
-		${ENGINE_INCLUDE_DIR}
-		${GLM_INCLUDE_DIR}
 )
 
 target_compile_features(EngineRuntime PRIVATE cxx_std_20)

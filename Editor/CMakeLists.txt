@@ -6,10 +6,6 @@ add_executable(Editor ${EDITOR_SOURCES})
 
 target_include_directories(Editor PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}/src
-		${ENGINE_INCLUDE_DIR}
-		${GLM_INCLUDE_DIR}
-		${ASSIMP_INCLUDE_DIR}
-		${SHADERC_INCLUDE_DIR}
 )
 
 target_compile_features(Editor PRIVATE cxx_std_20)
@@ -19,7 +15,7 @@ add_dependencies(Editor Engine)
 target_link_libraries(Editor PRIVATE
 		Engine
 		assimp
-		shaderc
+		${Vulkan_SHADERC_LIB}
 )
 
 target_precompile_headers(Editor PUBLIC src/pch.hpp)
