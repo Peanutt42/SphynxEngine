@@ -34,7 +34,7 @@ add_subdirectory(vendor/libsndfile)
 
 add_subdirectory(Engine)
 add_subdirectory(Editor)
-add_subdirectory(EngineRuntime)
+add_subdirectory(Runtime)
 
 add_subdirectory(Programs/Tests)
 add_subdirectory(Programs/CrashReporter)

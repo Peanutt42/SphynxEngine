@@ -62,5 +62,5 @@ define_platform(Engine)
 
 set(ENGINE_DLL "${CMAKE_CURRENT_BINARY_DIR}/Engine.dll")
 copy_file(Engine ${ENGINE_DLL} "${CMAKE_BINARY_DIR}/Editor/Engine.dll")
-copy_file(Engine ${ENGINE_DLL} "${CMAKE_BINARY_DIR}/EngineRuntime/Engine.dll")
+copy_file(Engine ${ENGINE_DLL} "${CMAKE_BINARY_DIR}/Runtime/Engine.dll")
 copy_file(Engine ${ENGINE_DLL} "${CMAKE_BINARY_DIR}/Programs/Tests/Engine.dll")
