@@ -55,7 +55,7 @@ namespace Sphynx::ECS {
 		}
 
 		template<typename T>
-		T& AddComponent(const EntityId entity, const T& component) {
+		T& AddComponent(const EntityId entity, const T& component = {}) {
 			if (!IsValid(entity))
 				return *(T*)nullptr;
 

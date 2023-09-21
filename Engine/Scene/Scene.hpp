@@ -18,7 +18,7 @@ namespace Sphynx {
 
 
 		template<typename T>
-		T& AddComponent(ECS::EntityId entity, const T& component) {
+		T& AddComponent(ECS::EntityId entity, const T& component = T{}) {
 			return m_Registry.AddComponent<T>(entity, component);
 		}
 		template<typename T>
