@@ -7,9 +7,22 @@
 #include "Rendering/Window.hpp"
 #include "Physics/PhysicEngine.hpp"
 #include "Scripting/ScriptingEngine.hpp"
-#include "UI/VulkanImGuiHelper.hpp"
+#include "UI/VulkanImGui.hpp"
 
 namespace Sphynx {
+	SE_API std::atomic_bool s_Quit = false;
+
+	SE_API EngineSettings s_Settings;
+
+	SE_API float s_DeltaTime = 0.f;
+	SE_API Timer s_UpdateTimer;
+
+	SE_API Project* s_Project = nullptr;
+
+	SE_API Application* s_Application = nullptr;
+
+	SE_API Rendering::Window* s_Window = nullptr;
+
 	void Engine::Init(const EngineSettings& settings, Project& project, Application& application) {
 		CrashHandler::Init();
 		CrashHandler::StartCrashReporter();
@@ -24,27 +37,25 @@ namespace Sphynx {
 
 		s_Application = &application;
 
-		s_PhysicEngine = new Physics::PhysicEngine();
+		Physics::PhysicEngine::Init();
 
-		s_ScriptingEngine = new Scripting::ScriptingEngine();
+		SE_ASSERT(Scripting::ScriptingEngine::Init(), "Failed to initialize Scripting Engine");
 
 		if (s_Settings.Headless) {
 			ConsoleInput::Init();
-			ConsoleInput::SetInputCallback([](const std::string& command) {
-				CommandHandler::QueueCommand(command);
-			});
+			ConsoleInput::SetInputCallback(CommandHandler::QueueCommand);
 		}
 		else {
-			s_AudioEngine = new Audio::AudioEngine();
+			SE_ASSERT(Audio::AudioEngine::Init(), "Failed to initialize Audio Engine");
 
 			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen, s_Settings.CustomWindowControls);
 
 			Input::Init(s_Window->GetGLFWHandle());
 
-			s_Renderer = new Rendering::Renderer(*s_Window, &Update);
+			SE_ASSERT(Rendering::Renderer::Init(*s_Window, &Update), "Failed to initialize the Renderer");
 
 			if (s_Settings.ImGuiEnabled)
-				s_ImGuiHelper = new UI::VulkanImGuiHelper();
+				UI::VulkanImGui::Init();
 		}
 
 		s_Application->OnCreate();
@@ -55,24 +66,27 @@ namespace Sphynx {
 	void Engine::Shutdown() {
 		s_Application->OnDestroy();
 
-		if (!s_Settings.Headless && s_Renderer)
-			s_Renderer->WaitBeforeClose();
+		if (Rendering::Renderer::IsInitialized())
+			Rendering::Renderer::WaitBeforeClose();
 
-		delete s_ScriptingEngine;
+		Scripting::ScriptingEngine::Shutdown();
 
-		delete s_PhysicEngine;
+		Physics::PhysicEngine::Shutdown();
 
-		if (s_Settings.Headless)
+		if (ConsoleInput::IsInitialized())
 			ConsoleInput::Shutdown();
-		else {
-			if (s_Settings.ImGuiEnabled)
-				delete s_ImGuiHelper;
+		
+		if (s_Settings.ImGuiEnabled)
+			UI::VulkanImGui::Shutdown();
 
-			delete s_Renderer;
+		if (Rendering::Renderer::IsInitialized())
+			Rendering::Renderer::Shutdown();
+		
+		if (s_Window)
 			delete s_Window;
-
-			delete s_AudioEngine;
-		}
+		
+		if (Audio::AudioEngine::IsInitialized())
+			Audio::AudioEngine::Shutdown();
 
 		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
 
@@ -87,29 +101,31 @@ namespace Sphynx {
 
 		CommandHandler::Update();
 
-		if (!s_Settings.Headless)
+		if (s_Window)
 			Input::Update();
 
-		s_ScriptingEngine->Update();
+		Scripting::ScriptingEngine::Update();
 
 		s_Application->Update();
 
-		if (!s_Settings.Headless) {
+		if (Rendering::Renderer::IsInitialized()) {
 			if (s_Settings.ImGuiEnabled) {
-				s_ImGuiHelper->Begin();
+				UI::VulkanImGui::Begin();
 				s_Application->DrawUI();
-				s_ImGuiHelper->End();
+				UI::VulkanImGui::End();
 			}
-			
-			s_Renderer->Begin();
-			if (s_Settings.ImGuiEnabled)
-				s_ImGuiHelper->Render();
-			s_Renderer->End();
 
+			Rendering::Renderer::Begin();
+			if (s_Settings.ImGuiEnabled)
+				UI::VulkanImGui::Render();
+			Rendering::Renderer::End();
+		}
+		
+		if (s_Window)
 			s_Window->Update();
 
-			s_AudioEngine->Update();
-		}
+		if (Audio::AudioEngine::IsInitialized())
+			Audio::AudioEngine::Update();
 
 		if (s_Settings.MaxFPS > 0) {
 			float updateTime = s_UpdateTimer.ElapsedSeconds();
@@ -130,6 +146,14 @@ namespace Sphynx {
 			return true;
 		return false;
 	}
+
+	float Engine::DeltaTime() { return s_DeltaTime; }
+
+	EngineSettings& Engine::GetSettings() { return s_Settings; }
+
+	Project& Engine::GetProject() { return *s_Project; }
+
+	void Engine::CloseNextFrame() { s_Quit.store(true); }
 
 	void Engine::ForceShutdown() {
 		Shutdown();

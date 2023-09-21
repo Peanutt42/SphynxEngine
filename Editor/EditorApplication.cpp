@@ -18,13 +18,13 @@ namespace Sphynx::Editor {
 
 		s_Instance = this;
 
-		ImGui::SetCurrentContext(Engine::ImGuiHelper().GetContext());
+		ImGui::SetCurrentContext(UI::VulkanImGui::GetContext());
 
-		Engine::ImGuiHelper().EnableDocking();
-		Engine::ImGuiHelper().SetSaveFilepath("imgui.ini");
-		Engine::ImGuiHelper().SetMenubarCallback([this]() { OnDrawMenubar(); });
+		UI::VulkanImGui::EnableDocking();
+		UI::VulkanImGui::SetSaveFilepath("imgui.ini");
+		UI::VulkanImGui::SetMenubarCallback([this]() { OnDrawMenubar(); });
 
-		Engine::Renderer().SetDrawSceneTextureEnabled(false);
+		Rendering::Renderer::SetDrawSceneTextureEnabled(false);
 
 		m_Windows.push_back(std::make_unique<LoggingOutputWindow>());
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
@@ -43,7 +43,7 @@ namespace Sphynx::Editor {
 		// TODO: Save it in a config
 		// TODO: Do this also in code reloading (copy old, create new from updated systems
 		//		 and set old settings to new map while keeping new systems active by default
-		for (const auto& system : Engine::Scripting().GetSystems())
+		for (const auto& system : Scripting::ScriptingEngine::GetSystems())
 			m_GameECSSystems[system.FullName].Active = true;
 	}
 
@@ -85,7 +85,7 @@ namespace Sphynx::Editor {
 		if (m_State == EditorState::Playing)
 			OnRuntimeUpdate();
 
-		Engine::Renderer().SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
+		Rendering::Renderer::SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
 	}
 
 	void EditorApplication::DrawUI() {
@@ -134,16 +134,16 @@ namespace Sphynx::Editor {
 	void EditorApplication::OnRuntimeStart() {
 		m_State = EditorState::Playing;
 		m_GameScene = std::make_unique<Scene>(*m_EditingScene);
-		Engine::Physics().ClearWorld();
+		Physics::PhysicEngine::ClearWorld();
 	}
 
 	void EditorApplication::OnRuntimeUpdate() {
 		// Update Physics
-		Engine::Physics().Update(*m_GameScene);
+		Physics::PhysicEngine::Update(*m_GameScene);
 
 		// Update ECS-Systems
 		Timer totalECSSystemTimer;
-		const std::vector<Scripting::SystemReflectionInfo>& systems = Engine::Scripting().GetSystems();
+		const std::vector<Scripting::SystemReflectionInfo>& systems = Scripting::ScriptingEngine::GetSystems();
 		for (auto& [name, systemInfo] : m_GameECSSystems) {
 			if (!systemInfo.Active)
 				continue;

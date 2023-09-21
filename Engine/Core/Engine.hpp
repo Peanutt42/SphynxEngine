@@ -5,27 +5,6 @@
 #include "ProjectSystem/Project.hpp"
 
 namespace Sphynx {
-	namespace Audio {
-		class AudioEngine;
-	}
-
-	namespace Rendering {
-		class Window;
-		class Renderer;
-	}
-
-	namespace Physics {
-		class PhysicEngine;
-	}
-
-	namespace Scripting {
-		class ScriptingEngine;
-	}
-
-	namespace UI {
-		class VulkanImGuiHelper;
-	}
-
 	class SE_API Engine {
 	public:
 		static void Init(const EngineSettings& settings, Project& project, Application& application);
@@ -33,7 +12,7 @@ namespace Sphynx {
 
 		static void Update();
 
-		static void CloseNextFrame() { s_Quit.store(true); }
+		static void CloseNextFrame();
 
 		// this is for user errors, not engine internal crashes
 		static void ForceShutdown();
@@ -42,38 +21,12 @@ namespace Sphynx {
 
 		static bool ShouldClose();
 
-		static float DeltaTime() { return s_DeltaTime; }
+		static float DeltaTime();
 
-		static EngineSettings& GetSettings() { return s_Settings; }
+		static EngineSettings& GetSettings();
 
-		static Project& GetProject() { return *s_Project; }
-
-		static Audio::AudioEngine& Audio() { return *s_AudioEngine; }
-		static Scripting::ScriptingEngine& Scripting() { return *s_ScriptingEngine; }
-		static Rendering::Renderer& Renderer() { return *s_Renderer; }
-		static Physics::PhysicEngine& Physics() { return *s_PhysicEngine; }
-
-		static UI::VulkanImGuiHelper& ImGuiHelper() { return *s_ImGuiHelper; }
+		static Project& GetProject();
 
 		constexpr static Version Version { 0, 0, 1 };
-
-	private:
-		inline static std::atomic_bool s_Quit = false;
-
-		inline static EngineSettings s_Settings;
-
-		inline static float s_DeltaTime = 0.f;
-		inline static Timer s_UpdateTimer;
-
-		inline static Project* s_Project = nullptr;
-
-		inline static Application* s_Application = nullptr;
-
-		inline static Audio::AudioEngine* s_AudioEngine = nullptr;
-		inline static Rendering::Window* s_Window = nullptr;
-		inline static Rendering::Renderer* s_Renderer = nullptr;
-		inline static Physics::PhysicEngine* s_PhysicEngine = nullptr;
-		inline static Scripting::ScriptingEngine* s_ScriptingEngine = nullptr;
-		inline static UI::VulkanImGuiHelper* s_ImGuiHelper = nullptr;
 	};
 }

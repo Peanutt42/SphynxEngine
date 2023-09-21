@@ -13,43 +13,23 @@
 namespace Sphynx::Rendering {
 	class SE_API Renderer {
 	public:
-		Renderer(Window& window, const std::function<void()>& resizeCallback);
-		~Renderer();
+		static bool Init(Window& window, const std::function<void()>& resizeCallback);
+		static void Shutdown();
 
-		void SubmitScene(Scene& scene, const Camera& camera);
+		static void SubmitScene(Scene& scene, const Camera& camera);
 
-		void Begin();
-		void End();
+		static void Begin();
+		static void End();
 
-		void WaitBeforeClose();
+		static void WaitBeforeClose();
 
-		void AddBeforeNextRenderCallback(const std::function<void()>& callback) { m_BeforeNextRenderCallbacks.push(callback); }
+		static void AddBeforeNextRenderCallback(const std::function<void()>& callback);
 
-		void SetDrawSceneTextureEnabled(bool enable) { m_DrawSceneTexture = enable; }
+		static void SetDrawSceneTextureEnabled(bool enable);
 
 		// ImTextureID
-		void* GetSceneTextureID();
+		static void* GetSceneTextureID();
 
-	private:
-		Renderer(const Renderer&) = delete;
-		Renderer(Renderer&&) = delete;
-		Renderer& operator=(const Renderer&) = delete;
-		Renderer& operator=(Renderer&&) = delete;
-
-	private:
-		Window& m_Window;
-		std::unique_ptr<Mesh> m_CubeMesh;
-		std::unique_ptr<Shader> m_DefaultShader;
-		std::unique_ptr<Shader> m_ScreenQuadShader;
-
-		std::queue<std::function<void()>> m_BeforeNextRenderCallbacks;
-
-		bool m_DrawSceneTexture = false;
-		bool m_GeneratedSceneTextureDescriptorSets = false;
-
-		struct RenderCommand {
-			std::vector<InstanceData> ModelMatrices;
-			Camera Camera;
-		} m_RenderCommand;
+		static bool IsInitialized();
 	};
 }

@@ -61,7 +61,9 @@ namespace Sphynx::Editor {
 			m_Hovered = ImGui::IsWindowHovered();
 
 			ImVec2 rect = ImGui::GetContentRegionAvail();
-			ImGui::Image((ImTextureID)Engine::Renderer().GetSceneTextureID(), rect);
+			void* textureId = Rendering::Renderer::GetSceneTextureID();
+			if (textureId)
+				ImGui::Image((ImTextureID)textureId, rect);
 		}
 
 	private:

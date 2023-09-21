@@ -14,7 +14,7 @@ namespace Sphynx::Editor {
 		virtual void Draw() override {
 			ImGui::Text("Total: %.3f ms", EditorApplication::GetECSSystemDeltaTime() * 1000.f);
 
-			for (const auto& system : Engine::Scripting().GetSystems()) {
+			for (const auto& system : Scripting::ScriptingEngine::GetSystems()) {
 				const ECSGameSystemInfo* systemInfo = EditorApplication::GetECSSystem(system.FullName);
 				if (!systemInfo)
 					continue;

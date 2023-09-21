@@ -5,40 +5,47 @@
 #include "btUtils.hpp"
 
 namespace Sphynx::Physics {
-	PhysicEngine::PhysicEngine() {
+	SE_API btCollisionConfiguration* s_CollisionConfiguration = nullptr;
+	SE_API btCollisionDispatcher* s_Dispatcher = nullptr;
+	SE_API btBroadphaseInterface* s_BroadphaseInterface = nullptr;
+	SE_API btSequentialImpulseConstraintSolver* s_Solver = nullptr;
+	SE_API btDiscreteDynamicsWorld* s_DynamicsWorld = nullptr;
+
+
+	void PhysicEngine::Init() {
 		SE_PROFILE_FUNCTION();
 
-		m_CollisionConfiguration = new btDefaultCollisionConfiguration();
-		m_Dispatcher = new btCollisionDispatcher(m_CollisionConfiguration);
-		m_BroadphaseInterface = new btDbvtBroadphase();
-		m_Solver = new btSequentialImpulseConstraintSolver();
-		m_DynamicsWorld = new btDiscreteDynamicsWorld(m_Dispatcher, m_BroadphaseInterface, m_Solver, m_CollisionConfiguration);
-		m_DynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
+		s_CollisionConfiguration = new btDefaultCollisionConfiguration();
+		s_Dispatcher = new btCollisionDispatcher(s_CollisionConfiguration);
+		s_BroadphaseInterface = new btDbvtBroadphase();
+		s_Solver = new btSequentialImpulseConstraintSolver();
+		s_DynamicsWorld = new btDiscreteDynamicsWorld(s_Dispatcher, s_BroadphaseInterface, s_Solver, s_CollisionConfiguration);
+		s_DynamicsWorld->setGravity(btVector3(0, -9.81f, 0));
 	}
 
-	PhysicEngine::~PhysicEngine() {
+	void PhysicEngine::Shutdown() {
 		SE_PROFILE_FUNCTION();
 
 		ClearWorld();
 
-		delete m_DynamicsWorld;
-		delete m_Solver;
-		delete m_BroadphaseInterface;
-		delete m_Dispatcher;
-		delete m_CollisionConfiguration;
+		delete s_DynamicsWorld;
+		delete s_Solver;
+		delete s_BroadphaseInterface;
+		delete s_Dispatcher;
+		delete s_CollisionConfiguration;
 	}
 
 	void PhysicEngine::ClearWorld() {
-		for (int i = m_DynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--) {
-			btCollisionObject* obj = m_DynamicsWorld->getCollisionObjectArray()[i];
+		for (int i = s_DynamicsWorld->getNumCollisionObjects() - 1; i >= 0; i--) {
+			btCollisionObject* obj = s_DynamicsWorld->getCollisionObjectArray()[i];
 			btRigidBody* body = btRigidBody::upcast(obj);
 			if (body) {
 				if (body->getMotionState())
 					delete body->getMotionState();
-				m_DynamicsWorld->removeRigidBody(body);
+				s_DynamicsWorld->removeRigidBody(body);
 			}
 			else
-				m_DynamicsWorld->removeCollisionObject(obj);
+				s_DynamicsWorld->removeCollisionObject(obj);
 			delete obj->getCollisionShape();
 			delete obj;
 		}
@@ -48,10 +55,10 @@ namespace Sphynx::Physics {
 		SE_PROFILE_FUNCTION();
 
 		// remove rigidbodies that were removed
-		for (int i = 0; i < m_DynamicsWorld->getNumCollisionObjects(); i++) {
-			btCollisionObject* obj = m_DynamicsWorld->getCollisionObjectArray()[i];
+		for (int i = 0; i < s_DynamicsWorld->getNumCollisionObjects(); i++) {
+			btCollisionObject* obj = s_DynamicsWorld->getCollisionObjectArray()[i];
 			if (!scene.HasComponent<RigidbodyComponent>((ECS::EntityId)obj->getUserIndex())) {
-				m_DynamicsWorld->removeCollisionObject(obj);
+				s_DynamicsWorld->removeCollisionObject(obj);
 				delete obj->getCollisionShape();
 				delete obj;
 			}
@@ -70,7 +77,7 @@ namespace Sphynx::Physics {
 				_CreateRigidbody(scene, entity, transform, rb);
 		}
 
-		m_DynamicsWorld->stepSimulation(Engine::DeltaTime(), 4);
+		s_DynamicsWorld->stepSimulation(Engine::DeltaTime(), 4);
 
 		// Sync from the physic world
 		for (auto[entity, transform, rb] : scene.View<ECS::TransformComponent, RigidbodyComponent>()) {
@@ -103,7 +110,7 @@ namespace Sphynx::Physics {
 		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, shape, localInertia);
 		rb.Body = new btRigidBody(rbInfo);
 		rb.Body->setUserIndex((int)entity);
-		m_DynamicsWorld->addRigidBody(rb.Body);
+		s_DynamicsWorld->addRigidBody(rb.Body);
 	}
 
 	void PhysicEngine::_UpdateRigidbody(Scene& scene, ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
@@ -117,10 +124,10 @@ namespace Sphynx::Physics {
 			btScalar mass = 1.f;
 			btVector3 localInertia;
 			rb.Body->getCollisionShape()->calculateLocalInertia(mass, localInertia);
-			m_DynamicsWorld->removeRigidBody(rb.Body);
+			s_DynamicsWorld->removeRigidBody(rb.Body);
 			rb.Body->setMassProps(mass, localInertia);
 			rb.Body->setLinearVelocity({ 0.f, 0.f, 0.f }); // reset velo
-			m_DynamicsWorld->addRigidBody(rb.Body);
+			s_DynamicsWorld->addRigidBody(rb.Body);
 			// TODO: Find a way to actually make them activate
 		}
 		else if (!rb.Dynamic && rb.Body->getMass() != 0.f)

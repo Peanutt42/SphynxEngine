@@ -2,19 +2,14 @@
 
 #include "Core/CoreInclude.hpp"
 
-struct ALCdevice;
-struct ALCcontext;
-
 namespace Sphynx::Audio {
 	class SE_API AudioEngine {
 	public:
-		AudioEngine();
-		~AudioEngine();
+		static bool Init();
+		static void Shutdown();
 
-		void Update();
+		static void Update();
 
-	private:
-		ALCdevice* m_Device = nullptr;
-		ALCcontext* m_Context = nullptr;
+		static bool IsInitialized();
 	};
 }

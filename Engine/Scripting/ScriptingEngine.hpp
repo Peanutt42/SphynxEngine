@@ -6,31 +6,13 @@
 namespace Sphynx::Scripting {
 	class SE_API ScriptingEngine {
 	public:
-		ScriptingEngine();
-		~ScriptingEngine();
+		static bool Init();
+		static void Shutdown();
 
-		void Update();
+		static void Update();
 
-		const std::vector<ComponentReflectionInfo>& GetComponents() const { return *m_Components; }
-		const std::vector<ConfigReflectionInfo>& GetConfigs() const { return *m_Configs; }
-		const std::vector<SystemReflectionInfo>& GetSystems() const { return *m_Systems; }
-
-	private:
-		ScriptingEngine(const ScriptingEngine&) = delete;
-		ScriptingEngine(ScriptingEngine&&) = delete;
-		ScriptingEngine& operator=(const ScriptingEngine&) = delete;
-		ScriptingEngine& operator=(ScriptingEngine&&) = delete;
-
-		using GetComponentsFunc = std::vector<ComponentReflectionInfo>*(*)();
-		using GetConfigsFunc = std::vector<ConfigReflectionInfo>*(*)();
-		using GetSystemsFunc = std::vector<SystemReflectionInfo>*(*)();
-
-		using IsDebugConfigurationFunc = bool(*)();
-
-	private:
-		std::unique_ptr<Platform::DynamicLinkLibary> m_Module;
-		std::vector<ComponentReflectionInfo>* m_Components = nullptr;
-		std::vector<ConfigReflectionInfo>* m_Configs = nullptr;
-		std::vector<SystemReflectionInfo>* m_Systems = nullptr;
+		static const std::vector<ComponentReflectionInfo>& GetComponents();
+		static const std::vector<ConfigReflectionInfo>& GetConfigs();
+		static const std::vector<SystemReflectionInfo>& GetSystems();
 	};
 }

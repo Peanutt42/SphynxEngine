@@ -1,5 +1,5 @@
 #include "pch.hpp"
-#include "VulkanImGuiHelper.hpp"
+#include "VulkanImGui.hpp"
 #include "Core/Engine.hpp"
 #include "Fonts.hpp"
 #include "UIThemes.hpp"
@@ -16,7 +16,19 @@
 #include "../../Resources/Icons/WindowToolbarIcons.embed"
 
 namespace Sphynx::UI {
-	VulkanImGuiHelper::VulkanImGuiHelper() {
+	SE_API bool s_TitlebarHovered = false;
+	SE_API std::function<void()> s_MenubarCallback;
+
+	SE_API std::unique_ptr<Rendering::Image> s_MinimizeIcon;
+	SE_API std::unique_ptr<Rendering::Image> s_MaximizeIcon;
+	SE_API std::unique_ptr<Rendering::Image> s_RestoreIcon;
+	SE_API std::unique_ptr<Rendering::Image> s_CloseIcon;
+
+	SE_API float s_MinimizeOpacity = 0.f;
+	SE_API float s_MaximizeOpacity = 0.f;
+	SE_API float s_CloseOpacity = 0.f;
+
+	void VulkanImGui::Init() {
 		SE_PROFILE_FUNCTION();
 
 		IMGUI_CHECKVERSION();
@@ -52,23 +64,23 @@ namespace Sphynx::UI {
 
 		Themes::SetDefaultTheme();
 
-		Rendering::VulkanContext::Window->SetTitlebarhitTestCallback([this]() -> bool {
-			return m_TitlebarHovered;
+		Rendering::VulkanContext::Window->SetTitlebarhitTestCallback([]() -> bool {
+			return s_TitlebarHovered;
 		});
 
 
 		// Load icons
-		m_MinimizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMinimizeIcon));
-		m_MaximizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMaximizeIcon));
-		m_RestoreIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowRestoreIcon));
-		m_CloseIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowCloseIcon));
+		s_MinimizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMinimizeIcon));
+		s_MaximizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMaximizeIcon));
+		s_RestoreIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowRestoreIcon));
+		s_CloseIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowCloseIcon));
 	}
 
-	VulkanImGuiHelper::~VulkanImGuiHelper() {
-		m_MinimizeIcon.reset();
-		m_MaximizeIcon.reset();
-		m_RestoreIcon.reset();
-		m_CloseIcon.reset();
+	void VulkanImGui::Shutdown() {
+		s_MinimizeIcon.reset();
+		s_MaximizeIcon.reset();
+		s_RestoreIcon.reset();
+		s_CloseIcon.reset();
 
 		ImGui_ImplVulkan_Shutdown();
 
@@ -77,7 +89,7 @@ namespace Sphynx::UI {
 		ImGui::DestroyContext();
 	}
 
-	void VulkanImGuiHelper::Begin() {
+	void VulkanImGui::Begin() {
 		SE_PROFILE_FUNCTION();
 
 		ImGui_ImplGlfw_NewFrame();
@@ -114,7 +126,7 @@ namespace Sphynx::UI {
 		}
 	}
 
-	void VulkanImGuiHelper::End() {
+	void VulkanImGui::End() {
 		SE_PROFILE_FUNCTION();
 
 		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
@@ -124,7 +136,7 @@ namespace Sphynx::UI {
 	}
 
 	
-	void VulkanImGuiHelper::Render() {
+	void VulkanImGui::Render() {
 		SE_PROFILE_FUNCTION();
 
 		ImDrawData* drawData = ImGui::GetDrawData();
@@ -138,25 +150,27 @@ namespace Sphynx::UI {
 		}
 	}
 
-	void VulkanImGuiHelper::EnableDocking() {
+	void VulkanImGui::EnableDocking() {
 		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
 	}
 
-	void VulkanImGuiHelper::SetSaveFilepath(const std::filesystem::path& filepath) {
+	void VulkanImGui::SetSaveFilepath(const std::filesystem::path& filepath) {
 		static std::string filepathStr; // Ensures lifetime of the string
 		filepathStr = filepath.string();
 		ImGui::GetIO().IniFilename = filepathStr.c_str();
 	}
 
-	void VulkanImGuiHelper::DisableSaveFile() {
+	void VulkanImGui::DisableSaveFile() {
 		ImGui::GetIO().IniFilename = nullptr;
 	}
 
-	ImGuiContext* VulkanImGuiHelper::GetContext() {
+	void VulkanImGui::SetMenubarCallback(const std::function<void()>& callback) { s_MenubarCallback = callback; }
+
+	ImGuiContext* VulkanImGui::GetContext() {
 		return ImGui::GetCurrentContext();
 	}
 
-	void VulkanImGuiHelper::_DrawTitlebar() {
+	void VulkanImGui::_DrawTitlebar() {
 		SE_PROFILE_FUNCTION();
 
 		if (Engine::GetSettings().CustomWindowControls) {
@@ -188,17 +202,17 @@ namespace Sphynx::UI {
 			// ImGui::GetForegroundDrawList()->AddRect(ImGui::GetCursorScreenPos(), ImVec2(ImGui::GetCursorScreenPos().x + w - buttonsAreaWidth, ImGui::GetCursorScreenPos().y + titlebarHeight), IM_COL32(255, 0, 0, 255));
 			ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight));
 
-			m_TitlebarHovered = ImGui::IsItemHovered();
+			s_TitlebarHovered = ImGui::IsItemHovered();
 
 			if (isMaximized)
 			{
 				float windowMousePosY = ImGui::GetMousePos().y - ImGui::GetCursorScreenPos().y;
 				if (windowMousePosY >= 0.0f && windowMousePosY <= 5.0f)
-					m_TitlebarHovered = true; // Account for the top-most pixels which don't register
+					s_TitlebarHovered = true; // Account for the top-most pixels which don't register
 			}
 
 			// Draw Menubar
-			if (m_MenubarCallback) {
+			if (s_MenubarCallback) {
 				ImGui::EndGroup();//ImGui::SuspendLayout();
 
 				ImGui::SetItemAllowOverlap();
@@ -209,14 +223,14 @@ namespace Sphynx::UI {
 
 					ImGui::BeginGroup();
 					if (UI::BeginMenubar(menuBarRect))
-						m_MenubarCallback();
+						s_MenubarCallback();
 
 					UI::EndMenubar();
 					ImGui::EndGroup();
 				}
 
 				if (ImGui::IsItemHovered())
-					m_TitlebarHovered = false;
+					s_TitlebarHovered = false;
 
 				ImGui::BeginGroup();//ImGui::ResumeLayout();
 			}
@@ -246,14 +260,14 @@ namespace Sphynx::UI {
 			if (ImGui::InvisibleButton("Minimize", buttonSize))
 				Rendering::VulkanContext::Window->Minimize();
 			if (ImGui::IsItemHovered())
-				m_MinimizeOpacity = std::clamp(m_MinimizeOpacity + backgroundAnimationDelta, 0.f, 1.f);
+				s_MinimizeOpacity = std::clamp(s_MinimizeOpacity + backgroundAnimationDelta, 0.f, 1.f);
 			else
-				m_MinimizeOpacity = std::clamp(m_MinimizeOpacity - backgroundAnimationDelta, 0.f, 1.f);
-			backgroundH.Value.w = m_MinimizeOpacity; 
+				s_MinimizeOpacity = std::clamp(s_MinimizeOpacity - backgroundAnimationDelta, 0.f, 1.f);
+			backgroundH.Value.w = s_MinimizeOpacity; 
 			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), backgroundH);
 			
-			const float padY = (buttonHeight - (float)m_MinimizeIcon->GetHeight()) / 2.0f;
-			UI::DrawButtonImage(*m_MinimizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -(buttonWidth - iconSize) / 2, -padY));
+			const float padY = (buttonHeight - (float)s_MinimizeIcon->GetHeight()) / 2.0f;
+			UI::DrawButtonImage(*s_MinimizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -(buttonWidth - iconSize) / 2, -padY));
 
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonWidth * 2 - 2.f, windowPadding.y + 2.f));
@@ -264,23 +278,23 @@ namespace Sphynx::UI {
 					Rendering::VulkanContext::Window->Maximize();
 			}
 			if (ImGui::IsItemHovered())
-				m_MaximizeOpacity = std::clamp(m_MaximizeOpacity + backgroundAnimationDelta, 0.f, 1.f);
+				s_MaximizeOpacity = std::clamp(s_MaximizeOpacity + backgroundAnimationDelta, 0.f, 1.f);
 			else
-				m_MaximizeOpacity = std::clamp(m_MaximizeOpacity - backgroundAnimationDelta, 0.f, 1.f);
-			backgroundH.Value.w = m_MaximizeOpacity;
+				s_MaximizeOpacity = std::clamp(s_MaximizeOpacity - backgroundAnimationDelta, 0.f, 1.f);
+			backgroundH.Value.w = s_MaximizeOpacity;
 			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), backgroundH);
-			UI::DrawButtonImage(isMaximized ? *m_RestoreIcon : *m_MaximizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
+			UI::DrawButtonImage(isMaximized ? *s_RestoreIcon : *s_MaximizeIcon, buttonColN, buttonColH, buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
 
 			ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() - buttonWidth * 1 - 2.f, windowPadding.y + 2.f));
 			if (ImGui::InvisibleButton("Close", buttonSize))
 				Engine::CloseNextFrame();
 			if (ImGui::IsItemHovered())
-				m_CloseOpacity = std::clamp(m_CloseOpacity + backgroundAnimationDelta, 0.f, 1.f);
+				s_CloseOpacity = std::clamp(s_CloseOpacity + backgroundAnimationDelta, 0.f, 1.f);
 			else
-				m_CloseOpacity = std::clamp(m_CloseOpacity - backgroundAnimationDelta, 0.f, 1.f);
-			backgroundH = { 1.f, 0.f, 0.f, m_CloseOpacity };
+				s_CloseOpacity = std::clamp(s_CloseOpacity - backgroundAnimationDelta, 0.f, 1.f);
+			backgroundH = { 1.f, 0.f, 0.f, s_CloseOpacity };
 			ImGui::GetCurrentWindow()->DrawList->AddRectFilled(ImGui::GetItemRectMin(), ImGui::GetItemRectMax(), backgroundH);
-			UI::DrawButtonImage(*m_CloseIcon, Themes::Default::text, ColorWithMultipliedValue(Themes::Default::text, 1.4f), buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
+			UI::DrawButtonImage(*s_CloseIcon, Themes::Default::text, ColorWithMultipliedValue(Themes::Default::text, 1.4f), buttonColP, RectExpanded(GetItemRect(), -iconPaddingWidth, -iconPaddingHeight));
 
 			ImGui::EndGroup();//ImGui::EndHorizontal();
 
@@ -288,8 +302,8 @@ namespace Sphynx::UI {
 		}
 		else {
 			if (ImGui::BeginMainMenuBar()) {
-				if (m_MenubarCallback)
-					m_MenubarCallback();
+				if (s_MenubarCallback)
+					s_MenubarCallback();
 
 				ImGui::EndMainMenuBar();
 			}

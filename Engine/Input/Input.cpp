@@ -86,6 +86,9 @@ namespace Sphynx {
 
 
 	void ConsoleInput::Init() {
+		if (s_Initialized)
+			return;
+
 		s_InputThread = std::thread([]() {
 			while (true) {
 				std::string command;
@@ -94,10 +97,17 @@ namespace Sphynx {
 					s_InputCallback(command);
 			}
 		});
+
+		s_Initialized = true;
 	}
 
 	void ConsoleInput::Shutdown() {
+		if (!s_Initialized)
+			return;
+
 		// input thread can be stuck reading input so we don't have to join
 		s_InputThread.detach();
+
+		s_Initialized = false;
 	}
 }

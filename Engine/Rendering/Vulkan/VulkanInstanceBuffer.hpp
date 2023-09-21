@@ -18,7 +18,7 @@ namespace Sphynx::Rendering {
 		}
 		
 		void Resize(size_t newSize) {
-			Engine::Renderer().AddBeforeNextRenderCallback([this, newSize]() {
+			Rendering::Renderer::AddBeforeNextRenderCallback([this, newSize]() {
 				VulkanContext::LogicalDevice.waitIdle();
 				for (size_t i = 0; i < m_MaxFramesInFlight; i++) {
 					m_Buffers[i] = std::make_unique<VulkanBuffer>(newSize * sizeof(T), vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal | vk::MemoryPropertyFlagBits::eHostVisible | vk::MemoryPropertyFlagBits::eHostCoherent);

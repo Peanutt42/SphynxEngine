@@ -7,6 +7,11 @@
 #include "AudioLoading.hpp"
 
 namespace Sphynx::Audio {
+    SE_API bool s_Initialized = false;
+    SE_API ALCdevice* s_Device = nullptr;
+    SE_API ALCcontext* s_Context = nullptr;
+
+
 #define TEST_AUDIO true
 
 #if TEST_AUDIO
@@ -14,20 +19,32 @@ namespace Sphynx::Audio {
     AudioSource* source;
 #endif
 
-    AudioEngine::AudioEngine() {
+    bool AudioEngine::Init() {
         SE_PROFILE_FUNCTION();
 
-        m_Device = alcOpenDevice(nullptr);
-        SE_ASSERT(m_Device, Logging::Audio, "Failed to open the default audio device");
+        if (s_Initialized)
+            return true;
 
-        bool successful = alcCall(m_Device, alcCreateContext, m_Context, m_Device, nullptr);
-        SE_ASSERT(successful && m_Context, Logging::Audio, "Failed to create context for audio device");
+        s_Device = alcOpenDevice(nullptr);
+        if (!s_Device) {
+            SE_ERR(Logging::Audio, "Failed to open the default audio device");
+            return false;
+        }
+
+        bool successful = alcCall(s_Device, alcCreateContext, s_Context, s_Device, nullptr);
+        if (!successful || !s_Context) {
+            SE_ERR(Logging::Audio, "Failed to create context for audio device");
+            return false;
+        }
 
         ALCboolean madeContextCurrent = false;
-        successful = alcCall(m_Device, alcMakeContextCurrent, madeContextCurrent, m_Context);
-        SE_ASSERT(successful && madeContextCurrent, Logging::Audio, "Couldn't make audio context current");
+        successful = alcCall(s_Device, alcMakeContextCurrent, madeContextCurrent, s_Context);
+        if (!successful || !madeContextCurrent) {
+            SE_ERR(Logging::Audio, "Couldn't make audio context current");
+            return false;
+        }
 
-		SE_INFO(Logging::Audio, "Audio output device: {}", alcGetString(m_Device, ALC_ALL_DEVICES_SPECIFIER));
+		SE_INFO(Logging::Audio, "Audio output device: {}", alcGetString(s_Device, ALC_ALL_DEVICES_SPECIFIER));
 
 #if TEST_AUDIO
         source = new AudioSource();
@@ -39,10 +56,17 @@ namespace Sphynx::Audio {
         source->SetBuffer(*buffer);
         source->Start();
 #endif
+
+        s_Initialized = true;
+
+        return true;
     }
 
-	AudioEngine::~AudioEngine() {
+	void AudioEngine::Shutdown() {
         SE_PROFILE_FUNCTION();
+
+        if (!s_Initialized)
+            return;
 
 #if TEST_AUDIO
         delete source;
@@ -50,18 +74,25 @@ namespace Sphynx::Audio {
 #endif
 
         ALCboolean unsetContext = false;
-        if (!alcCall(m_Device, alcMakeContextCurrent, unsetContext, nullptr) || !unsetContext)
+        if (!alcCall(s_Device, alcMakeContextCurrent, unsetContext, nullptr) || !unsetContext)
             SE_ERR(Logging::Audio, "Failed to unset current audio context");
 
-        if (!alcCall(m_Device, alcDestroyContext, m_Context))
+        if (!alcCall(s_Device, alcDestroyContext, s_Context))
             SE_ERR(Logging::Audio, "Failed to destroy audio context");
 
         ALCboolean closed = false;
-        if (!alcCall(m_Device, alcCloseDevice, closed, m_Device) || !closed)
+        if (!alcCall(s_Device, alcCloseDevice, closed, s_Device) || !closed)
             SE_ERR(Logging::Audio, "Failed to close opened audio device");
+
+        s_Initialized = false;
 	}
 
 	void AudioEngine::Update() {
         SE_PROFILE_FUNCTION();
+
+        if (!s_Initialized)
+            return;
 	}
+
+    bool AudioEngine::IsInitialized() { return s_Initialized; }
 }

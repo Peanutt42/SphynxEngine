@@ -60,7 +60,10 @@ namespace Sphynx {
 			s_InputCallback = callback;
 		}
 
+		static bool IsInitialized() { return s_Initialized; }
+
 	private:
+		inline static bool s_Initialized = false;
 		inline static std::thread s_InputThread;
 		inline static InputCallback s_InputCallback;
 	};
