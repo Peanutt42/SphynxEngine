@@ -77,7 +77,7 @@ namespace Sphynx::Physics {
 				_CreateRigidbody(scene, entity, transform, rb);
 		}
 
-		s_DynamicsWorld->stepSimulation(Engine::DeltaTime(), 4);
+		s_DynamicsWorld->stepSimulation(Engine::DeltaTime(), 0);
 
 		// Sync from the physic world
 		for (auto[entity, transform, rb] : scene.View<ECS::TransformComponent, RigidbodyComponent>()) {
@@ -106,38 +106,56 @@ namespace Sphynx::Physics {
 		if (rb.Dynamic)
 			shape->calculateLocalInertia(mass, localInertia);
 
-		btDefaultMotionState* motionState = new btDefaultMotionState(btTransform);
-		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, motionState, shape, localInertia);
+		btRigidBody::btRigidBodyConstructionInfo rbInfo(mass, nullptr, shape, localInertia);
 		rb.Body = new btRigidBody(rbInfo);
+		rb.Body->setWorldTransform(btTransform);
 		rb.Body->setUserIndex((int)entity);
 		s_DynamicsWorld->addRigidBody(rb.Body);
 	}
 
 	void PhysicEngine::_UpdateRigidbody(Scene& scene, ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
-		btTransform btTransform;
-		btTransform.setIdentity();
-		btTransform.setOrigin(ToBtVec3(transform.Position));
-		btTransform.setRotation(ToBtQuatFromEuler(transform.Rotation));
-		rb.Body->getMotionState()->setWorldTransform(btTransform);
+		bool changed = false;
+
+		const btTransform& physicTransform = rb.Body->getCenterOfMassTransform();
+
+		if (transform.Position != FromBtVec3(physicTransform.getOrigin()) ||
+			transform.Rotation != FromBtQuatToEuler(physicTransform.getRotation()))
+		{
+			changed = true;
+
+			btTransform btTransform;
+			btTransform.setIdentity();
+			btTransform.setOrigin(ToBtVec3(transform.Position));
+			btTransform.setRotation(ToBtQuatFromEuler(transform.Rotation));
+			rb.Body->setWorldTransform(btTransform);
+		}
 
 		if (rb.Dynamic && rb.Body->getMass() == 0.f) {
+			changed = true;
+
 			btScalar mass = 1.f;
 			btVector3 localInertia;
 			rb.Body->getCollisionShape()->calculateLocalInertia(mass, localInertia);
-			s_DynamicsWorld->removeRigidBody(rb.Body);
 			rb.Body->setMassProps(mass, localInertia);
-			rb.Body->setLinearVelocity({ 0.f, 0.f, 0.f }); // reset velo
-			s_DynamicsWorld->addRigidBody(rb.Body);
-			// TODO: Find a way to actually make them activate
+			rb.Body->setLinearVelocity({ 0.f, 0.f, 0.f });
+			rb.Body->setAngularVelocity({ 0.f, 0.f, 0.f });
+			rb.Body->clearForces();
 		}
-		else if (!rb.Dynamic && rb.Body->getMass() != 0.f)
+		else if (!rb.Dynamic && rb.Body->getMass() != 0.f) {
+			changed = true;
 			rb.Body->setMassProps(0.f, { 0.f, 0.f, 0.f });
+			rb.Body->setLinearVelocity({ 0.f, 0.f, 0.f });
+			rb.Body->setAngularVelocity({ 0.f, 0.f, 0.f });
+			rb.Body->clearForces();
+		}
 		
 		// update colliders
 		if (rb.Body->getCollisionShape()->getShapeType() == BOX_SHAPE_PROXYTYPE && scene.HasComponent<BoxCollider>(entity)) {
 			BoxCollider* box = scene.GetComponent<BoxCollider>(entity);
 			btBoxShape* boxShape = (btBoxShape*)rb.Body->getCollisionShape();
 			if (boxShape->getHalfExtentsWithMargin() != ToBtVec3(box->HalfExtent * transform.Scale)) {
+				changed = true;
+
 				delete boxShape;
 				boxShape = new btBoxShape(ToBtVec3(box->HalfExtent));
 				rb.Body->setCollisionShape(boxShape);
@@ -148,6 +166,8 @@ namespace Sphynx::Physics {
 			btSphereShape* sphereShape = (btSphereShape*)rb.Body->getCollisionShape();
 			btScalar radius = (btScalar)sphere.Radius;
 			if (sphereShape->getRadius() != radius * transform.Scale.x) {
+				changed = true;
+
 				delete sphereShape;
 				sphereShape = new btSphereShape(radius);
 				rb.Body->setCollisionShape(sphereShape);
@@ -161,15 +181,20 @@ namespace Sphynx::Physics {
 			SE_WARN(Logging::Physics, "Invalid rigidbody collider!");
 
 		btVector3 btScale = ToBtVec3(transform.Scale);
-		if (rb.Body->getCollisionShape()->getLocalScaling() != btScale)
+		if (rb.Body->getCollisionShape()->getLocalScaling() != btScale) {
+			changed = true;
 			rb.Body->getCollisionShape()->setLocalScaling(btScale);
+		}
+
+		if (changed) {
+			SE_INFO("CHANGED");
+			rb.Body->activate(true);
+		}
 	}
 
 	void PhysicEngine::_SyncRigidbody(ECS::TransformComponent& transform, const RigidbodyComponent& rb) {
-		btTransform physicTransform;
-		rb.Body->getMotionState()->getWorldTransform(physicTransform);
-
-		transform.Position = FromBtVec3(physicTransform.getOrigin());
-		transform.Rotation = FromBtQuatToEuler(physicTransform.getRotation());
+		const btTransform& actualTransform = rb.Body->getCenterOfMassTransform();
+		transform.Position = FromBtVec3(actualTransform.getOrigin());
+		transform.Rotation = FromBtQuatToEuler(actualTransform.getRotation());
 	}
 }

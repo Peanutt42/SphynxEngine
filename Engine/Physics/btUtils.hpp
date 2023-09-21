@@ -10,7 +10,7 @@
 #pragma warning (pop)
 
 namespace Sphynx::Physics {
-	glm::vec3 FromBtVec3(const btVector3& btVec3) {
+	inline glm::vec3 FromBtVec3(const btVector3& btVec3) {
 		return {
 			(float)btVec3.getX(),
 			(float)btVec3.getY(),
@@ -18,7 +18,7 @@ namespace Sphynx::Physics {
 		};
 	}
 
-	btVector3 ToBtVec3(const glm::vec3& vec3) {
+	inline btVector3 ToBtVec3(const glm::vec3& vec3) {
 		return {
 			(btScalar)vec3.x,
 			(btScalar)vec3.y,
@@ -26,7 +26,7 @@ namespace Sphynx::Physics {
 		};
 	}
 
-	glm::vec3 FromBtQuatToEuler(const btQuaternion& btQuat) {
+	inline glm::vec3 FromBtQuatToEuler(const btQuaternion& btQuat) {
 		btScalar yawZ, pitchY, rollX;
 		btQuat.getEulerZYX(yawZ, pitchY, rollX);
 		return {
@@ -36,7 +36,7 @@ namespace Sphynx::Physics {
 		};
 	}
 
-	btQuaternion ToBtQuatFromEuler(const glm::vec3& euler) {
+	inline btQuaternion ToBtQuatFromEuler(const glm::vec3& euler) {
 		return {
 			(btScalar)euler.y,
 			(btScalar)euler.x,
