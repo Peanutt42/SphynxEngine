@@ -13,8 +13,8 @@ namespace Sphynx::Scripting {
 				return;
 
 			outFile << "#include \"Core/CoreInclude.hpp\"\n";
-			outFile << "#include \"" << engineDir << "/Programs/ReflectionGenerator/src/ReflectionInfo.hpp\"\n";
-			outFile << "#include \"" << engineDir << "/Engine/src/Scene/Scene.hpp\"\n";
+			outFile << "#include \"" << engineDir << "/Programs/ReflectionGenerator/ReflectionInfo.hpp\"\n";
+			outFile << "#include \"" << engineDir << "/Engine/Scene/Scene.hpp\"\n";
 			for (const std::string& filename : filenames) {
 				std::string relativeFilepath = std::filesystem::relative(filename, filepath.parent_path()).string();
 				outFile << "#include \"" << relativeFilepath << "\"\n";
