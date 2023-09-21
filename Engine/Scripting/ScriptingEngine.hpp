@@ -1,7 +1,7 @@
 #pragma once
 
 #include "pch.hpp"
-#include "../../Programs/ReflectionGenerator/src/ReflectionInfo.hpp"
+#include "../Programs/ReflectionGenerator/ReflectionInfo.hpp"
 
 namespace Sphynx::Scripting {
 	class SE_API ScriptingEngine {

@@ -1,11 +1,11 @@
-file(GLOB_RECURSE TESTS_SOURCES "src/*.cpp")
+file(GLOB_RECURSE TESTS_SOURCES "*.cpp")
 
 set(TESTS_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
 
 add_executable(Tests ${TESTS_SOURCES})
 
 target_include_directories(Tests PUBLIC
-		"src"
+		"${CMAKE_CURRENT_SOURCE_DIR}"
 		${GTEST_INCLUDE_DIR}
 		${ENGINE_INCLUDE_DIR}
 		${YAML_INCLUDE_DIR}
@@ -23,7 +23,7 @@ target_link_libraries(Tests PRIVATE
 		imgui
 )
 
-target_precompile_headers(Tests PUBLIC src/pch.hpp)
+target_precompile_headers(Tests PUBLIC pch.hpp)
 
 define_configuration(Tests)
 define_platform(Tests)

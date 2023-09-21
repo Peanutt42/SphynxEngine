@@ -1,6 +1,6 @@
-add_executable(ReflectionGenerator "src/main.cpp")
+add_executable(ReflectionGenerator "main.cpp")
 
-target_include_directories(ReflectionGenerator PUBLIC "src")
+target_include_directories(ReflectionGenerator PUBLIC "${CMAKE_CURRENT_SOURCE_DIR}")
 
 target_compile_features(ReflectionGenerator PRIVATE cxx_std_20)
 

@@ -1,16 +1,16 @@
 file(GLOB_RECURSE ENGINE_SOURCES
-		${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )
 file(GLOB_RECURSE ENGINE_HEADERS
-		${CMAKE_CURRENT_SOURCE_DIR}/src/*.hpp
+		${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
 )
 
 add_library(Engine SHARED ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
 if(NOT DEFINED ENGINE_INLCUDE_DIR)
-	set(ENGINE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+	set(ENGINE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
 	set(ENGINE_INCLUDE_DIR ${ENGINE_INCLUDE_DIR} PARENT_SCOPE)
-elseif(${ENGINE_INCLUDE_DIR} NOT STREQUAL ${CMAKE_CURRENT_SOURCE_DIR}/src)
+elseif(${ENGINE_INCLUDE_DIR} NOT STREQUAL ${CMAKE_CURRENT_SOURCE_DIR})
 	message(FATAL_ERROR "Previous ENGINE_INCLUDE_DIR was invalid!")
 endif()
 
@@ -55,7 +55,7 @@ target_compile_features(Engine PRIVATE cxx_std_20)
 
 target_compile_definitions(Engine PRIVATE SE_EXPORT)
 
-target_precompile_headers(Engine PUBLIC src/pch.hpp)
+target_precompile_headers(Engine PUBLIC pch.hpp)
 
 define_configuration(Engine)
 define_platform(Engine)
