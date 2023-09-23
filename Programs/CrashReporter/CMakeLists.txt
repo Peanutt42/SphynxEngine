@@ -1,11 +1,11 @@
 file(GLOB_RECURSE CRASHREPORTER_SOURCES
-		${CMAKE_CURRENT_SOURCE_DIR}/src/*.cpp
+		${CMAKE_CURRENT_SOURCE_DIR}/*.cpp
 )
 
 add_executable(CrashReporter ${CRASHREPORTER_SOURCES})
 
 target_include_directories(CrashReporter PUBLIC
-		${CMAKE_CURRENT_SOURCE_DIR}/src
+		${CMAKE_CURRENT_SOURCE_DIR}
 		${IMGUI_INCLUDE_DIR}
 		${GLFW_INCLUDE_DIR}
 		${YAML_INCLUDE_DIR}
@@ -30,10 +30,10 @@ target_link_libraries(CrashReporter PRIVATE
 )
 
 copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${EDITOR_BIN_DIR})
-copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${ENGINERUNTIME_BIN_DIR})
+copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${RUNTIME_BIN_DIR})
 copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${TESTS_BIN_DIR})
 add_dependencies(Editor CrashReporter)
-add_dependencies(EngineRuntime CrashReporter)
+add_dependencies(Runtime CrashReporter)
 add_dependencies(Tests CrashReporter)
 
 define_configuration(CrashReporter)

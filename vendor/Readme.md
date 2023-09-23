@@ -13,6 +13,7 @@
 ## libsndfile
 - Link: https://github.com/libsndfile/libsndfile
 - Commit: b2e547f70
+- Note: remove "include/sndfile.h" from the .gitignore
 
 ## openal-soft
 - Link: https://github.com/kcat/openal-soft
