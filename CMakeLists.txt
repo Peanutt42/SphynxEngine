@@ -28,7 +28,6 @@ add_subdirectory(vendor/glfw)
 add_subdirectory(vendor/Tracy)
 add_subdirectory(vendor/glad)
 add_subdirectory(vendor/openal-soft)
-add_subdirectory(vendor/gtest)
 add_subdirectory(vendor/assimp)
 add_subdirectory(vendor/libsndfile)
 
