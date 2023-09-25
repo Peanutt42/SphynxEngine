@@ -186,21 +186,43 @@ namespace Sphynx::UI {
 			auto* bgDrawList = ImGui::GetBackgroundDrawList();
 			bgDrawList->AddRectFilled(titlebarMin, titlebarMax, Themes::Default::titlebar);
 
-            ImGui::BeginGroup();//ImGui::BeginHorizontal("Titlebar", { ImGui::GetWindowWidth() - windowPadding.y * 2.0f, ImGui::GetFrameHeightWithSpacing() });
+            
+			float menubarWidth = 0;
 
-			static float moveOffsetX;
-			static float moveOffsetY;
+			// Draw Menubar
+			if (s_MenubarCallback) {
+				ImGui::SetItemAllowOverlap();
+				ImGui::SetCursorPos(ImVec2(6.f + windowPadding.x, 6.0f + titlebarVerticalOffset));
+
+				{
+					const ImRect menuBarRect = { ImGui::GetCursorPos(), { ImGui::GetContentRegionAvail().x + ImGui::GetCursorScreenPos().x, ImGui::GetFrameHeightWithSpacing() } };
+
+					ImGui::BeginGroup();
+					if (UI::BeginMenubar(menuBarRect)) {
+						s_MenubarCallback();
+						menubarWidth = ImGui::GetCursorPos().x;
+					}
+					UI::EndMenubar();
+					ImGui::EndGroup();
+				}
+
+				if (ImGui::IsItemHovered())
+					s_TitlebarHovered = false;
+			}
+
 			const float w = ImGui::GetContentRegionAvail().x;
 			constexpr float buttonWidth = 44.f;
 			constexpr float buttonHeight = (buttonWidth * 2) / 3; // width / height = 1.5
 			constexpr float buttonsAreaWidth = buttonWidth * 3;
 
+			ImGui::BeginGroup();
+
 			// Title bar drag area
 			// On Windows we hook into the GLFW win32 window internals
-			ImGui::SetCursorPos(ImVec2(windowPadding.x, windowPadding.y + titlebarVerticalOffset)); // Reset cursor pos
+			ImGui::SetCursorPos(ImVec2(windowPadding.x + menubarWidth, windowPadding.y + titlebarVerticalOffset)); // Reset cursor pos
 			// DEBUG DRAG BOUNDS
-			// ImGui::GetForegroundDrawList()->AddRect(ImGui::GetCursorScreenPos(), ImVec2(ImGui::GetCursorScreenPos().x + w - buttonsAreaWidth, ImGui::GetCursorScreenPos().y + titlebarHeight), IM_COL32(255, 0, 0, 255));
-			ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - buttonsAreaWidth, titlebarHeight));
+			//ImGui::GetForegroundDrawList()->AddRect(ImGui::GetCursorScreenPos(), ImVec2(ImGui::GetCursorScreenPos().x + w - (buttonsAreaWidth + menubarWidth), ImGui::GetCursorScreenPos().y + titlebarHeight), IM_COL32(255, 0, 0, 255));
+			ImGui::InvisibleButton("##titleBarDragZone", ImVec2(w - (buttonsAreaWidth + menubarWidth), titlebarHeight));
 
 			s_TitlebarHovered = ImGui::IsItemHovered();
 
@@ -211,37 +233,13 @@ namespace Sphynx::UI {
 					s_TitlebarHovered = true; // Account for the top-most pixels which don't register
 			}
 
-			// Draw Menubar
-			if (s_MenubarCallback) {
-				ImGui::EndGroup();//ImGui::SuspendLayout();
-
-				ImGui::SetItemAllowOverlap();
-				ImGui::SetCursorPos(ImVec2(6.f + windowPadding.x, 6.0f + titlebarVerticalOffset));
-
-				{
-					const ImRect menuBarRect = { ImGui::GetCursorPos(), { ImGui::GetContentRegionAvail().x + ImGui::GetCursorScreenPos().x, ImGui::GetFrameHeightWithSpacing() } };
-
-					ImGui::BeginGroup();
-					if (UI::BeginMenubar(menuBarRect))
-						s_MenubarCallback();
-
-					UI::EndMenubar();
-					ImGui::EndGroup();
-				}
-
-				if (ImGui::IsItemHovered())
-					s_TitlebarHovered = false;
-
-				ImGui::BeginGroup();//ImGui::ResumeLayout();
-			}
-
 			{
 				// Centered Window title
 				ImVec2 currentCursorPos = ImGui::GetCursorPos();
 				const char* titleName = Rendering::VulkanContext::Window->GetTitle().c_str();
 				ImVec2 textSize = ImGui::CalcTextSize(titleName);
 				ImGui::SetCursorPos(ImVec2(ImGui::GetWindowWidth() * 0.5f - textSize.x * 0.5f, 2.0f + windowPadding.y + 6.0f));
-				ImGui::Text("%s", titleName); // Draw title
+				ImGui::TextUnformatted(titleName); // Draw title
 				ImGui::SetCursorPos(currentCursorPos);
 			}
 
