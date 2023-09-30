@@ -27,7 +27,9 @@ namespace Sphynx::Rendering {
 		
 		PhysicalDevice = VulkanPhysicalDevice::Pick(deviceExtensions);
 		
-		SE_INFO(Logging::Rendering, "Chosen GPU: {}", VulkanPhysicalDevice::GetName(PhysicalDevice));
+		SE_INFO(Logging::Rendering, "Vulkan SDK {}.{}.{}: {}",
+			VK_API_VERSION_MAJOR(VK_HEADER_VERSION_COMPLETE), VK_API_VERSION_MINOR(VK_HEADER_VERSION_COMPLETE), VK_API_VERSION_PATCH(VK_HEADER_VERSION_COMPLETE),
+			VulkanPhysicalDevice::GetName(PhysicalDevice));
 		
 		VulkanLogicalDevice::CreateResult logicalDeviceResult = VulkanLogicalDevice::Create(Instance->ValidationLayers, deviceExtensions);
 		LogicalDevice = logicalDeviceResult.Device;

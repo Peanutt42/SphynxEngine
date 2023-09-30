@@ -68,7 +68,7 @@ namespace Sphynx::Rendering {
 			if (unsupportedExtensions.empty())
 				continue;
 
-			SE_ERR(Logging::Rendering, "Unsupported extensions for {}:", VulkanPhysicalDevice::GetName(device));
+			SE_ERR(Logging::Rendering, "Unsupported extensions for {}:", GetName(device));
 			for (const char* extension : unsupportedExtensions)
 				SE_ERR(Logging::Rendering, "\t{}", extension);
 		}

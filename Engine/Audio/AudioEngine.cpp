@@ -44,7 +44,7 @@ namespace Sphynx::Audio {
             return false;
         }
 
-		SE_INFO(Logging::Audio, "Audio output device: {}", alcGetString(s_Device, ALC_ALL_DEVICES_SPECIFIER));
+		SE_INFO(Logging::Audio, "{}", alcGetString(s_Device, ALC_ALL_DEVICES_SPECIFIER));
 
 #if TEST_AUDIO
         source = new AudioSource();
