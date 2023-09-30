@@ -37,4 +37,3 @@ add_subdirectory(Runtime)
 
 add_subdirectory(Programs/Tests)
 add_subdirectory(Programs/CrashReporter)
-add_subdirectory(Programs/ReflectionGenerator)

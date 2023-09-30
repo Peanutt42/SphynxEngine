@@ -17,7 +17,7 @@ namespace Sphynx::Rendering {
 		glm::mat4 proj_view; // proj * view
 	};
 
-	class SE_API VulkanContext {
+	class VulkanContext {
 	public:
 		static void Init(Window& window);
 		static void Shutdown();

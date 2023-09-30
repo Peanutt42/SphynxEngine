@@ -3,7 +3,6 @@
 #include "Core/Application.hpp"
 #include "Scene/Scene.hpp"
 #include "Scene/SceneSerializer.hpp"
-#include "Scripting/ScriptingEngine.hpp"
 #include "Rendering/Renderer.hpp"
 #include "Physics/PhysicEngine.hpp"
 
@@ -28,9 +27,6 @@ namespace Sphynx {
 
 		virtual void Update() override {
 			Physics::PhysicEngine::Update(*m_Scene);
-
-			for (const auto& system : Scripting::ScriptingEngine::GetSystems())
-				system.Update(*m_Scene);
 
             if (Rendering::Renderer::IsInitialized()) {
 				Rendering::Renderer::SubmitScene(*m_Scene, Rendering::Camera{});

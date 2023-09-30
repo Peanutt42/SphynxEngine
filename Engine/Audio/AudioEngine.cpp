@@ -7,9 +7,9 @@
 #include "AudioLoading.hpp"
 
 namespace Sphynx::Audio {
-    SE_API bool s_Initialized = false;
-    SE_API ALCdevice* s_Device = nullptr;
-    SE_API ALCcontext* s_Context = nullptr;
+    bool s_Initialized = false;
+    ALCdevice* s_Device = nullptr;
+    ALCcontext* s_Context = nullptr;
 
 
 #define TEST_AUDIO true

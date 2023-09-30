@@ -2,10 +2,9 @@
 
 #include "std.hpp"
 #include "IntTypes.hpp"
-#include "EngineApi.hpp"
 
 namespace Sphynx {
-	struct SE_API UUID {
+	struct UUID {
 		using type = uint64;
 
 		UUID() : m_UUID(s_UniformDistribution(s_Engine)) {}

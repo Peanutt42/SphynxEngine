@@ -6,7 +6,7 @@
 #include "StreamReader.hpp"
 
 namespace Sphynx {
-	class SE_API MemoryStreamWriter : public StreamWriter {
+	class MemoryStreamWriter : public StreamWriter {
 	public:
 		MemoryStreamWriter() = default;
 		MemoryStreamWriter(const MemoryStreamWriter&) = delete;
@@ -32,7 +32,7 @@ namespace Sphynx {
 		size_t m_Position = 0;
 	};
 
-	class SE_API MemoryStreamReader : public StreamReader {
+	class MemoryStreamReader : public StreamReader {
 	public:
 		MemoryStreamReader(BufferView buffer, size_t position = 0)
 			: m_Buffer(buffer), m_Position(position) {}

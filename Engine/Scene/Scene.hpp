@@ -4,7 +4,7 @@
 #include "ECS/Registry.hpp"
 
 namespace Sphynx {
-	class SE_API Scene {
+	class Scene {
 	public:
 		Scene(const std::string& name);
 

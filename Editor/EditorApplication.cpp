@@ -9,7 +9,6 @@
 #include "Windows/HierarchyWindow.hpp"
 #include "Windows/PropertyWindow.hpp"
 #include "Windows/ProfilingWindow.hpp"
-#include "Windows/ECSSystemManagerWindow.hpp"
 #include "Windows/ViewportWindow.hpp"
 
 namespace Sphynx::Editor {
@@ -30,7 +29,6 @@ namespace Sphynx::Editor {
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
 		m_Windows.push_back(std::make_unique<PropertyWindow>());
 		m_Windows.push_back(std::make_unique<ProfilingWindow>());
-		m_Windows.push_back(std::make_unique<ECSSystemManagerWindow>());
 		m_Windows.push_back(std::make_unique<ViewportWindow>());
 
 		EditorAssetManager::LoadAssets();
@@ -39,12 +37,6 @@ namespace Sphynx::Editor {
 		m_SceneFilepath = Engine::GetProject().StartSceneFilepath;
 		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene)
 			.expect("Failed to load start scene {}", m_SceneFilepath.string());
-
-		// TODO: Save it in a config
-		// TODO: Do this also in code reloading (copy old, create new from updated systems
-		//		 and set old settings to new map while keeping new systems active by default
-		for (const auto& system : Scripting::ScriptingEngine::GetSystems())
-			m_GameECSSystems[system.FullName].Active = true;
 	}
 
 	void EditorApplication::OnDestroy() {
@@ -140,42 +132,11 @@ namespace Sphynx::Editor {
 	void EditorApplication::OnRuntimeUpdate() {
 		// Update Physics
 		Physics::PhysicEngine::Update(*m_GameScene);
-
-		// Update ECS-Systems
-		Timer totalECSSystemTimer;
-		const std::vector<Scripting::SystemReflectionInfo>& systems = Scripting::ScriptingEngine::GetSystems();
-		for (auto& [name, systemInfo] : m_GameECSSystems) {
-			if (!systemInfo.Active)
-				continue;
-
-			auto findSystem = std::ranges::find_if(systems, [name](const auto& info) { return info.FullName == name; });
-			if (findSystem == systems.end()) {
-				SE_WARN(Logging::Scripting, "Can't find systems '{}'", name);
-			}
-			else {
-				Timer timer;
-				findSystem->Update(*m_GameScene);
-				systemInfo.LastDeltatime = timer.ElapsedSeconds();
-			}
-		}
-		m_GameTotalECSSystemDeltaTime = totalECSSystemTimer.ElapsedSeconds();
 	}
 
 	void EditorApplication::OnRuntimeStop() {
 		m_GameScene.reset();
 		m_State = EditorState::Editing;
-
-		m_GameTotalECSSystemDeltaTime = 0.f;
-		for (auto& [name, systemInfo] : m_GameECSSystems)
-			systemInfo.LastDeltatime = 0.f;
-	}
-
-	void EditorApplication::SetECSSystemActive(const std::string& name, bool active) {
-		auto& systemInfo = s_Instance->m_GameECSSystems[name];
-		systemInfo.Active = active;
-		if (!active)
-			systemInfo.LastDeltatime = 0.f;
-		
 	}
 
 

@@ -1,10 +1,9 @@
 #pragma once
 
-#include "Core/EngineApi.hpp"
 #include "std.hpp"
 
 namespace Sphynx {
-	class SE_API StreamReader {
+	class StreamReader {
 	public:
 		virtual ~StreamReader() = default;
 

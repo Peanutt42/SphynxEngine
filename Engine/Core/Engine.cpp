@@ -6,22 +6,21 @@
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
 #include "Physics/PhysicEngine.hpp"
-#include "Scripting/ScriptingEngine.hpp"
 #include "UI/VulkanImGui.hpp"
 
 namespace Sphynx {
-	SE_API std::atomic_bool s_Quit = false;
+	std::atomic_bool s_Quit = false;
 
-	SE_API EngineSettings s_Settings;
+	EngineSettings s_Settings;
 
-	SE_API float s_DeltaTime = 0.f;
-	SE_API Timer s_UpdateTimer;
+	float s_DeltaTime = 0.f;
+	Timer s_UpdateTimer;
 
-	SE_API Project* s_Project = nullptr;
+	Project* s_Project = nullptr;
 
-	SE_API Application* s_Application = nullptr;
+	Application* s_Application = nullptr;
 
-	SE_API Rendering::Window* s_Window = nullptr;
+	Rendering::Window* s_Window = nullptr;
 
 	void Engine::Init(const EngineSettings& settings, Project& project, Application& application) {
 		CrashHandler::Init();
@@ -38,8 +37,6 @@ namespace Sphynx {
 		s_Application = &application;
 
 		Physics::PhysicEngine::Init();
-
-		Scripting::ScriptingEngine::Init();
 
 		if (s_Settings.Headless) {
 			ConsoleInput::Init();
@@ -68,8 +65,6 @@ namespace Sphynx {
 
 		if (Rendering::Renderer::IsInitialized())
 			Rendering::Renderer::WaitBeforeClose();
-
-		Scripting::ScriptingEngine::Shutdown();
 
 		Physics::PhysicEngine::Shutdown();
 
@@ -103,8 +98,6 @@ namespace Sphynx {
 
 		if (s_Window)
 			Input::Update();
-
-		Scripting::ScriptingEngine::Update();
 
 		s_Application->Update();
 

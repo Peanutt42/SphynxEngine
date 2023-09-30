@@ -11,7 +11,7 @@ namespace Sphynx::Rendering {
 		return aspect;
 	}
 
-	struct SE_API Camera {
+	struct Camera {
 		glm::vec3 Position{ 0.f, 0.f, 10.f };
 		glm::vec3 Rotation{ 0.f, 0.f, 0.f };
 

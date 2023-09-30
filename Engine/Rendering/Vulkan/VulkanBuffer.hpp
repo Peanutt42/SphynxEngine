@@ -6,7 +6,7 @@
 namespace Sphynx::Rendering {
 	std::optional<uint32> FindMemoryTypeIndex(uint32 typeFilter, vk::MemoryPropertyFlags properties);
 
-	class SE_API VulkanBuffer {
+	class VulkanBuffer {
 	public:
 		vk::Buffer Buffer;
 		vk::DeviceMemory Memory;

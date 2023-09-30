@@ -4,7 +4,7 @@
 #include <queue>
 
 namespace Sphynx {
-	class SE_API CommandHandler {
+	class CommandHandler {
 	public:
 		static void Update();
 

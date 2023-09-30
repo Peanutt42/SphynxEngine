@@ -16,17 +16,17 @@
 #include "../../Resources/Icons/WindowToolbarIcons.embed"
 
 namespace Sphynx::UI {
-	SE_API bool s_TitlebarHovered = false;
-	SE_API std::function<void()> s_MenubarCallback;
+	bool s_TitlebarHovered = false;
+	std::function<void()> s_MenubarCallback;
 
-	SE_API std::unique_ptr<Rendering::Image> s_MinimizeIcon;
-	SE_API std::unique_ptr<Rendering::Image> s_MaximizeIcon;
-	SE_API std::unique_ptr<Rendering::Image> s_RestoreIcon;
-	SE_API std::unique_ptr<Rendering::Image> s_CloseIcon;
+	std::unique_ptr<Rendering::Image> s_MinimizeIcon;
+	std::unique_ptr<Rendering::Image> s_MaximizeIcon;
+	std::unique_ptr<Rendering::Image> s_RestoreIcon;
+	std::unique_ptr<Rendering::Image> s_CloseIcon;
 
-	SE_API float s_MinimizeOpacity = 0.f;
-	SE_API float s_MaximizeOpacity = 0.f;
-	SE_API float s_CloseOpacity = 0.f;
+	float s_MinimizeOpacity = 0.f;
+	float s_MaximizeOpacity = 0.f;
+	float s_CloseOpacity = 0.f;
 
 	void VulkanImGui::Init() {
 		SE_PROFILE_FUNCTION();

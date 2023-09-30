@@ -5,7 +5,7 @@ file(GLOB_RECURSE ENGINE_HEADERS
 		${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
 )
 
-add_library(Engine SHARED ${ENGINE_SOURCES} ${ENGINE_HEADERS})
+add_library(Engine STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
 if(NOT DEFINED ENGINE_INLCUDE_DIR)
 	set(ENGINE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -54,14 +54,7 @@ endif()
 
 target_compile_features(Engine PRIVATE cxx_std_20)
 
-target_compile_definitions(Engine PRIVATE SE_EXPORT)
-
 target_precompile_headers(Engine PUBLIC pch.hpp)
 
 define_configuration(Engine)
 define_platform(Engine)
-
-set(ENGINE_DLL "${CMAKE_CURRENT_BINARY_DIR}/Engine.dll")
-copy_file(Engine ${ENGINE_DLL} "${CMAKE_BINARY_DIR}/Editor/Engine.dll")
-copy_file(Engine ${ENGINE_DLL} "${CMAKE_BINARY_DIR}/Runtime/Engine.dll")
-copy_file(Engine ${ENGINE_DLL} "${CMAKE_BINARY_DIR}/Programs/Tests/Engine.dll")

@@ -123,7 +123,7 @@ namespace YAML {
 }
 
 namespace Sphynx {
-	class SE_API YAMLSerializer {
+	class YAMLSerializer {
 	public:
 		static bool SaveFile(const std::filesystem::path& filepath, const YAML::Emitter& emitter) {
 			std::ofstream fout(filepath);

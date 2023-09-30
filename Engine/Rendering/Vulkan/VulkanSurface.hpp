@@ -7,7 +7,7 @@
 struct GLFWwindow;
 
 namespace Sphynx::Rendering {
-	class SE_API VulkanSurface {
+	class VulkanSurface {
 	public:
 		static vk::SurfaceKHR GetFromWindow(vk::Instance instance, GLFWwindow* window);
 	};

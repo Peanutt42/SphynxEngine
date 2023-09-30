@@ -1,11 +1,10 @@
 #pragma once
 
 #include "std.hpp"
-#include "Core/EngineApi.hpp"
 #include "Debug/CrashHandler.hpp"
 
 namespace Sphynx {
-	class SE_API Logging {
+	class Logging {
 	public:
 		enum Category {
 			General,

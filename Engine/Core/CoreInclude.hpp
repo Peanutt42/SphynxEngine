@@ -4,7 +4,6 @@
 
 #include "Time.hpp"
 #include "Version.hpp"
-#include "EngineApi.hpp"
 #include "IntTypes.hpp"
 #include "UUID.hpp"
 #include "Result.hpp"
@@ -19,7 +18,3 @@
 #include "Serialization/StreamReader.hpp"
 #include "Serialization/MemoryStream.hpp"
 #include "Serialization/FileStream.hpp"
-
-#ifdef SE_GAME_MODULE
-#include "Scripting/ScriptingModuleIncludes.hpp"
-#endif

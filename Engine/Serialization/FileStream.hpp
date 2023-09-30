@@ -1,12 +1,11 @@
 #pragma once
 
 #include "std.hpp"
-#include "Core/EngineApi.hpp"
 #include "StreamWriter.hpp"
 #include "StreamReader.hpp"
 
 namespace Sphynx {
-	class SE_API FileStreamWriter : public StreamWriter {
+	class FileStreamWriter : public StreamWriter {
 	public:
 		FileStreamWriter(const std::filesystem::path& path)
 			: m_Path(path)
@@ -42,7 +41,7 @@ namespace Sphynx {
 		std::ofstream m_Stream;
 	};
 
-	class SE_API FileStreamReader : public StreamReader {
+	class FileStreamReader : public StreamReader {
 	public:
 		FileStreamReader(const std::filesystem::path& path)
 			: m_Path(path)

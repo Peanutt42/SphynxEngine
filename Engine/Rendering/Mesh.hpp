@@ -3,13 +3,13 @@
 #include "pch.hpp"
 
 namespace Sphynx::Rendering {
-	struct SE_API Vertex {
+	struct Vertex {
 		glm::vec3 Position{ 0, 0, 0 };
 		glm::vec3 Normal{ 0, 0, 0 };
 		glm::vec2 UV{ 0, 0 };
 	};
 
-	struct SE_API MeshData {
+	struct MeshData {
 		std::vector<Vertex> Vertices;
 		std::vector<uint32> Indices;
 
@@ -22,7 +22,7 @@ namespace Sphynx::Rendering {
 
 	class VulkanBuffer;
 
-	class SE_API Mesh {
+	class Mesh {
 	public:
 		Mesh(const MeshData& data);
 		Mesh(BufferView vertices, uint32 vertexCount, const std::vector<uint32>& indices);

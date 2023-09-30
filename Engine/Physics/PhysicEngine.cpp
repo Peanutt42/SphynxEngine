@@ -5,11 +5,11 @@
 #include "btUtils.hpp"
 
 namespace Sphynx::Physics {
-	SE_API btCollisionConfiguration* s_CollisionConfiguration = nullptr;
-	SE_API btCollisionDispatcher* s_Dispatcher = nullptr;
-	SE_API btBroadphaseInterface* s_BroadphaseInterface = nullptr;
-	SE_API btSequentialImpulseConstraintSolver* s_Solver = nullptr;
-	SE_API btDiscreteDynamicsWorld* s_DynamicsWorld = nullptr;
+	btCollisionConfiguration* s_CollisionConfiguration = nullptr;
+	btCollisionDispatcher* s_Dispatcher = nullptr;
+	btBroadphaseInterface* s_BroadphaseInterface = nullptr;
+	btSequentialImpulseConstraintSolver* s_Solver = nullptr;
+	btDiscreteDynamicsWorld* s_DynamicsWorld = nullptr;
 
 
 	void PhysicEngine::Init() {

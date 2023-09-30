@@ -3,7 +3,7 @@
 #include "CoreInclude.hpp"
 
 namespace Sphynx {
-	class SE_API Application {
+	class Application {
 	public:
 		Application() = default;
 

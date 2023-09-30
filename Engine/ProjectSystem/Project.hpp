@@ -4,7 +4,7 @@
 #include "Serialization/YAMLSerializer.hpp"
 
 namespace Sphynx {
-	class SE_API Project {
+	class Project {
 	public:
 		std::string Name;
 		Version EngineVersion;
@@ -13,10 +13,9 @@ namespace Sphynx {
 		std::filesystem::path StartSceneFilepath;
 
 		std::filesystem::path EngineConfigFilepath;
-		std::filesystem::path BinariesDir;
 
 		Project(const std::filesystem::path& filepath)
-			: Filepath(filepath), Folderpath(Filepath.parent_path()), EngineConfigFilepath(Folderpath / "Config/EngineConfig.ini"), BinariesDir(Folderpath  / "Binaries")
+			: Filepath(filepath), Folderpath(Filepath.parent_path()), EngineConfigFilepath(Folderpath / "Config/EngineConfig.ini")
 		{
 			std::string filepathStr = filepath.string();
 

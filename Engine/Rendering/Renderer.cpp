@@ -21,23 +21,23 @@ uint32_t g_ScreenQuadFragment[] = {
 };
 
 namespace Sphynx::Rendering {
-	SE_API bool s_Initialized = false;
+	bool s_Initialized = false;
 
-	SE_API Window* s_Window = nullptr;
-	SE_API std::unique_ptr<Mesh> s_CubeMesh;
-	SE_API std::unique_ptr<Shader> s_DefaultShader;
-	SE_API std::unique_ptr<Shader> s_ScreenQuadShader;
+	Window* s_Window = nullptr;
+	std::unique_ptr<Mesh> s_CubeMesh;
+	std::unique_ptr<Shader> s_DefaultShader;
+	std::unique_ptr<Shader> s_ScreenQuadShader;
 
-	SE_API std::queue<std::function<void()>> s_BeforeNextRenderCallbacks;
+	std::queue<std::function<void()>> s_BeforeNextRenderCallbacks;
 
-	SE_API bool s_DrawSceneTexture = false;
-	SE_API bool s_GeneratedSceneTextureDescriptorSets = false;
+	bool s_DrawSceneTexture = false;
+	bool s_GeneratedSceneTextureDescriptorSets = false;
 
 	struct RenderCommand {
 		std::vector<InstanceData> ModelMatrices;
 		Camera Camera;
 	};
-	SE_API RenderCommand s_RenderCommand;
+	RenderCommand s_RenderCommand;
 
 	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback) {
 		SE_PROFILE_FUNCTION();

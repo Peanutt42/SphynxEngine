@@ -25,7 +25,7 @@ namespace Sphynx::Rendering {
 		std::map<uint32, DescriptorBinding> DescriptorBindings; // binding - type pair
 	};
 
-	class SE_API SpirvHelper {
+	class SpirvHelper {
 	public:
 		static vk::Format SpirvTypeToVkFormat(spirv_cross::SPIRType::BaseType type, uint32 elements);
 

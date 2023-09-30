@@ -2,13 +2,12 @@
 
 #include "std.hpp"
 #include "Math/Transform.hpp"
-#include "Core/EngineApi.hpp"
 #include "KeyCode.hpp"
 
 struct GLFWwindow;
 
 namespace Sphynx {
-	class SE_API Input {
+	class Input {
 	public:
 		static void Init(GLFWwindow* window);
 
@@ -48,7 +47,7 @@ namespace Sphynx {
 		inline static std::array<bool, MOUSEBUTTON_COUNT> s_MouseButtonStateChanged;
 	};
 
-	class SE_API ConsoleInput {
+	class ConsoleInput {
 	public:
 		static void Init();
 

@@ -4,7 +4,6 @@ add_library(tracy STATIC TracyClient.cpp tracy/Tracy.hpp)
 
 target_compile_definitions(tracy PRIVATE
 		TRACY_ENABLE
-		TRACY_EXPORTS
 		TRACY_ON_DEMAND
 )
 

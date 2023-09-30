@@ -16,7 +16,7 @@ namespace Sphynx::Rendering {
 		std::vector<byte> Data;
 	};
 
-	class SE_API VulkanTexture {
+	class VulkanTexture {
 	public:
 		VulkanTexture(const TextureSpecification& spec);
 		~VulkanTexture();

@@ -1,10 +1,9 @@
 #pragma once
 
 #include "std.hpp"
-#include "Core/EngineApi.hpp"
 
 namespace Sphynx {
-	class SE_API StreamWriter {
+	class StreamWriter {
 	public:
 		virtual ~StreamWriter() = default;
 

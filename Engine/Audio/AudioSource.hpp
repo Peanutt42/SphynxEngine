@@ -4,7 +4,7 @@
 #include "AudioBuffer.hpp"
 
 namespace Sphynx::Audio {
-	class SE_API AudioSource {
+	class AudioSource {
 	public:
 		AudioSource();
 		~AudioSource();
