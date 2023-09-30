@@ -8,12 +8,12 @@
 namespace TestProject {
 	System()
 	void TestSystem(Sphynx::Scene& scene) {
-		scene.ForEach([&](Sphynx::ECS::EntityId entity) {
-			scene.AddComponent<TestComponent>(entity, TestComponent{});
-		});
+		for (Sphynx::ECS::EntityId entity : scene) {
+			scene.AddComponent<TestProject::TestComponent>(entity);
+		}
 
-		for (auto[entity, test] : scene.View<TestComponent>()) {
-			SE_INFO(Sphynx::Logging::Game, "{} - {}", entity, test.AInt++);
+		for (auto [entity, test] : scene.View<TestProject::TestComponent>()) {
+			SE_INFO(Sphynx::Logging::Game, "{}: {}", entity, test.AInt++);
 		}
 	}
 }

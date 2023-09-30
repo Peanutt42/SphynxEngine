@@ -6,7 +6,7 @@
 namespace Sphynx::Scripting {
 	class SE_API ScriptingEngine {
 	public:
-		static bool Init();
+		static void Init();
 		static void Shutdown();
 
 		static void Update();

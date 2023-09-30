@@ -12,6 +12,10 @@ namespace Sphynx::Scripting {
 		std::string Type;
 		std::string Name;
 
+		bool IsEquivalent(const VariableReflectionInfo& other) const {
+			return Type == other.Type && Name == other.Name;
+		}
+
 		// Used in runtime
 		size_t Offset = 0;
 		size_t Size = 0;
@@ -22,6 +26,25 @@ namespace Sphynx::Scripting {
 		size_t TypeID = 0;
 		std::string FullName;
 		std::vector<VariableReflectionInfo> Variables;
+
+		bool IsEquivalent(const ComponentReflectionInfo& other) const {
+			if (TypeID != other.TypeID || FullName != other.FullName)
+				return false;
+
+			for (const auto& var : Variables) {
+				bool foundEquivalent = false;
+				for (const auto& otherVar : other.Variables) {
+					if (var.IsEquivalent(otherVar)) {
+						foundEquivalent = true;
+						break;
+					}
+				}
+				if (!foundEquivalent)
+					return false;
+			}
+
+			return true;
+		}
 
 		// Used in runtime
 		size_t Size = 0;

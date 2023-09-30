@@ -15,7 +15,7 @@ namespace Sphynx {
 		static void CloseNextFrame();
 
 		// this is for user errors, not engine internal crashes
-		static void ForceShutdown();
+		static void ForceShutdown(bool error = false);
 		// this is for user errors, not engine internal crashes
 		static void ForceShutdown(bool error, std::string_view msg);
 

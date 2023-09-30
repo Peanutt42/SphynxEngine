@@ -39,7 +39,7 @@ namespace Sphynx {
 
 		Physics::PhysicEngine::Init();
 
-		SE_ASSERT(Scripting::ScriptingEngine::Init(), "Failed to initialize Scripting Engine");
+		Scripting::ScriptingEngine::Init();
 
 		if (s_Settings.Headless) {
 			ConsoleInput::Init();
@@ -155,10 +155,10 @@ namespace Sphynx {
 
 	void Engine::CloseNextFrame() { s_Quit.store(true); }
 
-	void Engine::ForceShutdown() {
-		Shutdown();
+	void Engine::ForceShutdown(bool error) {
+		Logging::Shutdown();
 
-		std::exit(0);
+		std::exit(error ? 1 : 0);
 	}
 
 	void Engine::ForceShutdown(bool error, std::string_view msg) {
@@ -167,6 +167,6 @@ namespace Sphynx {
 		else
 			Platform::MessagePrompts::Info("Forced Engine Shutdown", msg);
 
-		ForceShutdown();
+		ForceShutdown(error);
 	}
 }

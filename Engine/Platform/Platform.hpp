@@ -63,6 +63,10 @@ namespace Sphynx::Platform {
             return function;
         }
 
+        static bool IsDLL(const std::filesystem::path& filepath);
+        // returns extension with the . on the left: example: ".dll"
+        static const char* DLLExtension();
+
     private:
         void* _GetFuncAddress(const char* name);
 
@@ -73,6 +77,7 @@ namespace Sphynx::Platform {
 
     private:
         DLLPlatformData* m_PlatformData = nullptr;
+        std::filesystem::path m_Filepath;
     };
 
 

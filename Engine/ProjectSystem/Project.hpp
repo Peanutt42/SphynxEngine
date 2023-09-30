@@ -11,22 +11,19 @@ namespace Sphynx {
 		std::filesystem::path Filepath;
 		std::filesystem::path Folderpath;
 		std::filesystem::path StartSceneFilepath;
-		std::filesystem::path BinaryFilepath;
 
 		std::filesystem::path EngineConfigFilepath;
+		std::filesystem::path BinariesDir;
 
 		Project(const std::filesystem::path& filepath)
-			: Filepath(filepath), Folderpath(Filepath.parent_path()), EngineConfigFilepath(Folderpath / "Config/EngineConfig.ini")
+			: Filepath(filepath), Folderpath(Filepath.parent_path()), EngineConfigFilepath(Folderpath / "Config/EngineConfig.ini"), BinariesDir(Folderpath  / "Binaries")
 		{
 			std::string filepathStr = filepath.string();
 
-			auto result = YAMLSerializer::LoadFile(filepathStr);
-			result.expect("Failed to open Project file");
-			YAML::Node& data = *result;
+			YAML::Node data = YAMLSerializer::LoadFile(filepathStr).expect("Failed to open Project file");
 			Name = data["Name"].as<std::string>();
 			EngineVersion = data["EngineVersion"].as<Version>();
 			StartSceneFilepath = Folderpath / "Assets" / data["StartScene"].as<std::string>();
-			BinaryFilepath = Folderpath / data["Binary"].as<std::string>();
 		}
 	};
 }

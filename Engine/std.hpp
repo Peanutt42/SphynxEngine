@@ -6,6 +6,7 @@
 #include <iostream>
 
 #include <variant>
+#include <optional>
 
 #include <string>
 #include <string_view>

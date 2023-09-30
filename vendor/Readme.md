@@ -2,6 +2,10 @@
 - Link: https://github.com/assimp/assimp
 - Commit: 3cf7d28bc
 
+## filewatch
+- Link: https://github.com/ThomasMonkman/filewatch
+- Commit: a59891b
+
 ## glfw
 - Link: https://github.com/Peanutt42/glfw
 - Commit: c186bef66

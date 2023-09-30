@@ -17,6 +17,7 @@ endif()
 target_include_directories(Engine PUBLIC
 		${ENGINE_INCLUDE_DIR}
 		${GLM_INCLUDE_DIR}
+		${FILEWATCH_INCLUDE_DIR}
 		${TRACY_INCLUDE_DIR}
 		${IMGUI_INCLUDE_DIR}
 		${Vulkan_INCLUDE_DIRS}

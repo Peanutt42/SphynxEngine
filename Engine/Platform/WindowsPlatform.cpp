@@ -11,13 +11,13 @@
 #include <Psapi.h>
 #include <DbgHelp.h>
 
-namespace Sphynx {
-	bool Platform::IsDebuggerAttached() {
+namespace Sphynx::Platform {
+	bool IsDebuggerAttached() {
 		return IsDebuggerPresent();
 	}
 
 
-	bool Platform::ConsoleSupportsColor() {
+	bool ConsoleSupportsColor() {
 		HANDLE hOut = GetStdHandle(STD_OUTPUT_HANDLE);
 		if (hOut == INVALID_HANDLE_VALUE)
 			return false;
@@ -30,7 +30,7 @@ namespace Sphynx {
 	}
 
 
-	void Platform::SetWorkingDirToExe() {
+	void SetWorkingDirToExe() {
 		std::wstring filepathStr;
 		filepathStr.resize(MAX_PATH);
 		GetModuleFileNameW(nullptr, filepathStr.data(), (DWORD)filepathStr.size());
@@ -40,7 +40,7 @@ namespace Sphynx {
 	}
 
 
-	StackTrace Platform::GenerateStackTrace(void* customContext) {
+	StackTrace GenerateStackTrace(void* customContext) {
 		StackTrace stacktrace;
 
 		CONTEXT capturedContext;
@@ -71,7 +71,7 @@ namespace Sphynx {
 		HANDLE process = GetCurrentProcess();
 		HANDLE thread = GetCurrentThread();
 
-		std::string currentProcessName = Platform::Process::GetCurrentName();
+		std::string currentProcessName = Process::GetCurrentName();
 		// remove extension
 		std::filesystem::path currentProcesName_path = currentProcessName;
 		currentProcesName_path.replace_extension("");
@@ -198,7 +198,7 @@ namespace Sphynx {
 		}
 	}
 
-	static Platform::ExceptionCallback s_ExceptionCallback;
+	static ExceptionCallback s_ExceptionCallback;
 
 	LONG WINAPI ExceptionFilter(PEXCEPTION_POINTERS exceptionInfo) {
 		std::string reason = ExceptionToStr(exceptionInfo->ExceptionRecord);
@@ -211,26 +211,26 @@ namespace Sphynx {
 		return EXCEPTION_CONTINUE_SEARCH;
 	}
 
-	void Platform::SetExceptionCallback(const ExceptionCallback& callback) {
+	void SetExceptionCallback(const ExceptionCallback& callback) {
 		SetUnhandledExceptionFilter(ExceptionFilter);
 		s_ExceptionCallback = callback;
 	}
 
 
-	void Platform::MessagePrompts::Info(std::string_view title, std::string_view msg) {
+	void MessagePrompts::Info(std::string_view title, std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_USERICON | MB_OK);
 	}
 
-	void Platform::MessagePrompts::Error(std::string_view title, std::string_view msg) {
+	void MessagePrompts::Error(std::string_view title, std::string_view msg) {
 		MessageBoxA(NULL, msg.data(), title.data(), MB_ICONERROR | MB_OK);
 	}
 
-	bool Platform::MessagePrompts::YesNo(std::string_view title, std::string_view msg) {
+	bool MessagePrompts::YesNo(std::string_view title, std::string_view msg) {
 		return MessageBoxA(NULL, msg.data(), title.data(), MB_ICONQUESTION | MB_YESNO) == IDYES;
 	}
 
 
-	std::filesystem::path Platform::FileDialogs::OpenFile(const std::string& filterName, const std::string& filter) {
+	std::filesystem::path FileDialogs::OpenFile(const std::string& filterName, const std::string& filter) {
 		// filter: "name (filter)\0filter\0"
 		std::wstring wfilter = std::wstring(filter.begin(), filter.end());
 		std::wstring finalFilter = std::wstring(filterName.begin(), filterName.end()) + L" (" + wfilter + L")\0" + wfilter + L'\0';
@@ -254,7 +254,7 @@ namespace Sphynx {
 		return {};
 	}
 
-	std::filesystem::path Platform::FileDialogs::SaveFile(const std::string& filterName, const std::string& filter) {
+	std::filesystem::path FileDialogs::SaveFile(const std::string& filterName, const std::string& filter) {
 		// filter: "name (filter)\0filter\0"
 		std::wstring wfilter = std::wstring(filter.begin(), filter.end());
 		std::wstring finalFilter = std::wstring(filterName.begin(), filterName.end()) + L" (" + wfilter + L")\0" + wfilter + L'\0';
@@ -282,7 +282,7 @@ namespace Sphynx {
 		return {};
 	}
 
-	std::filesystem::path Platform::FileDialogs::OpenFolder() {
+	std::filesystem::path FileDialogs::OpenFolder() {
 		if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
 			return {};
 
@@ -317,7 +317,7 @@ namespace Sphynx {
 
 
 
-	bool Platform::Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
+	bool Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
 		if (!std::filesystem::exists(filepath)) {
 			SE_ERR(Logging::General, "Can't find process to start in {}", filepath.string());
 			return false;
@@ -343,39 +343,49 @@ namespace Sphynx {
 		}
 	}
 
-	unsigned long Platform::Process::GetCurrentProcessId() {
+	unsigned long Process::GetCurrentProcessId() {
 		return ::GetCurrentProcessId();
 	}
 
-	std::string Platform::Process::GetCurrentName() {
+	std::string Process::GetCurrentName() {
 		char buffer[MAX_PATH];
 		GetModuleBaseNameA(GetCurrentProcess(), GetModuleHandleA(nullptr), buffer, MAX_PATH);
 		return buffer;
 	}
 
 
-	unsigned int Platform::Thread::GetCurrentId() {
+	unsigned int Thread::GetCurrentId() {
 		return ::GetCurrentThreadId();
 	}
 
 
-	struct Platform::DLLPlatformData {
+	struct DLLPlatformData {
 		HMODULE Module = nullptr;
 	};
-	Platform::DynamicLinkLibary::DynamicLinkLibary(const std::filesystem::path& filepath) {
-		SE_ASSERT(std::filesystem::exists(filepath), "{} doesn't exist!", filepath.string());
+	DynamicLinkLibary::DynamicLinkLibary(const std::filesystem::path& filepath) : m_Filepath(filepath) {
+		SE_ASSERT(std::filesystem::exists(m_Filepath), "{} doesn't exist!", m_Filepath.string());
 
 		m_PlatformData = new DLLPlatformData();
-		m_PlatformData->Module = LoadLibraryW(filepath.native().c_str());
-		SE_ASSERT(m_PlatformData->Module, "Failed to open {}", filepath.string());
+		m_PlatformData->Module = LoadLibraryW(m_Filepath.native().c_str());
+		SE_ASSERT(m_PlatformData->Module, "Failed to open {}", m_Filepath.string());
 	}
 
-	Platform::DynamicLinkLibary::~DynamicLinkLibary() {
+	DynamicLinkLibary::~DynamicLinkLibary() {
+		if (!FreeLibrary(m_PlatformData->Module))
+			SE_WARN("Failed to close dll: {}", m_Filepath.string());
+
 		delete m_PlatformData;
 	}
 
-	void* Platform::DynamicLinkLibary::_GetFuncAddress(const char* name) {
+	void* DynamicLinkLibary::_GetFuncAddress(const char* name) {
 		return GetProcAddress(m_PlatformData->Module, name);
+	}
+
+	const char* DynamicLinkLibary::DLLExtension() {
+		return ".dll";
+	}
+	bool DynamicLinkLibary::IsDLL(const std::filesystem::path& filepath) {
+		return filepath.extension() == ".dll";
 	}
 }
 

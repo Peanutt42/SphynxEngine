@@ -1,4 +1,3 @@
 Name: TestProject
 EngineVersion: [0, 0, 1]
-Binary: Binaries/TestProject.dll
 StartScene: Scenes/Test.sescene

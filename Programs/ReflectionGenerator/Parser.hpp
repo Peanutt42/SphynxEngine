@@ -85,23 +85,26 @@ namespace Sphynx::Scripting {
 					}
 				}
 				else if (Match(TokenType::NAMESPACE_KW)) {
-					if (m_TokenIter->Type != TokenType::IDENTIFIER) {
-						m_ErrorMessage = "Expected a identifier after 'namespace'";
-						return;
+					// anonymous namespace
+					if (m_TokenIter->Type != TokenType::LEFT_BRACKET) {
+						if (m_TokenIter->Type != TokenType::IDENTIFIER) {
+							m_ErrorMessage = "Expected a identifier after 'namespace'";
+							return;
+						}
+
+						std::string newNamespace;
+						while (!Finished()) {
+							newNamespace += m_TokenIter->Code;
+							m_TokenIter++;
+							Match(TokenType::COLON);
+							Match(TokenType::COLON);
+							if (m_TokenIter->Type == TokenType::IDENTIFIER)
+								newNamespace += "::";
+							else
+								break;
+						}
+						m_CurrentNamespaceStack.emplace_back() = NamespaceEntry{ level, newNamespace };
 					}
-					
-					std::string newNamespace;
-					while (!Finished()) {
-						newNamespace += m_TokenIter->Code;
-						m_TokenIter++;
-						Match(TokenType::COLON);
-						Match(TokenType::COLON);
-						if (m_TokenIter->Type == TokenType::IDENTIFIER)
-							newNamespace += "::";
-						else
-							break;
-					}
-					m_CurrentNamespaceStack.emplace_back() = NamespaceEntry{ level, newNamespace };
 				}
 				else if (Match(TokenType::LEFT_BRACKET))
 					level++;

@@ -280,6 +280,39 @@ namespace Sphynx::ECS {
 			return BasicView<T...>(*this);
 		}
 
+
+		struct Iterator {
+			Iterator(Registry* registry, EntityId entity)
+				: m_Registry(registry), m_Entity(entity)
+			{
+				FindNext();
+			}
+
+			EntityId operator*() const { return m_Entity; }
+			Iterator& operator++() {
+				++m_Entity;
+				FindNext();
+				return *this;
+			}
+
+			bool operator==(const Iterator& other) const { return m_Entity == other.m_Entity; }
+
+		private:
+			void FindNext() {
+				while (m_Entity < m_Registry->m_NextEntityId) {
+					if (m_Registry->m_AliveMap[m_Entity])
+						break;
+
+					++m_Entity;
+				}
+			}
+
+			Registry* m_Registry = nullptr;
+			EntityId m_Entity = InvalidEntityId;
+		};
+		Iterator begin() { return Iterator(this, 0); }
+		Iterator end() { return Iterator(this, m_NextEntityId); }
+
 		template<typename T>
 		const Storage* FindStorage() const {
 			constexpr ComponentId id = GetComponentId<T>();

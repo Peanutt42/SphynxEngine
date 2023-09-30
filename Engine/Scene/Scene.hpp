@@ -42,6 +42,8 @@ namespace Sphynx {
 		void ForEach(const Callback& callback) {
 			m_Registry.ForEach(callback);
 		}
+		ECS::Registry::Iterator begin() { return m_Registry.begin(); }
+		ECS::Registry::Iterator end() { return m_Registry.end(); }
 
 	private:
 		std::string m_Name;
