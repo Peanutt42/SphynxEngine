@@ -2,7 +2,6 @@
 
 #include "Core/CoreInclude.hpp"
 
-//#pragma comment(lib, "winmm.lib")
 #include <AL/al.h>
 #include <AL/alc.h>
 

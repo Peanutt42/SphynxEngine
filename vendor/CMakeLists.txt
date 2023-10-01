@@ -47,7 +47,11 @@ set(ALSOFT_INSTALL_UTILS OFF CACHE BOOL "" FORCE)
 
 # Bullet
 set(BULLET_INCLUDE_DIR "${VENDOR_DIR}/bullet3/include")
-set(BULLET_LIB_DIR "${VENDOR_DIR}/bullet3/lib/${CMAKE_BUILD_TYPE}")
+if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
+	set(BULLET_LIB_DIR "${VENDOR_DIR}/bullet3/lib/Debug")
+else()
+	set(BULLET_LIB_DIR "${VENDOR_DIR}/bullet3/lib/Release")
+endif()
 set(BULLET_COLLISION_LIB "${BULLET_LIB_DIR}/BulletCollision.lib")
 set(BULLET_DYNAMICS_LIB "${BULLET_LIB_DIR}/BulletDynamics.lib")
 set(BULLET_MATH_LIB "${BULLET_LIB_DIR}/LinearMath.lib")
