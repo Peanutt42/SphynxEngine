@@ -2,6 +2,7 @@
 
 #include "std.hpp"
 
+#include "EngineApi.hpp"
 #include "Time.hpp"
 #include "Version.hpp"
 #include "IntTypes.hpp"

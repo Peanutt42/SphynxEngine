@@ -282,40 +282,6 @@ namespace Sphynx::Platform {
 		return {};
 	}
 
-	std::filesystem::path FileDialogs::OpenFolder() {
-		if (FAILED(CoInitializeEx(nullptr, COINIT_APARTMENTTHREADED | COINIT_DISABLE_OLE1DDE)))
-			return {};
-
-		IFileOpenDialog* pFileOpenDialog = nullptr;
-		HRESULT hr = CoCreateInstance(CLSID_FileOpenDialog, nullptr, CLSCTX_ALL, IID_IFileOpenDialog, reinterpret_cast<void**>(&pFileOpenDialog));
-		if (SUCCEEDED(hr)) {
-			DWORD dwOptions;
-			pFileOpenDialog->GetOptions(&dwOptions);
-			pFileOpenDialog->SetOptions(dwOptions | FOS_PICKFOLDERS);
-
-			if (SUCCEEDED(pFileOpenDialog->Show(nullptr))) {
-				IShellItem* pItem = NULL;
-				if (SUCCEEDED(pFileOpenDialog->GetResult(&pItem))) {
-					PWSTR pszFolderPath = nullptr;
-					if (SUCCEEDED(pItem->GetDisplayName(SIGDN_FILESYSPATH, &pszFolderPath))) {
-						std::filesystem::path out = pszFolderPath;
-
-						CoTaskMemFree(pszFolderPath);
-						return out;
-					}
-					pItem->Release();
-				}
-			}
-
-			pFileOpenDialog->Release();
-		}
-
-		CoUninitialize();
-
-		return {};
-	}
-
-
 
 	bool Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
 		if (!std::filesystem::exists(filepath)) {

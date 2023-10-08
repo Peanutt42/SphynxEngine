@@ -4,7 +4,7 @@
 #include "Debug/CrashHandler.hpp"
 
 namespace Sphynx {
-	class Logging {
+	class SE_API Logging {
 	public:
 		enum Category {
 			General,

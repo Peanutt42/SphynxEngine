@@ -14,7 +14,7 @@ namespace Sphynx::Audio {
 		AudioFormat Format = AudioFormat::Mono;
 	};
 	
-	class AudioBuffer {
+	class SE_API AudioBuffer {
 	public:
 		AudioBuffer(const AudioBufferInfo& info);
 		~AudioBuffer();

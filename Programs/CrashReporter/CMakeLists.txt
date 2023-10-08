@@ -29,9 +29,9 @@ target_link_libraries(CrashReporter PRIVATE
 		${OPENGL_LIB}
 )
 
-copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${EDITOR_BIN_DIR})
-copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${RUNTIME_BIN_DIR})
-copy_file(CrashReporter "$<TARGET_FILE:CrashReporter>" ${TESTS_BIN_DIR})
+copy_file(CrashReporter $<TARGET_FILE:CrashReporter> $<TARGET_FILE_DIR:Editor>)
+copy_file(CrashReporter $<TARGET_FILE:CrashReporter> $<TARGET_FILE_DIR:Runtime>)
+copy_file(CrashReporter $<TARGET_FILE:CrashReporter> $<TARGET_FILE_DIR:Tests>)
 add_dependencies(Editor CrashReporter)
 add_dependencies(Runtime CrashReporter)
 add_dependencies(Tests CrashReporter)

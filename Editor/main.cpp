@@ -2,6 +2,7 @@
 #include "Core/EntryPoint.hpp"
 #include "EditorApplication.hpp"
 
+#include <misc/cpp/imgui_stdlib.cpp>
 
 int GuardedMain(int argc, const char** argv) {
 	Sphynx::Platform::SetWorkingDirToExe();

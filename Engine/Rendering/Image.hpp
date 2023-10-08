@@ -5,7 +5,7 @@
 namespace Sphynx::Rendering {
 	class VulkanTexture;
 
-	class Image {
+	class SE_API Image {
 	public:
 		Image(BufferView data);
 		~Image();

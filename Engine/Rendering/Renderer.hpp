@@ -11,7 +11,7 @@
 #include <queue>
 
 namespace Sphynx::Rendering {
-	class Renderer {
+	class SE_API Renderer {
 	public:
 		static bool Init(Window& window, const std::function<void()>& resizeCallback);
 		static void Shutdown();

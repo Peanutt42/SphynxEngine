@@ -7,7 +7,7 @@
 struct GLFWwindow;
 
 namespace Sphynx {
-	class Input {
+	class SE_API Input {
 	public:
 		static void Init(GLFWwindow* window);
 
@@ -47,7 +47,7 @@ namespace Sphynx {
 		inline static std::array<bool, MOUSEBUTTON_COUNT> s_MouseButtonStateChanged;
 	};
 
-	class ConsoleInput {
+	class SE_API ConsoleInput {
 	public:
 		static void Init();
 

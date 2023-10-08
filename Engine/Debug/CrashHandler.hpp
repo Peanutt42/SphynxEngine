@@ -1,10 +1,9 @@
 #pragma once
 
-#include <string>
-#include <vector>
+#include "pch.hpp"
 
 namespace Sphynx {	
-	class CrashHandler {
+	class SE_API CrashHandler {
 	public:
 		static void Init();
 

@@ -5,7 +5,7 @@
 #include "ProjectSystem/Project.hpp"
 
 namespace Sphynx {
-	class Engine {
+	class SE_API Engine {
 	public:
 		static void Init(const EngineSettings& settings, Project& project, Application& application);
 		static void Shutdown();

@@ -5,49 +5,47 @@
 #include "Debug/StackTrace.hpp"
 
 namespace Sphynx::Platform {
-	bool IsDebuggerAttached();
+    SE_API bool IsDebuggerAttached();
 
-    bool ConsoleSupportsColor();
+    SE_API bool ConsoleSupportsColor();
 
-    void SetWorkingDirToExe();
+    SE_API void SetWorkingDirToExe();
 
     // context argument is only windows specific and not needed when not inside crash handeling
-    StackTrace GenerateStackTrace(void* customContext = nullptr);
+    SE_API StackTrace GenerateStackTrace(void* customContext = nullptr);
 
     // context is only windows specific
     using ExceptionCallback = std::function<void(const std::string& reason, void* context)>;
-    void SetExceptionCallback(const ExceptionCallback& callback);
+    SE_API void SetExceptionCallback(const ExceptionCallback& callback);
 
     namespace MessagePrompts {
-        void Info(std::string_view title, std::string_view msg);
-        void Error(std::string_view title, std::string_view msg);
-        bool YesNo(std::string_view title, std::string_view msg);
+        SE_API void Info(std::string_view title, std::string_view msg);
+        SE_API void Error(std::string_view title, std::string_view msg);
+        SE_API bool YesNo(std::string_view title, std::string_view msg);
     }
 
     namespace FileDialogs {
-        std::filesystem::path OpenFile(const std::string& filterName, const std::string& filter);
-        std::filesystem::path SaveFile(const std::string& filterName, const std::string& filter);
-
-        std::filesystem::path OpenFolder();
+        SE_API std::filesystem::path OpenFile(const std::string& filterName, const std::string& filter);
+        SE_API std::filesystem::path SaveFile(const std::string& filterName, const std::string& filter);
     }
 
 
     namespace Process {
-        bool Run(const std::filesystem::path& filepath, const std::wstring& args);
+        SE_API bool Run(const std::filesystem::path& filepath, const std::wstring& args);
 
-        unsigned long GetCurrentProcessId();
+        SE_API unsigned long GetCurrentProcessId();
 
-        std::string GetCurrentName();
+        SE_API std::string GetCurrentName();
     }
 
 
     namespace Thread {
-        unsigned int GetCurrentId();
+        SE_API unsigned int GetCurrentId();
     };
 
 
     struct DLLPlatformData;
-    class DynamicLinkLibary {
+    class SE_API DynamicLinkLibary {
     public:
         DynamicLinkLibary(const std::filesystem::path& filepath);
         ~DynamicLinkLibary();

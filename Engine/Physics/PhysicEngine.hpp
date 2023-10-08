@@ -6,7 +6,7 @@
 #include "PhysicsComponents.hpp"
 
 namespace Sphynx::Physics {
-	class PhysicEngine {
+	class SE_API PhysicEngine {
 	public:
 		static void Init();
 		static void Shutdown();

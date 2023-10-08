@@ -1,0 +1,24 @@
+Files:
+  - subfolder\subfolder-Test.hpp: 133412412793493694
+  - TestComponents.hpp: 133412347501346473
+Components:
+  - Name: NoNamespaceComponent
+    Filepath: TestComponents.hpp
+    Variables:
+      - AInteger: int
+  - Name: ANamespace::ComponentWithNamespace
+    Filepath: TestComponents.hpp
+    Variables:
+      - AFloat: float
+  - Name: ANamespace::NestedComponent
+    Filepath: TestComponents.hpp
+    Variables:
+      - Nested: ""
+  - Name: SubfolderComponent
+    Filepath: subfolder\subfolder-Test.hpp
+    Variables:
+      - AnotherInt: int
+  - Name: AnotherSubfolderComponent
+    Filepath: subfolder\subfolder-Test.hpp
+    Variables:
+      - AnotherFloat: float

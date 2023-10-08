@@ -8,7 +8,7 @@ namespace Sphynx::Rendering {
 	// Difference to VulkanShader: 
 	//  Shader is more for game level shaders,
 	//  VulkanShader more for engine internal shaders
-	class Shader {
+	class SE_API Shader {
 	public:
 		Shader(BufferView vertexCode, BufferView fragmentCode);
 		~Shader();

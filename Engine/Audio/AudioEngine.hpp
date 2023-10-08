@@ -3,7 +3,7 @@
 #include "Core/CoreInclude.hpp"
 
 namespace Sphynx::Audio {
-	class AudioEngine {
+	class SE_API AudioEngine {
 	public:
 		static bool Init();
 		static void Shutdown();

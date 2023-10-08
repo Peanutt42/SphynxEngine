@@ -20,5 +20,3 @@ copy_resources_folder(Runtime ${CMAKE_CURRENT_BINARY_DIR})
 
 define_configuration(Runtime)
 define_platform(Runtime)
-
-set(RUNTIME_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)

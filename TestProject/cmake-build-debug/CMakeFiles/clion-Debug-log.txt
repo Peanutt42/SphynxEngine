@@ -1,0 +1,1 @@
+CMakeLists.txt not found in C:\dev\cpp\SphynxEngine\TestProject Select CMakeLists.txt

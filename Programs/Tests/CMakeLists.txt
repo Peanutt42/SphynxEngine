@@ -1,17 +1,5 @@
 file(GLOB_RECURSE TESTS_SOURCES "*.cpp")
 
-set(TESTS_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)
-
-# download google test
-include(FetchContent)
-FetchContent_Declare(
-    googletest
-    GIT_REPOSITORY https://github.com/google/googletest.git
-    GIT_TAG release-1.11.0  # Use the desired version tag
-)
-set(gtest_force_shared_crt ON CACHE BOOL "" FORCE)
-FetchContent_MakeAvailable(googletest)
-
 enable_testing()
 
 add_executable(Tests ${TESTS_SOURCES})

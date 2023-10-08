@@ -38,12 +38,12 @@ namespace Sphynx {
 
 	const char* Logging::VerbosityToString(Verbosity verbosity) {
 		switch (verbosity) {
-		default:					return "INVALID: ";
-		case Verbosity::Trace:		return "Trace:   ";
-		case Verbosity::Info:		return "Info:    ";
-		case Verbosity::Warning:	return "Warning: ";
-		case Verbosity::Error:		return "Error:   ";
-		case Verbosity::Critical:	return "Critical:";
+		default:					return "[INVALID] ";
+		case Verbosity::Trace:		return "[Trace]   ";
+		case Verbosity::Info:		return "[Info]    ";
+		case Verbosity::Warning:	return "[Warning] ";
+		case Verbosity::Error:		return "[Error]   ";
+		case Verbosity::Critical:	return "[Critical]";
 		}
 	}
 
@@ -89,6 +89,8 @@ namespace Sphynx {
 		if (verbosity != Verbosity::Trace) {
 			if (s_ColorEnabled)
 				std::cout << '\033' << GetColorForVerbosity(verbosity);
+			else
+				std::cout << verbosityStr;
 
 			std::cout << categoryStr << msg;
 

@@ -10,6 +10,11 @@
 - Link: https://github.com/Peanutt42/glfw
 - Commit: c186bef66
 
+## gtest
+- Link: https://github.com/google/googletest
+- Commit: beb552f
+- just copy the source code from googletest/src and googletest/include into the vendor/gtest and leave the previous CMakeLists.txt (custom)
+
 ## imgui
 - Link: https://github.com/Peanutt42/imgui
 - Commit: ead4f4610

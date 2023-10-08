@@ -15,9 +15,6 @@ namespace Sphynx::Editor {
 				s_Logs.reserve(1024);
 				s_LogCallbackAttatched = true;
 			}
-			SE_INFO(Logging::Editor, "This is a test");
-			SE_WARN(Logging::Editor, "This is a test");
-			SE_ERR(Logging::Editor, "This is a test");
 		}
 
 		virtual void Draw() override {

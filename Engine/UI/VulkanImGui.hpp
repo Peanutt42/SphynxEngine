@@ -5,7 +5,7 @@
 #include <imgui.h>
 
 namespace Sphynx::UI {
-	class VulkanImGui {
+	class SE_API VulkanImGui {
 	public:
 		static void Init();
 		static void Shutdown();

@@ -5,7 +5,7 @@ file(GLOB_RECURSE ENGINE_HEADERS
 		${CMAKE_CURRENT_SOURCE_DIR}/*.hpp
 )
 
-add_library(Engine STATIC ${ENGINE_SOURCES} ${ENGINE_HEADERS})
+add_library(Engine SHARED ${ENGINE_SOURCES} ${ENGINE_HEADERS})
 
 if(NOT DEFINED ENGINE_INLCUDE_DIR)
 	set(ENGINE_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR})
@@ -52,9 +52,19 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
 	target_link_libraries(Engine PRIVATE Dbghelp.lib)
 endif()
 
+target_compile_definitions(Engine PRIVATE "SE_EXPORT")
+
 target_compile_features(Engine PRIVATE cxx_std_20)
 
 target_precompile_headers(Engine PUBLIC pch.hpp)
 
 define_configuration(Engine)
 define_platform(Engine)
+
+
+add_custom_command(TARGET Engine
+	POST_BUILD
+	COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Engine> $<TARGET_FILE_DIR:Editor> &&
+			${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Engine> $<TARGET_FILE_DIR:Runtime> &&
+			${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:Engine> $<TARGET_FILE_DIR:Tests>
+)
