@@ -186,10 +186,8 @@ namespace Sphynx::Physics {
 			rb.Body->getCollisionShape()->setLocalScaling(btScale);
 		}
 
-		if (changed) {
-			SE_INFO("CHANGED");
+		if (changed)
 			rb.Body->activate(true);
-		}
 	}
 
 	void PhysicEngine::_SyncRigidbody(ECS::TransformComponent& transform, const RigidbodyComponent& rb) {

@@ -4,8 +4,12 @@ file(GLOB_RECURSE EDITOR_SOURCES
 
 add_executable(Editor ${EDITOR_SOURCES})
 
-target_include_directories(Editor PUBLIC
+target_include_directories(Editor
+	PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}
+	PRIVATE
+		${IMGUI_INCLUDE_DIR}
+		${Vulkan_INCLUDE_DIRS}
 )
 
 target_compile_features(Editor PRIVATE cxx_std_20)

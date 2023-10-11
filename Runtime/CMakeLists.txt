@@ -17,6 +17,3 @@ target_link_libraries(Runtime PRIVATE Engine)
 target_precompile_headers(Runtime PUBLIC pch.hpp)
 
 copy_resources_folder(Runtime ${CMAKE_CURRENT_BINARY_DIR})
-
-define_configuration(Runtime)
-define_platform(Runtime)

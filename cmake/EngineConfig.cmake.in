@@ -1,0 +1,12 @@
+@PACKAGE_INIT@
+
+# Define the target for the library
+include(${CMAKE_CURRENT_LIST_DIR}/EngineTargets.cmake)
+include(${CMAKE_CURRENT_LIST_DIR}/SphynxMacros.cmake)
+
+# Define any additional variables or settings here
+list(APPEND Engine_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/include/Engine" "@CMAKE_INSTALL_PREFIX@/include/glm")
+set(Engine_LIBRARIES "@CMAKE_INSTALL_PREFIX@/lib/Engine.lib") # Normal 'Engine' target will try to link to Engine.dll and not Engine.lib
+
+# Provide information for find_package users
+set(Engine_FOUND TRUE)

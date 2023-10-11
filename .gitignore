@@ -10,6 +10,9 @@
 **/int
 **/Intermediates
 
+# CMake Install files
+cmake_install/**
+
 # Precompiled Headers
 *.gch
 *.pch

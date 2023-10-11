@@ -1,0 +1,25 @@
+﻿{
+  "configurations": [
+    {
+      "name": "Debug",
+      "generator": "Ninja",
+      "configurationType": "Debug",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}/Binaries"
+    },
+    {
+      "name": "Release",
+      "generator": "Ninja",
+      "configurationType": "Release",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}/Binaries"
+    },
+    {
+      "name": "Dist",
+      "generator": "Ninja",
+      "configurationType": "Dist",
+      "inheritEnvironments": [ "msvc_x64" ],
+      "buildRoot": "${projectDir}/Binaries"
+    }
+  ]
+}

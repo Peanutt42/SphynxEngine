@@ -17,6 +17,10 @@ endif()
 
 # GLM
 set(GLM_INCLUDE_DIR "${VENDOR_DIR}/glm/include")
+install(
+	DIRECTORY "${GLM_INCLUDE_DIR}/glm"
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+)
 
 # filewatch
 set(FILEWATCH_INCLUDE_DIR "${VENDOR_DIR}/filewatch/include")

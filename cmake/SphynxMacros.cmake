@@ -16,6 +16,11 @@ macro(copy_file _TARGET SOURCE DEST)
 	)
 endmacro()
 
+function(set_targets_folder folder)
+	set_target_properties(${ARGN} PROPERTIES FOLDER ${folder})
+endfunction()
+
+
 macro(define_configuration _TARGET)
 	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
 		target_compile_definitions(${_TARGET} PUBLIC DEBUG _DEBUG)

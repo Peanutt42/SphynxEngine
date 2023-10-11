@@ -26,6 +26,3 @@ include(GoogleTest)
 gtest_discover_tests(Tests)
 
 target_precompile_headers(Tests PUBLIC pch.hpp)
-
-define_configuration(Tests)
-define_platform(Tests)
