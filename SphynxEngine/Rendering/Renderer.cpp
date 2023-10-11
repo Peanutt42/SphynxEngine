@@ -5,19 +5,19 @@
 #include "Vulkan/VulkanContext.hpp"
 
 uint32_t g_DefaultVertex[] = {
-#include "../../Resources/Shaders/Embedded/Default.vert.embed"
+#include "../../Content/Shaders/Embedded/Default.vert.embed"
 };
 
 uint32_t g_DefaultFragment[] = {
-#include "../../Resources/Shaders/Embedded/Default.frag.embed"
+#include "../../Content/Shaders/Embedded/Default.frag.embed"
 };
 
 uint32_t g_ScreenQuadVertex[] = {
-#include "../../Resources/Shaders/Embedded/ScreenQuad.vert.embed"
+#include "../../Content/Shaders/Embedded/ScreenQuad.vert.embed"
 };
 
 uint32_t g_ScreenQuadFragment[] = {
-#include "../../Resources/Shaders/Embedded/ScreenQuad.frag.embed"
+#include "../../Content/Shaders/Embedded/ScreenQuad.frag.embed"
 };
 
 namespace Sphynx::Rendering {

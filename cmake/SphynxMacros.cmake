@@ -1,9 +1,9 @@
-macro(copy_resources_folder _TARGET BIN_DIR)
+macro(copy_content_folder _TARGET BIN_DIR)
 	add_custom_command(
 			TARGET ${_TARGET}
 			POST_BUILD
-			COMMAND ${CMAKE_COMMAND} -E copy_directory ${SE_RESOURCE_DIR} "${BIN_DIR}/Resources"
-			COMMENT "Copying ${SE_RESOURCE_DIR} to ${BIN_DIR}/Resources"
+			COMMAND ${CMAKE_COMMAND} -E copy_directory ${SE_CONTENT_DIR} "${BIN_DIR}/Content"
+			COMMENT "Copying ${SE_CONTENT_DIR} to ${BIN_DIR}/Content"
 	)
 endmacro()
 

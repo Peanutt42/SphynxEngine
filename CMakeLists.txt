@@ -18,7 +18,7 @@ set(CMAKE_CONFIGURATION_TYPES
 		"Dist"
 		CACHE STRING "Build Configurations" FORCE)
 
-set(SE_RESOURCE_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Resources")
+set(SE_CONTENT_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Content")
 
 set(CMAKE_INSTALL_PREFIX "${CMAKE_CURRENT_SOURCE_DIR}/cmake_install")
 
@@ -35,10 +35,10 @@ add_subdirectory(vendor/assimp)
 add_subdirectory(vendor/libsndfile)
 set_targets_folder("vendor" yaml stb_image imgui glfw uninstall update_mappings gtest tracy glad OpenAL alcommon al-excommon assimp UpdateAssimpLibsDebugSymbolsAndDLLs zlibstatic sndfile)
 
-add_subdirectory(Engine)
-add_subdirectory(Editor)
-add_subdirectory(Runtime)
-set_targets_folder("Core" Engine Editor Runtime)
+add_subdirectory(SphynxEngine)
+add_subdirectory(SphynxEditor)
+add_subdirectory(SphynxRuntime)
+set_targets_folder("Core" SphynxEngine SphynxEditor SphynxRuntime)
 
 add_subdirectory(Programs/Tests)
 add_subdirectory(Programs/CrashReporter)

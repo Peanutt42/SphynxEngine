@@ -15,7 +15,7 @@ set(CMAKE_CONFIGURATION_TYPES
 list(APPEND CMAKE_PREFIX_PATH "${CMAKE_CURRENT_SOURCE_DIR}/../cmake_install")
 
 set(PACKAGE_FIND_USE_STATIC_LIBS OFF)
-find_package(Engine CONFIG REQUIRED)
+find_package(SphynxEngine CONFIG REQUIRED)
 
 project(TestProject)
 

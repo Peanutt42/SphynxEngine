@@ -13,7 +13,7 @@
 
 #include <GLFW/glfw3.h>
 
-#include "../../Resources/Icons/WindowToolbarIcons.embed"
+#include "../../Content/Icons/WindowToolbarIcons.embed"
 
 namespace Sphynx::UI {
 	bool s_TitlebarHovered = false;
