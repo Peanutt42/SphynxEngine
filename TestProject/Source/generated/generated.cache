@@ -1,0 +1,13 @@
+Files:
+  - Components.hpp: 133417018235123435
+  - Systems.hpp: 133415998163616469
+Components:
+  - Name: TestProject::TestComponent
+    Filepath: Components.hpp
+    Variables:
+      - AInt: int
+      - AnotherInt: int
+  - Name: TestProject::Test2Component
+    Filepath: Components.hpp
+    Variables:
+      []

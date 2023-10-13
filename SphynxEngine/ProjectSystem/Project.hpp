@@ -11,11 +11,13 @@ namespace Sphynx {
 		std::filesystem::path Filepath;
 		std::filesystem::path Folderpath;
 		std::filesystem::path StartSceneFilepath;
+		std::string GameModuleName;
 
 		std::filesystem::path EngineConfigFilepath;
+		std::filesystem::path BinariesDirectory;
 
 		Project(const std::filesystem::path& filepath)
-			: Filepath(filepath), Folderpath(Filepath.parent_path()), EngineConfigFilepath(Folderpath / "Config/EngineConfig.ini")
+			: Filepath(filepath), Folderpath(Filepath.parent_path()), EngineConfigFilepath(Folderpath / "Config/EngineConfig.ini"), BinariesDirectory(Folderpath / "Binaries")
 		{
 			std::string filepathStr = filepath.string();
 
@@ -23,6 +25,7 @@ namespace Sphynx {
 			Name = data["Name"].as<std::string>();
 			EngineVersion = data["EngineVersion"].as<Version>();
 			StartSceneFilepath = Folderpath / "Assets" / data["StartScene"].as<std::string>();
+			GameModuleName = data["GameModule"].as<std::string>();
 		}
 	};
 }

@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "AudioEngine.hpp"
+#include "Core/Engine.hpp"
 
 #include "ALErrors.hpp"
 #include "AudioBuffer.hpp"
@@ -50,8 +51,10 @@ namespace Sphynx::Audio {
         source = new AudioSource();
 
         AudioBufferInfo bufferInfo;
-        LoadAudioFile("Resources/Audio/iamtheprotectorofthissystem.wav", bufferInfo);
-        buffer = new AudioBuffer(bufferInfo);
+        if (LoadAudioFile("Content/Audio/iamtheprotectorofthissystem.wav", bufferInfo))
+            buffer = new AudioBuffer(bufferInfo);
+        else
+            Engine::ForceShutdown("can't load Content/Audio/iamtheprotectorofthissystem.wav");
 
         source->SetBuffer(*buffer);
         source->Start();

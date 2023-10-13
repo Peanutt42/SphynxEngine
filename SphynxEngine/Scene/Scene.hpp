@@ -45,9 +45,16 @@ namespace Sphynx {
 		ECS::Registry::Iterator begin() { return m_Registry.begin(); }
 		ECS::Registry::Iterator end() { return m_Registry.end(); }
 
+		void ActivateSystem(std::string_view name);
+		void DeactivateSystem(std::string_view name);
+		bool IsSystemActive(std::string_view name);
+		const std::unordered_map<std::string_view, bool>& GetSystemsActiveMap() const { return m_SystemsActiveMap; }
+
 	private:
 		std::string m_Name;
 
 		ECS::Registry m_Registry;
+
+		std::unordered_map<std::string_view, bool> m_SystemsActiveMap;
 	};
 }

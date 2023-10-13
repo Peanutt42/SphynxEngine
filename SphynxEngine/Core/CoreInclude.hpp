@@ -19,3 +19,7 @@
 #include "Serialization/StreamReader.hpp"
 #include "Serialization/MemoryStream.hpp"
 #include "Serialization/FileStream.hpp"
+
+#ifdef SE_GAME
+#include "Scripting/ScriptingInclude.hpp"
+#endif

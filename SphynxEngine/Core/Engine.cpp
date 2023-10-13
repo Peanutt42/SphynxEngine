@@ -5,6 +5,7 @@
 #include "Audio/AudioEngine.hpp"
 #include "Rendering/Renderer.hpp"
 #include "Rendering/Window.hpp"
+#include "Scripting/ScriptingEngine.hpp"
 #include "Physics/PhysicEngine.hpp"
 #include "UI/VulkanImGui.hpp"
 
@@ -38,6 +39,8 @@ namespace Sphynx {
 
 		Physics::PhysicEngine::Init();
 
+		Scripting::ScriptingEngine::Init();
+
 		if (s_Settings.Headless) {
 			ConsoleInput::Init();
 			ConsoleInput::SetInputCallback(CommandHandler::QueueCommand);
@@ -65,6 +68,8 @@ namespace Sphynx {
 
 		if (Rendering::Renderer::IsInitialized())
 			Rendering::Renderer::WaitBeforeClose();
+
+		Scripting::ScriptingEngine::Shutdown();
 
 		Physics::PhysicEngine::Shutdown();
 
@@ -100,6 +105,8 @@ namespace Sphynx {
 			Input::Update();
 
 		s_Application->Update();
+
+		Scripting::ScriptingEngine::Update();
 
 		if (Rendering::Renderer::IsInitialized()) {
 			if (s_Settings.ImGuiEnabled) {
@@ -148,18 +155,15 @@ namespace Sphynx {
 
 	void Engine::CloseNextFrame() { s_Quit.store(true); }
 
-	void Engine::ForceShutdown(bool error) {
+	void Engine::ForceShutdown() {
 		Logging::Shutdown();
 
-		std::exit(error ? 1 : 0);
+		std::exit(1);
 	}
 
-	void Engine::ForceShutdown(bool error, std::string_view msg) {
-		if (error)
-			Platform::MessagePrompts::Error("Forced Engine Shutdown", msg);
-		else
-			Platform::MessagePrompts::Info("Forced Engine Shutdown", msg);
-
-		ForceShutdown(error);
+	void Engine::ForceShutdown(std::string_view msg) {
+		Platform::MessagePrompts::Error("Forced Engine Shutdown", msg);
+		
+		ForceShutdown();
 	}
 }

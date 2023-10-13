@@ -325,32 +325,32 @@ namespace Sphynx::Platform {
 	}
 
 
-	struct DLLPlatformData {
-		HMODULE Module = nullptr;
-	};
-	DynamicLinkLibary::DynamicLinkLibary(const std::filesystem::path& filepath) : m_Filepath(filepath) {
-		SE_ASSERT(std::filesystem::exists(m_Filepath), "{} doesn't exist!", m_Filepath.string());
+	bool DynamicLinkLibrary::_Open() {
+		if (!std::filesystem::exists(m_Filepath))
+			return false;
 
-		m_PlatformData = new DLLPlatformData();
-		m_PlatformData->Module = LoadLibraryW(m_Filepath.native().c_str());
-		SE_ASSERT(m_PlatformData->Module, "Failed to open {}", m_Filepath.string());
+		m_PlatformHandle = LoadLibraryW(m_Filepath.native().c_str());
+		if (!m_PlatformHandle)
+			return false;
+
+		return true;
 	}
 
-	DynamicLinkLibary::~DynamicLinkLibary() {
-		if (!FreeLibrary(m_PlatformData->Module))
+	void DynamicLinkLibrary::_Close() {
+		if (FreeLibrary((HMODULE)m_PlatformHandle))
+			m_PlatformHandle = nullptr;
+		else
 			SE_WARN("Failed to close dll: {}", m_Filepath.string());
-
-		delete m_PlatformData;
 	}
 
-	void* DynamicLinkLibary::_GetFuncAddress(const char* name) {
-		return GetProcAddress(m_PlatformData->Module, name);
+	void* DynamicLinkLibrary::_GetFuncAddress(const char* name) {
+		return GetProcAddress((HMODULE)m_PlatformHandle, name);
 	}
 
-	const char* DynamicLinkLibary::DLLExtension() {
+	const char* DynamicLinkLibrary::DLLExtension() {
 		return ".dll";
 	}
-	bool DynamicLinkLibary::IsDLL(const std::filesystem::path& filepath) {
+	bool DynamicLinkLibrary::IsDLL(const std::filesystem::path& filepath) {
 		return filepath.extension() == ".dll";
 	}
 }

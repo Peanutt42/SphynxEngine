@@ -57,7 +57,7 @@ namespace Sphynx::Rendering {
 		VulkanContext::Init(*s_Window);
 
 		MeshData data;
-		data.LoadMesh("Resources/Meshes/cube.semesh");
+		data.LoadMesh("Content/Meshes/cube.semesh");
 		s_CubeMesh = std::make_unique<Mesh>(data);
 
 		s_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));

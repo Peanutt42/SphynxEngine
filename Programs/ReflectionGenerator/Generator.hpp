@@ -7,14 +7,19 @@
 namespace Sphynx::ReflectionGenerator {
 	class Generator {
 	public:
-		static void Generate(const std::vector<ComponentReflectionInfo>& components, const std::vector<std::filesystem::path>& filepaths, const std::filesystem::path& srcDir, const std::filesystem::path& outputDir, const std::string& engineDir) {
+		static void Generate(const std::vector<ComponentReflectionInfo>& components, const std::vector<std::filesystem::path>& filepaths, const std::filesystem::path& srcDir, const std::filesystem::path& outputDir) {
+			if (!std::filesystem::exists(outputDir))
+				std::filesystem::create_directory(outputDir);
+			
 			std::ofstream outCppFile(outputDir / "generated.cpp");
-			if (!outCppFile.is_open())
+			if (!outCppFile.is_open()) {
+				std::cout << "Failed to create 'generated.cpp'\n";
 				return;
+			}
 
 			outCppFile << "#include \"Core/CoreInclude.hpp\"\n";
-			outCppFile << "#include \"" << engineDir << "Programs/ReflectionGenerator/ReflectionInfo.hpp\"\n";
-			outCppFile << "#include \"" << engineDir << "Engine/Scene/Scene.hpp\"\n";
+			outCppFile << "#include \"" << "ReflectionGenerator/ReflectionInfo.hpp\"\n";
+			outCppFile << "#include \"" << "Scene/Scene.hpp\"\n";
 			for (const std::filesystem::path& filepath : filepaths) {
 				std::string relativeFilepath = std::filesystem::relative(filepath, outputDir).string();
 				outCppFile << "#include \"" << relativeFilepath << "\"\n";
@@ -24,13 +29,13 @@ namespace Sphynx::ReflectionGenerator {
 			outCppFile << "extern \"C\" {\n";
 
 			// GetComponents
-			outCppFile << "\tDLL_EXPORT std::vector<Sphynx::Scripting::ComponentReflectionInfo>* GetComponents() {\n";
-			outCppFile << "\t\tstatic std::vector<Sphynx::Scripting::ComponentReflectionInfo> s_Components = {\n";
+			outCppFile << "\tDLL_EXPORT std::vector<Sphynx::ReflectionGenerator::ComponentReflectionInfo>* GetComponents() {\n";
+			outCppFile << "\t\tstatic std::vector<Sphynx::ReflectionGenerator::ComponentReflectionInfo> s_Components = {\n";
 			{
 				for (const auto& component : components) {
 					outCppFile << "\t\t\t{\n";
 					outCppFile << "\t\t\t\t\"" << component.Fullname << "\",\n";
-					outCppFile << "\t\t\t\t\"" << component.Filepath << "\",\n";
+					outCppFile << "\t\t\t\t\"" << component.Filepath.string() << "\",\n";
 					outCppFile << "\t\t\t\t{\n";
 					for (const auto& variable : component.Variables)
 						outCppFile << "\t\t\t\t\t{\t\"" << variable.Type << "\", \"" << variable.Name << "\", offsetof(" << component.Fullname << ", " << variable.Name << ") },\n";
@@ -106,6 +111,8 @@ namespace Sphynx::ReflectionGenerator {
 			outCppFile << "\t}\n";
 			
 			outCppFile << "}\n";
+
+			outCppFile.close();
 
 			const std::filesystem::path cacheFilepath = outputDir / "generated.cache";
 			if (!CachedReflectionInfo::Serialize(cacheFilepath, components, filepaths, srcDir))

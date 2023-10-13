@@ -26,4 +26,20 @@ namespace Sphynx {
 	void Scene::DestroyEntity(ECS::EntityId entity) {
 		m_Registry.Destroy(entity);
 	}
+
+
+	void Scene::ActivateSystem(std::string_view name) {
+		m_SystemsActiveMap[name] = true;
+	}
+
+	void Scene::DeactivateSystem(std::string_view name) {
+		m_SystemsActiveMap[name] = false;
+	}
+	
+	bool Scene::IsSystemActive(std::string_view name) {
+		auto findSystem = m_SystemsActiveMap.find(name);
+		if (findSystem == m_SystemsActiveMap.end())
+			return false;
+		return findSystem->second;
+	}
 }

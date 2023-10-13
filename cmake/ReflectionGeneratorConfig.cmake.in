@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+include(${CMAKE_CURRENT_LIST_DIR}/ReflectionGeneratorTargets.cmake)
+
+set(ReflectionGenerator_INCLUDE_DIRS "@CMAKE_INSTALL_PREFIX@/include/ReflectionGenerator")
+
+set(ReflectionGenerator_FOUND TRUE)

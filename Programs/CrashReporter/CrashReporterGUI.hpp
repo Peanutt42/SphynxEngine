@@ -135,7 +135,7 @@ namespace Sphynx {
 		ImGuiIO& io = ImGui::GetIO(); (void)io;
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
 		io.ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		io.FontDefault = io.Fonts->AddFontFromFileTTF("Resources/Fonts/OpenSans/static/OpenSans-Regular.ttf", 18.f);
+		io.FontDefault = io.Fonts->AddFontFromFileTTF("Content/Fonts/OpenSans/static/OpenSans-Regular.ttf", 18.f);
 		io.IniFilename = nullptr;
         const char* iniFile =
         "[Window][DockingSpace]\n"

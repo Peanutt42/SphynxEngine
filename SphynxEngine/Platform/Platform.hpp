@@ -44,37 +44,83 @@ namespace Sphynx::Platform {
     };
 
 
-    struct DLLPlatformData;
-    class SE_API DynamicLinkLibary {
+    class SE_API DynamicLinkLibrary {
     public:
-        DynamicLinkLibary(const std::filesystem::path& filepath);
-        ~DynamicLinkLibary();
+        DynamicLinkLibrary() = default;
+        DynamicLinkLibrary(const std::filesystem::path& filepath) { m_Open = Open(filepath); }
+        ~DynamicLinkLibrary() { Close(); }
+
+        bool Open(const std::filesystem::path& filepath) {
+            if (m_PlatformHandle)
+                _Close();
+            m_Filepath = filepath;
+            m_Open = _Open();
+            return m_Open;
+        }
+        void Close() {
+            if (m_PlatformHandle) {
+                _Close();
+                m_FunctionMap.clear();
+            }
+        }
 
         template<typename Func>
-        std::optional<Func> LoadFunction(const std::string_view name) {
-            if (!m_PlatformData)
+        std::optional<Func> LoadFunction(std::string_view name) {
+            if (!m_Open) {
+                SE_ERR("Tried to load a function with a dll that isn't opened yet!");
                 return std::nullopt;
+            }
+            auto findCachedFunction = m_FunctionMap.find(name);
+            if (findCachedFunction != m_FunctionMap.end())
+                return (Func)findCachedFunction->second;
+
             Func function = (Func)_GetFuncAddress(name.data());
-            if (!function)
+            if (!function) {
+                SE_ERR("Failed to find function '{}' in dll '{}'", name, m_Filepath.string());
                 return std::nullopt;
+            }
+            m_FunctionMap[name] = function;
             return function;
         }
+
+        template<typename... Args>
+        void Invoke(std::string_view name, Args&&... args) {
+            using Func = void(*)(Args... args);
+            if (auto optFunction = LoadFunction<Func>(name))
+                (*optFunction)(std::forward<Args>(args)...);
+        }
+        template<typename TResult, typename... Args>
+        TResult Invoke(std::string_view name, Args&&... args) {
+            using Func = TResult(*)(Args... args);
+            if (auto optFunction = LoadFunction<Func>(name))
+                return (*optFunction)(std::forward<Args>(args)...);
+            else
+                return TResult{};
+        }
+
+        bool IsOpen() const { return m_Open; }
+
+        const std::filesystem::path& GetFilepath() const { return m_Filepath; }
 
         static bool IsDLL(const std::filesystem::path& filepath);
         // returns extension with the . on the left: example: ".dll"
         static const char* DLLExtension();
 
     private:
+        bool _Open();
+        void _Close();
         void* _GetFuncAddress(const char* name);
 
-        DynamicLinkLibary(const DynamicLinkLibary&) = delete;
-        DynamicLinkLibary(DynamicLinkLibary&&) = delete;
-        DynamicLinkLibary& operator=(const DynamicLinkLibary&) = delete;
-        DynamicLinkLibary& operator=(DynamicLinkLibary&&) = delete;
+        DynamicLinkLibrary(const DynamicLinkLibrary&) = delete;
+        DynamicLinkLibrary(DynamicLinkLibrary&&) = delete;
+        DynamicLinkLibrary& operator=(const DynamicLinkLibrary&) = delete;
+        DynamicLinkLibrary& operator=(DynamicLinkLibrary&&) = delete;
 
     private:
-        DLLPlatformData* m_PlatformData = nullptr;
+        void* m_PlatformHandle = nullptr;
+        bool m_Open = false;
         std::filesystem::path m_Filepath;
+        std::unordered_map<std::string_view, void*> m_FunctionMap;
     };
 
 

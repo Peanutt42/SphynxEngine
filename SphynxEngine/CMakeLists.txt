@@ -23,6 +23,7 @@ target_include_directories(SphynxEngine
 		${IMGUI_INCLUDE_DIR}
 		${BULLET_INCLUDE_DIR}
 		${Vulkan_INCLUDE_DIRS}
+		"../Programs/"
 )
 
 add_dependencies(SphynxEngine
