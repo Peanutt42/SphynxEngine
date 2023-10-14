@@ -172,7 +172,7 @@ namespace Sphynx::Physics {
 				sphereShape = new btSphereShape(radius);
 				rb.Body->setCollisionShape(sphereShape);
 			}
-#if defined(DEBUG) || defined(RELEASE)
+#if defined(DEBUG) || defined(DEVELOPMENT)
 			if (transform.Scale.x != transform.Scale.y || transform.Scale.y != transform.Scale.z)
 				SE_WARN(Logging::Physics, "Non uniform scale on sphere colliders is not supported!");
 #endif

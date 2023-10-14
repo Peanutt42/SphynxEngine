@@ -9,7 +9,6 @@ target_include_directories(Tests PUBLIC
 		${SPHYNX_ENGINE_INCLUDE_DIR}
 		${YAML_INCLUDE_DIR}
 		${GLM_INCLUDE_DIR}
-		${TRACY_INCLUDE_DIR}
 		${IMGUI_INCLUDE_DIR}
 )
 
@@ -20,6 +19,7 @@ target_link_libraries(Tests PRIVATE
 		SphynxEngine
 		yaml
 		imgui
+		tracy
 )
 
 include(GoogleTest)

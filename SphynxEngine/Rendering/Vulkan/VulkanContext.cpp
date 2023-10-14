@@ -12,7 +12,7 @@ namespace Sphynx::Rendering {
 		Window = &window;
 
 		Instance = std::make_unique<VulkanInstance>(
-#if defined(DEBUG) || defined(RELEASE)
+#if defined(DEBUG) || defined(DEVELOPMENT)
 			true
 #else
 			false

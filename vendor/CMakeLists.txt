@@ -34,9 +34,6 @@ set(GLFW_LIBRARY_TYPE "STATIC" CACHE STRING "" FORCE)
 # OpenGL
 set(OPENGL_LIB "opengl32.lib")
 
-# Tracy
-set(TRACY_INCLUDE_DIR "${VENDOR_DIR}/Tracy")
-
 # Assimp
 set(ASSIMP_INJECT_DEBUG_POSTFIX OFF CACHE BOOL "" FORCE)
 set(ASSIMP_BUILD_TESTS OFF CACHE BOOL "" FORCE)
@@ -51,11 +48,7 @@ set(ALSOFT_INSTALL_UTILS OFF CACHE BOOL "" FORCE)
 
 # Bullet
 set(BULLET_INCLUDE_DIR "${VENDOR_DIR}/bullet3/include")
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-	set(BULLET_LIB_DIR "${VENDOR_DIR}/bullet3/lib/Debug")
-else()
-	set(BULLET_LIB_DIR "${VENDOR_DIR}/bullet3/lib/Release")
-endif()
+set(BULLET_LIB_DIR "${VENDOR_DIR}/bullet3/lib/$<IF:$<CONFIG:DEBUG>,Debug,Release>")
 set(BULLET_COLLISION_LIB "${BULLET_LIB_DIR}/BulletCollision.lib")
 set(BULLET_DYNAMICS_LIB "${BULLET_LIB_DIR}/BulletDynamics.lib")
 set(BULLET_MATH_LIB "${BULLET_LIB_DIR}/LinearMath.lib")
@@ -67,13 +60,8 @@ if (NOT Vulkan_FOUND)
 else()
 	message(STATUS "Using vulkan lib at: ${Vulkan_LIBRARIES}")
 	cmake_path(GET Vulkan_LIBRARIES PARENT_PATH  Vulkan_LIB_DIR)
-	if (CMAKE_BUILD_TYPE STREQUAL "Debug")
-		set(Vulkan_SHADERC_LIB "${Vulkan_LIB_DIR}/shaderc_combinedd.lib")
-		set(Vulkan_SPIRV_CROSS_LIB "${Vulkan_LIB_DIR}/spirv-cross-cored.lib")
-	else()
-		set(Vulkan_SHADERC_LIB "${Vulkan_LIB_DIR}/shaderc_combined.lib")
-		set(Vulkan_SPIRV_CROSS_LIB "${Vulkan_LIB_DIR}/spirv-cross-core.lib")
-	endif()
+	set(Vulkan_SHADERC_LIB "${Vulkan_LIB_DIR}/shaderc_combined$<$<CONFIG:Debug>:d>.lib")
+	set(Vulkan_SPIRV_CROSS_LIB "${Vulkan_LIB_DIR}/spirv-cross-core$<$<CONFIG:Debug>:d>.lib")
 endif()
 
 
@@ -81,7 +69,6 @@ if (NOT DEFINED VENDOR_NO_PARENT)
 	set(ENGINE_INCLUDE_DIR ${ENGINE_INCLUDE_DIR} PARENT_SCOPE)
 	set(GLM_INCLUDE_DIR ${GLM_INCLUDE_DIR} PARENT_SCOPE)
 	set(FILEWATCH_INCLUDE_DIR ${FILEWATCH_INCLUDE_DIR} PARENT_SCOPE)
-	set(TRACY_INCLUDE_DIR ${TRACY_INCLUDE_DIR} PARENT_SCOPE)
 	set(OPENGL_LIB ${OPENGL_LIB} PARENT_SCOPE)
 	set(ASSIMP_LIB ${ASSIMP_LIB} PARENT_SCOPE)
 	set(BULLET_INCLUDE_DIR ${BULLET_INCLUDE_DIR} PARENT_SCOPE)

@@ -1,8 +1,6 @@
 #pragma once
 
-#if false//defined(DEBUG) || defined(RELEASE)
-
-#define TracyFunction 
+#if defined(DEBUG) || defined(DEVELOPMENT)
 
 #define TRACY_ENABLE
 #define TRACY_ON_DEMAND
@@ -12,7 +10,7 @@
 
 #define SE_PROFILE_FUNCTION() ZoneScoped
 // Adds the name to the current function name
-#define SE_PROFILE_SCOPE(name) ZoneNamedN(TracyConcat(___tracy_scoped_zone, TracyLine), TracyConcat(TracyConcat(TracyFunction, "::"), name), true)
+#define SE_PROFILE_SCOPE(name) ZoneScopedN(name)
 
 #else
 

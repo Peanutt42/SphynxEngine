@@ -158,7 +158,7 @@ namespace Sphynx {
 	void Engine::ForceShutdown() {
 		Logging::Shutdown();
 
-		std::exit(1);
+		std::exit(0);
 	}
 
 	void Engine::ForceShutdown(std::string_view msg) {

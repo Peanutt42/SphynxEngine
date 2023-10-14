@@ -96,7 +96,7 @@ namespace Sphynx {
 	};
 		
 
-#if defined(DEBUG) || defined(RELEASE)
+#if defined(DEBUG) || defined(DEVELOPMENT)
 
 #define SE_TRACE(...)			Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Trace, __VA_ARGS__)
 #define SE_INFO(...)			Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Info, __VA_ARGS__)

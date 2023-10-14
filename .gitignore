@@ -21,6 +21,7 @@ cmake_install/**
 *.out
 *.app
 /bin
+/build
 TestProject/Binaries
 Programs/ReflectionGenerator/bin
 Programs/CrashReporter/bin
