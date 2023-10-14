@@ -8,3 +8,10 @@ target_compile_definitions(tracy PRIVATE
 )
 
 target_compile_features(tracy PRIVATE cxx_std_17)
+
+
+install(
+	DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
+	DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+	FILES_MATCHING PATTERN "*.hpp" PATTERN "*.h"
+)

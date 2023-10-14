@@ -1,0 +1,4 @@
+{
+    "cmake.configureOnOpen": true,
+    "cmake.generator": "Ninja" // Visual Studio generator has a weird problem were it wants to create a "Debug" directory were it already created a "Debug" file
+}
