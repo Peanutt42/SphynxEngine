@@ -1,5 +1,3 @@
-set(IMGUI_INCLUDE_DIR "${CMAKE_CURRENT_SOURCE_DIR}" PARENT_SCOPE)
-
 add_library(imgui STATIC
 		imconfig.h
 		imgui.h
@@ -13,5 +11,7 @@ add_library(imgui STATIC
 		imstb_truetype.h
 		imgui_demo.cpp
 )
+
+target_include_directories(imgui PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 target_compile_features(imgui PRIVATE cxx_std_17)

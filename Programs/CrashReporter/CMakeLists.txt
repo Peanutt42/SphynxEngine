@@ -6,9 +6,6 @@ add_executable(CrashReporter ${CRASHREPORTER_SOURCES})
 
 target_include_directories(CrashReporter PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}
-		${IMGUI_INCLUDE_DIR}
-		${GLFW_INCLUDE_DIR}
-		${YAML_INCLUDE_DIR}
 		${GLAD_INCLUDE_DIR}
 )
 

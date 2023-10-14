@@ -8,7 +8,6 @@ target_include_directories(SphynxEditor
 	PUBLIC
 		${CMAKE_CURRENT_SOURCE_DIR}
 	PRIVATE
-		${IMGUI_INCLUDE_DIR}
 		${Vulkan_INCLUDE_DIRS}
 )
 

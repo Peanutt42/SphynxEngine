@@ -23,7 +23,7 @@ namespace Sphynx::Editor {
 			ImGui::Text("Avg FPS: %d", m_CurrentAvgFps);
 
 			ImGuiIO& io = ImGui::GetIO();
-			ImGui::Text("Editor UI: %d triangles, active allocations: %d", io.MetricsRenderIndices / 3, io.MetricsActiveAllocations);
+			ImGui::Text("Editor UI: %d triangles", io.MetricsRenderIndices / 3);
 		}
 
 	private:

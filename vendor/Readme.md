@@ -16,8 +16,9 @@
 - just copy the source code from googletest/src and googletest/include into the vendor/gtest and leave the previous CMakeLists.txt (custom)
 
 ## imgui
-- Link: https://github.com/Peanutt42/imgui
-- Commit: ead4f4610
+- Link: https://github.com/ocornut/imgui/tree/docking
+- Commit: 83c4336
+- leave the CMakeLists.txt (or change it if needed)
 
 ## libsndfile
 - Link: https://github.com/libsndfile/libsndfile
