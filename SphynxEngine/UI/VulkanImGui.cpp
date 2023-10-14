@@ -36,8 +36,6 @@ namespace Sphynx::UI {
 		ImGui::CreateContext();
 		ImGuiIO& io = ImGui::GetIO();
 		io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		io.ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
-		io.ConfigViewportsNoTaskBarIcon = true;
 
 		Fonts::Init();
 
