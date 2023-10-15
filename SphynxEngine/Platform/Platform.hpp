@@ -2,7 +2,6 @@
 
 #include "std.hpp"
 #include "Logging/Logging.hpp"
-#include "Debug/StackTrace.hpp"
 
 namespace Sphynx::Platform {
     SE_API bool IsDebuggerAttached();
@@ -11,10 +10,7 @@ namespace Sphynx::Platform {
 
     SE_API void SetWorkingDirToExe();
 
-    // context argument is only windows specific and not needed when not inside crash handeling
-    SE_API StackTrace GenerateStackTrace(void* customContext = nullptr);
-
-    // context is only windows specific
+    // context is only for windows stacktracing!
     using ExceptionCallback = std::function<void(const std::string& reason, void* context)>;
     SE_API void SetExceptionCallback(const ExceptionCallback& callback);
 

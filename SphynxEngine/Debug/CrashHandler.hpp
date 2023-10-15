@@ -9,7 +9,7 @@ namespace Sphynx {
 
 		static void StartCrashReporter();
 
-		static void OnCrash(const std::string reason, bool msgBox = false);
+		static void OnCrash(const std::string& reason, bool msgBox = false);
 
 	private:
 		inline static bool s_Initialized = false;

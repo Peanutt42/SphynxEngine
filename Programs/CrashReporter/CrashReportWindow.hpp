@@ -1,7 +1,6 @@
 #pragma once
 
 #include <yaml-cpp/yaml.h>
-#include "../../../SphynxEngine/Debug/StackTrace.hpp"
 #include <filesystem>
 #include <fstream>
 #include <iostream>
@@ -21,7 +20,18 @@ namespace Sphynx {
 			std::vector<std::string> LastErrorMessages;
 		} CrashInfo;
 		
-		StackTrace StackTrace;
+		struct StackTraceEntry {
+			std::string FunctionName;
+
+			bool HasModule = false;
+			std::string ModuleName;
+			
+			bool HasSource = false;
+			std::string SourceFile;
+			size_t SourceLine = 0;
+		};
+
+		std::vector<StackTraceEntry> StackTrace;
 	};
 	
 	class CrashReporterWindow {

@@ -48,6 +48,7 @@ target_link_libraries(SphynxEngine
 		sndfile
 		OpenAL
 		glfw
+		backward-cpp
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")

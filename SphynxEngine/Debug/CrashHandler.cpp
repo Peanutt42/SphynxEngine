@@ -1,17 +1,17 @@
 #include "pch.hpp"
 #include "CrashHandler.hpp"
-#include "StackTrace.hpp"
 #include "Core/Engine.hpp"
 #include "Logging/Logging.hpp"
 #include "Serialization/YAMLSerializer.hpp"
+
+#include <backward.hpp>
 
 #include <csignal>
 
 namespace Sphynx {
 	void AbortHandler(int);
 	void InvalidParameterHandler(const wchar_t* Expression, const wchar_t* Function, const wchar_t* File, uint32 Line, uintptr Reserved);
-	void OnProcessCrashed(const std::string& reason, void* context = nullptr, bool msgBox = false);
-
+	void OnProcessCrashed(const std::string& reason, bool msgBox, void* context = nullptr);
 
 	void CrashHandler::Init() {
 		if (s_Initialized)
@@ -21,7 +21,7 @@ namespace Sphynx {
 			return;
 		
 		Platform::SetExceptionCallback([](const std::string& reason, void* context) {
-			OnProcessCrashed(reason, context, true);
+			OnCrash(reason, true);
 		});
 
 		_set_invalid_parameter_handler(InvalidParameterHandler);
@@ -43,19 +43,19 @@ namespace Sphynx {
 		std::string expressionStr = Platform::WideToNarrow(expression);
 		std::string functionStr = Platform::WideToNarrow(function);
 		std::string fileStr = Platform::WideToNarrow(file);
-		OnProcessCrashed(std::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line), nullptr, true);
+		CrashHandler::OnCrash(std::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line), true);
 	}
 
 
 	void AbortHandler(int) {
-		OnProcessCrashed("abort() was called", nullptr, true);
+		CrashHandler::OnCrash("abort() was called", true);
 	}
 
-	void CrashHandler::OnCrash(const std::string reason, bool msgBox) {
-		OnProcessCrashed(reason, nullptr, msgBox);
+	void CrashHandler::OnCrash(const std::string& reason, bool msgBox) {
+		OnProcessCrashed(reason, msgBox);
 	}
 
-	void OnProcessCrashed(const std::string& reason, void* context, bool msgBox) {
+	void OnProcessCrashed(const std::string& reason, bool msgBox, void* context) {
 		if (msgBox)
 			Platform::MessagePrompts::Error("Engine crashed", reason);
 		
@@ -63,16 +63,20 @@ namespace Sphynx {
 
 		std::cout << reason << '\n';
 
-		StackTrace stacktrace = Platform::GenerateStackTrace(context);
+		backward::StackTrace stacktrace;
+		stacktrace.load_here(100, context);
+	
+		backward::TraceResolver stacktrace_resolver;
+		stacktrace_resolver.load_stacktrace(stacktrace);
 		
 		for (size_t i = 0; i < stacktrace.size(); i++) {
-			auto& entry = stacktrace[i];
+			backward::ResolvedTrace trace = stacktrace_resolver.resolve(stacktrace[i]);
 			std::cout << "[" + std::to_string(i + 1) + "] At ";
-			if (entry.HasModule)
-				std::cout << entry.ModuleName << "::";
-			std::cout << entry.FunctionName;
-			if (entry.HasSource)
-				std::cout << "\n    " << " in " << entry.SourceFile + ":" + std::to_string(entry.SourceLine);
+			if (!trace.object_filename.empty())
+				std::cout << trace.object_filename << "::";
+			std::cout << trace.source.function;
+			if (!trace.source.filename.empty())
+				std::cout << "\n    " << " in " << trace.source.filename + ":" + std::to_string(trace.source.line);
 			std::cout << std::endl;
 		}
 
@@ -111,16 +115,16 @@ namespace Sphynx {
 		out << YAML::Key << "Stacktrace" << YAML::Value;
 		out << YAML::BeginSeq;
 		for (size_t i = 0; i < stacktrace.size(); i++) {
-			auto& entry = stacktrace[i];
+			backward::ResolvedTrace trace = stacktrace_resolver.resolve(stacktrace[i]);
 			out << YAML::BeginMap;
-			out << YAML::Key << "FunctionName" << YAML::Value << entry.FunctionName;
+			out << YAML::Key << "FunctionName" << YAML::Value << trace.source.function;
+			
+			if (!trace.object_filename.empty())
+				out << YAML::Key << "ModuleName" << YAML::Value << trace.object_filename;
 
-			if (entry.HasModule)
-				out << YAML::Key << "ModuleName" << YAML::Value << entry.ModuleName;
-
-			if (entry.HasSource) {
-				out << YAML::Key << "SourceFile" << YAML::Value << entry.SourceFile;
-				out << YAML::Key << "SourceLine" << YAML::Value << entry.SourceLine;
+			if (!trace.source.filename.empty()) {
+				out << YAML::Key << "SourceFile" << YAML::Value << trace.source.filename;
+				out << YAML::Key << "SourceLine" << YAML::Value << trace.source.line;
 			}
 			out << YAML::EndMap;
 		}

@@ -2,6 +2,11 @@
 - Link: https://github.com/assimp/assimp
 - Commit: 3cf7d28bc
 
+## backward-cpp
+- Link: https://github.com/bombela/backward-cpp/tree/master
+- Commit: 65a769f
+- Just copy the backward.hpp, the CMakeLists.txt is our own
+
 ## filewatch
 - Link: https://github.com/ThomasMonkman/filewatch
 - Commit: a59891b

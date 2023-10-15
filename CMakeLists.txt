@@ -24,6 +24,7 @@ add_subdirectory(vendor/glad)
 add_subdirectory(vendor/openal-soft)
 add_subdirectory(vendor/assimp)
 add_subdirectory(vendor/libsndfile)
+add_subdirectory(vendor/backward-cpp)
 
 add_subdirectory(SphynxEngine)
 add_subdirectory(SphynxEditor)
