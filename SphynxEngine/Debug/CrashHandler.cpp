@@ -103,7 +103,7 @@ namespace Sphynx {
 
 		out << YAML::Key << "Crash" << YAML::Value << YAML::BeginMap;
 		out << YAML::Key << "Process" << YAML::Value << Platform::Process::GetCurrentName();
-		out << YAML::Key << "Thread" << YAML::Value << std::to_string(Platform::Thread::GetCurrentId());
+		out << YAML::Key << "MainThread" << YAML::Value << (std::this_thread::get_id() == Platform::s_MainThreadId);
 		out << YAML::Key << "LastErrorMessages" << YAML::Value << YAML::BeginSeq;
 		for (const std::string& error : Logging::GetErrorList())
 			out << YAML::Value << error;

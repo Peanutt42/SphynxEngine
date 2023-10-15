@@ -15,7 +15,7 @@ namespace Sphynx {
 		
 		struct CrashInfo {
 			std::string Process;
-			std::string Thread;
+			bool MainThread = true;
 			std::string Reason;
 			std::vector<std::string> LastErrorMessages;
 		} CrashInfo;
@@ -49,7 +49,7 @@ namespace Sphynx {
 				auto crashNode = data["Crash"];
 				if (crashNode) {
 					m_CrashData.CrashInfo.Process = crashNode["Process"].as<std::string>();
-					m_CrashData.CrashInfo.Thread = crashNode["Thread"].as<std::string>();
+					m_CrashData.CrashInfo.MainThread = crashNode["MainThread"].as<bool>();
 					m_CrashData.CrashInfo.Reason = crashNode["Reason"].as<std::string>();
 					auto lastErrorMsgsNode = crashNode["LastErrorMessages"];
 					if (lastErrorMsgsNode) {
@@ -112,7 +112,7 @@ namespace Sphynx {
 
 				ImGui::Text("Crash");
 				ImGui::BulletText("Process: %s", m_CrashData.CrashInfo.Process.c_str());
-				ImGui::BulletText("Thread: %s", m_CrashData.CrashInfo.Thread.c_str());
+				ImGui::BulletText(m_CrashData.CrashInfo.MainThread ? "MainThread" : "Seperate Thread");
 				ImGui::BulletText("Reason: %s", m_CrashData.CrashInfo.Reason.c_str());
 				ImGui::BulletText("Last Error messages:");
 				for (const std::string& msg : m_CrashData.CrashInfo.LastErrorMessages)

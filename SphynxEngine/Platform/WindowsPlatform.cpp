@@ -203,12 +203,7 @@ namespace Sphynx::Platform {
 		GetModuleBaseNameA(GetCurrentProcess(), GetModuleHandleA(nullptr), buffer, MAX_PATH);
 		return buffer;
 	}
-
-
-	unsigned int Thread::GetCurrentId() {
-		return ::GetCurrentThreadId();
-	}
-
+	
 
 	bool DynamicLinkLibrary::_Open() {
 		if (!std::filesystem::exists(m_Filepath))

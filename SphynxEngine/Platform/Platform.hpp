@@ -4,6 +4,8 @@
 #include "Logging/Logging.hpp"
 
 namespace Sphynx::Platform {
+    inline static std::thread::id s_MainThreadId = std::this_thread::get_id();
+
     SE_API bool IsDebuggerAttached();
 
     SE_API bool ConsoleSupportsColor();
@@ -33,11 +35,6 @@ namespace Sphynx::Platform {
 
         SE_API std::string GetCurrentName();
     }
-
-
-    namespace Thread {
-        SE_API unsigned int GetCurrentId();
-    };
 
 
     class SE_API DynamicLinkLibrary {
