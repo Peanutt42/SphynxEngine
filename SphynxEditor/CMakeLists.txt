@@ -18,7 +18,9 @@ add_dependencies(SphynxEditor SphynxEngine)
 target_link_libraries(SphynxEditor PRIVATE
 		SphynxEngine
 		assimp
-		${Vulkan_SHADERC_LIB}
+		${BULLET3_LIBS}
+		shaderc_combined
+		backward-cpp
 )
 
 target_precompile_headers(SphynxEditor PUBLIC pch.hpp)

@@ -35,7 +35,7 @@ namespace Sphynx::Rendering {
 
 	struct RenderCommand {
 		std::vector<InstanceData> ModelMatrices;
-		Camera Camera;
+		Camera SceneCamera;
 	};
 	RenderCommand s_RenderCommand;
 
@@ -91,11 +91,11 @@ namespace Sphynx::Rendering {
 			return;
 
 		s_RenderCommand.ModelMatrices.clear();
-		s_RenderCommand.Camera = camera;
+		s_RenderCommand.SceneCamera = camera;
 
 		// TODO: actual impl.
-		for (auto[entity, transform] : scene.View<ECS::TransformComponent>()) {
-			s_RenderCommand.ModelMatrices.emplace_back(transform.GetModelMatrix());
+		for (auto[entity, transform] : scene.View<ECS::TransformComponent>().each()) {
+			s_RenderCommand.ModelMatrices.push_back(InstanceData{ transform.GetModelMatrix() });
 		}
 	}
 
@@ -116,7 +116,7 @@ namespace Sphynx::Rendering {
 
 		float aspect = GetAspect((float)VulkanContext::SceneWidth, (float)VulkanContext::SceneHeight);
 		UniformBufferData uniformBufferData{
-			.proj_view = s_RenderCommand.Camera.GetPerspective(aspect) * s_RenderCommand.Camera.GetView()
+			.proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView()
 		};
 		VulkanContext::UniformBuffer->Update(uniformBufferData);
 

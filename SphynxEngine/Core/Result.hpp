@@ -44,13 +44,13 @@ namespace Sphynx {
 		}
 
 		template<typename... Args>
-		const T& expect(std::format_string<Args...> msg, Args&&... args) const {
-			SE_ASSERT(is_ok(), "{}: {}", std::format(msg, std::forward<Args>(args)...), std::get<E>(m_Value));
+		const T& expect(fmt::format_string<Args...> msg, Args&&... args) const {
+			SE_ASSERT(is_ok(), "{}: {}", fmt::format(msg, std::forward<Args>(args)...), std::get<E>(m_Value));
 			return std::get<T>(m_Value);
 		}
 		template<typename... Args>
-		T& expect(std::format_string<Args...> msg, Args&&... args) {
-			SE_ASSERT(is_ok(), "{}: {}", std::format(msg, std::forward<Args>(args)...), std::get<E>(m_Value));
+		T& expect(fmt::format_string<Args...> msg, Args&&... args) {
+			SE_ASSERT(is_ok(), "{}: {}", fmt::format(msg, std::forward<Args>(args)...), std::get<E>(m_Value));
 			return std::get<T>(m_Value);
 		}
 
@@ -88,9 +88,9 @@ namespace Sphynx {
 	}
 
 	template<typename T, typename Arg1, typename... ArgRest>
-	[[nodiscard]] constexpr inline static Result<T, std::string> Error(std::format_string<Arg1, ArgRest...> msg, Arg1&& arg1, ArgRest&&... argRest) {
+	[[nodiscard]] constexpr inline static Result<T, std::string> Error(fmt::format_string<Arg1, ArgRest...> msg, Arg1&& arg1, ArgRest&&... argRest) {
 		Result<T, std::string> result;
-		result.set_error(std::format(msg, std::forward<Arg1>(arg1), std::forward<ArgRest>(argRest)...));
+		result.set_error(fmt::format(msg, std::forward<Arg1>(arg1), std::forward<ArgRest>(argRest)...));
 		return result;
 	}
 }

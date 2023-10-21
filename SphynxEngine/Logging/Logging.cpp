@@ -3,6 +3,8 @@
 #include "Platform/Platform.hpp"
 #include "Profiling/Profiling.hpp"
 
+#include <ctime>
+
 namespace Sphynx {
 	constexpr const char* GetColorForVerbosity(Logging::Verbosity verbosity) {
 		switch (verbosity) {
@@ -50,7 +52,7 @@ namespace Sphynx {
 
 	void Logging::Init() {
 		SE_PROFILE_FUNCTION();
-
+		
 		if (s_Initialized)
 			return;
 
@@ -107,10 +109,9 @@ namespace Sphynx {
 			Platform::MessagePrompts::Error("Sphynx Engine Error", msg);
 
 		std::time_t time = std::time(nullptr);
-		std::tm tm;
-		localtime_s(&tm, &time);
+    	std::tm* timeinfo = std::localtime(&time);
 
-		std::string loggedMsg = std::format("{}:{}:{}: {} {} {}", tm.tm_hour, tm.tm_min, tm.tm_sec, verbosityStr, categoryStr, msg);
+		std::string loggedMsg = fmt::format("{}:{}:{}: {} {} {}", timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec, verbosityStr, categoryStr, msg);
 		s_LogFile << loggedMsg << '\n';
 
 		if (verbosity >= Verbosity::Error)

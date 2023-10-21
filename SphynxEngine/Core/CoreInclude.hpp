@@ -2,6 +2,8 @@
 
 #include "std.hpp"
 
+#include <fmt/core.h>
+
 #include "EngineApi.hpp"
 #include "Time.hpp"
 #include "Version.hpp"

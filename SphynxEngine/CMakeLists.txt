@@ -18,10 +18,11 @@ target_include_directories(SphynxEngine
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 		$<BUILD_INTERFACE:${GLM_INCLUDE_DIR}>
+		$<BUILD_INTERFACE:${ENTT_INCLUDE_DIR}>
 	PRIVATE
 		${FILEWATCH_INCLUDE_DIR}
-		${BULLET_INCLUDE_DIR}
 		${Vulkan_INCLUDE_DIRS}
+		${BULLET3_INCLUDE_DIR}
 		"../Programs/"
 )
 
@@ -39,16 +40,16 @@ target_link_libraries(SphynxEngine
 		stb_image
 		imgui
 		tracy
+		fmt
 	PRIVATE
 		${Vulkan_LIBRARIES}
 		${Vulkan_SPIRV_CROSS_LIB}
-		${BULLET_COLLISION_LIB}
-		${BULLET_DYNAMICS_LIB}
-		${BULLET_MATH_LIB}
 		sndfile
 		OpenAL
 		glfw
 		backward-cpp
+		${BULLET3_LIBS}
+		${BULLET_LIBRARIES}
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")

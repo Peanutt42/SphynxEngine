@@ -43,7 +43,6 @@ namespace Sphynx {
 			WriteData((const char*)type.data(), type.size() * sizeof(wchar_t));
 		}
 
-
 		template<typename Key, typename Value>
 		void WriteMap(const std::map<Key, Value>& map) {
 			Write<size_t>(map.size());

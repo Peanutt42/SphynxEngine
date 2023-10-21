@@ -10,7 +10,7 @@ namespace Sphynx::Editor {
 			Name = "Logging Output";
 			if (!s_LogCallbackAttatched) {
 				Logging::RegisterOnLogCallback([](Logging::Verbosity verbosity, Logging::Category category, const std::string& msg) {
-					s_Logs.emplace_back(msg, verbosity, category);
+					s_Logs.push_back(LogEntry{ msg, verbosity, category });
 				});
 				s_Logs.reserve(1024);
 				s_LogCallbackAttatched = true;
@@ -54,9 +54,8 @@ namespace Sphynx::Editor {
 
 				if (ImGui::GetScrollY() >= ImGui::GetScrollMaxY())
 					ImGui::SetScrollHereY(1.0f);
-
-				ImGui::EndChild();
 			}
+			ImGui::EndChild();
 
 			static std::string s_Input;
 			// TODO: ImGuiInputTextFlags_CallbackCompletion & ImGuiInputTextFlags_CallbackHistory

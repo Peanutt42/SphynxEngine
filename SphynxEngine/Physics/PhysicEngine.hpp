@@ -17,8 +17,8 @@ namespace Sphynx::Physics {
 		static void ClearWorld();
 		
 	private:
-		static void _CreateRigidbody(Scene& scene, ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb);
-		static void _UpdateRigidbody(Scene& scene, ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb);
+		static void _CreateRigidbody(Scene& scene, entt::entity entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb);
+		static void _UpdateRigidbody(Scene& scene, entt::entity entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb);
 		static void _SyncRigidbody(ECS::TransformComponent& transform, const RigidbodyComponent& rb);
 	};
 }

@@ -27,6 +27,6 @@ namespace Sphynx {
 
 		static Project& GetProject();
 
-		constexpr static Version Version { 0, 0, 1 };
+		constexpr static Version EngineVersion{ 0, 0, 1 };
 	};
 }

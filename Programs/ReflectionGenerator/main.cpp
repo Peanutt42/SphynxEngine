@@ -59,7 +59,7 @@ int main(const int argc, const char** argv) {
 
 		Sphynx::ReflectionGenerator::Generator::Generate(components, filepaths, sourceDir, outputDir);
 
-		std::cout << "[ReflectionGenerator] Finished in " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start_time) << std::endl;
+		std::cout << "[ReflectionGenerator] Finished in " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start_time).count() << " seconds\n";
     }
 
 
@@ -110,6 +110,6 @@ int main(const int argc, const char** argv) {
 
 	    Sphynx::ReflectionGenerator::Generator::Generate(components, filepaths, sourceDir, "../Tests/generated");
 
-		std::cout << "[ReflectionGenerator] Finished in " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start_time) << std::endl;
+		std::cout << "[ReflectionGenerator] Finished in " << std::chrono::duration_cast<std::chrono::duration<double>>(std::chrono::high_resolution_clock::now() - start_time).count() << " seconds\n";
     }
 }

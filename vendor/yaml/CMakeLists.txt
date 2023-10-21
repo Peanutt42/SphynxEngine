@@ -16,3 +16,5 @@ target_include_directories(yaml
 )
 
 target_compile_features(yaml PRIVATE cxx_std_14)
+
+set_target_properties(yaml PROPERTIES POSITION_INDEPENDENT_CODE ON)

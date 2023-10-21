@@ -1,9 +1,10 @@
 #include "pch.hpp"
 #include "VulkanContext.hpp"
 #include "VulkanDevice.hpp"
-#include "VulkanSurface.hpp"
 
 #include <backends/imgui_impl_vulkan.h>
+
+#include <GLFW/glfw3.h>
 
 namespace Sphynx::Rendering {
 	void VulkanContext::Init(Rendering::Window& window) {
@@ -19,7 +20,12 @@ namespace Sphynx::Rendering {
 #endif
 		);
 		
-		Surface = VulkanSurface::GetFromWindow(Instance->Instance, window.GetGLFWHandle());
+		VkSurfaceKHR tempSurface = nullptr;
+		VkResult createSurfaceResult = glfwCreateWindowSurface(Instance->Instance, window.GetGLFWHandle(), nullptr, &tempSurface);
+		if (createSurfaceResult == VK_SUCCESS)
+			Surface = tempSurface;
+		else
+			SE_FATAL(Logging::Rendering, "Failed to create window surface");
 
 		std::vector<const char*> deviceExtensions {
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME
@@ -87,7 +93,7 @@ namespace Sphynx::Rendering {
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create descriptor pool");
 
 
-		InstanceBuffer = new VulkanInstanceBuffer<InstanceData>(MaxFramesInFlight);
+		InstanceBuffer = new VulkanInstanceBuffer(sizeof(InstanceData));
 	}
 
 	void VulkanContext::Shutdown() {

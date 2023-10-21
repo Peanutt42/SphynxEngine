@@ -32,7 +32,7 @@ namespace Sphynx::Rendering {
 		// ImGui implements custom titlebar
 		if (Engine::GetSettings().ImGuiEnabled && !fullscreen)
 			glfwWindowHint(GLFW_TITLEBAR, !customWindowControls);
-
+		
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {
 			monitor = glfwGetPrimaryMonitor();
@@ -53,6 +53,10 @@ namespace Sphynx::Rendering {
 
 		if (glfwRawMouseMotionSupported())
 			glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
+
+		// disable custom window controls, if the platform doesn't support it
+		if (glfwGetWindowAttrib(m_Window, GLFW_TITLEBAR) == 0 && Engine::GetSettings().CustomWindowControls)
+			Engine::GetSettings().CustomWindowControls = false;
 
 		glfwSetWindowUserPointer(m_Window, this);
 		glfwSetFramebufferSizeCallback(m_Window, _FramebufferResizedCallback);

@@ -34,16 +34,15 @@ namespace Sphynx::Rendering {
 
 	Mesh::Mesh(BufferView vertices, uint32 vertexCount, const std::vector<uint32>& indices) {
 		m_VertexCount = vertexCount;
-		m_VertexBuffer = VulkanBuffer::CreateWithStaging(vertices, vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+		m_VertexBuffer.reset(VulkanBuffer::CreateWithStaging(vertices, vk::BufferUsageFlagBits::eVertexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal));
 		m_IndicesCount = (uint32)indices.size();
 		if (m_IndicesCount > 0)
-			m_IndexBuffer = VulkanBuffer::CreateWithStaging(BufferView(indices), vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal);
+			m_IndexBuffer.reset(VulkanBuffer::CreateWithStaging(BufferView(indices), vk::BufferUsageFlagBits::eIndexBuffer, vk::MemoryPropertyFlagBits::eDeviceLocal));
 	}
 
 	Mesh::~Mesh() {
-		if (m_IndexBuffer)
-			delete m_IndexBuffer;
-		delete m_VertexBuffer;
+		m_IndexBuffer.reset();
+		m_VertexBuffer.reset();
 	}
 
 	void Mesh::Draw(uint32 instanceCount) {

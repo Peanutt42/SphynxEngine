@@ -53,7 +53,7 @@ namespace Sphynx::Physics {
 
 	void PhysicEngine::Update(Scene& scene) {
 		SE_PROFILE_FUNCTION();
-
+#if 0
 		// remove rigidbodies that were removed
 		for (int i = 0; i < s_DynamicsWorld->getNumCollisionObjects(); i++) {
 			btCollisionObject* obj = s_DynamicsWorld->getCollisionObjectArray()[i];
@@ -83,9 +83,11 @@ namespace Sphynx::Physics {
 		for (auto[entity, transform, rb] : scene.View<ECS::TransformComponent, RigidbodyComponent>()) {
 			_SyncRigidbody(transform, rb);
 		}
+#endif
 	}
 
-	void PhysicEngine::_CreateRigidbody(Scene& scene, ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
+	void PhysicEngine::_CreateRigidbody(Scene& scene, entt::entity entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
+#if 0
 		btCollisionShape* shape = nullptr;
 
 		if (BoxCollider* boxCollider = scene.GetComponent<BoxCollider>(entity))
@@ -111,9 +113,11 @@ namespace Sphynx::Physics {
 		rb.Body->setWorldTransform(btTransform);
 		rb.Body->setUserIndex((int)entity);
 		s_DynamicsWorld->addRigidBody(rb.Body);
+#endif
 	}
 
-	void PhysicEngine::_UpdateRigidbody(Scene& scene, ECS::EntityId entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
+	void PhysicEngine::_UpdateRigidbody(Scene& scene, entt::entity entity, const ECS::TransformComponent& transform, RigidbodyComponent& rb) {
+#if 0
 		bool changed = false;
 
 		const btTransform& physicTransform = rb.Body->getCenterOfMassTransform();
@@ -188,11 +192,14 @@ namespace Sphynx::Physics {
 
 		if (changed)
 			rb.Body->activate(true);
+#endif
 	}
 
 	void PhysicEngine::_SyncRigidbody(ECS::TransformComponent& transform, const RigidbodyComponent& rb) {
+#if 0
 		const btTransform& actualTransform = rb.Body->getCenterOfMassTransform();
 		transform.Position = FromBtVec3(actualTransform.getOrigin());
 		transform.Rotation = FromBtQuatToEuler(actualTransform.getRotation());
+#endif
 	}
 }

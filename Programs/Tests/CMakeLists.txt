@@ -18,6 +18,7 @@ target_link_libraries(Tests PRIVATE
 		yaml
 		imgui
 		tracy
+		${BULLET3_LIBS}
 )
 
 include(GoogleTest)

@@ -1,14 +1,8 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.22)
 
 project(TestProject)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY  "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
-
-set(CMAKE_CONFIGURATION_TYPES
-		"Debug"
-		"Release"
-		"Dist"
-		CACHE STRING "Build Configurations" FORCE)
 
 set(SE_CMAKE_INSTALL "${CMAKE_CURRENT_SOURCE_DIR}/../cmake_install")
 list(APPEND CMAKE_PREFIX_PATH ${SE_CMAKE_INSTALL})
@@ -16,10 +10,11 @@ list(APPEND CMAKE_PREFIX_PATH ${SE_CMAKE_INSTALL})
 find_package(SphynxEngine CONFIG REQUIRED)
 find_package(ReflectionGenerator CONFIG REQUIRED)
 
+set(CMAKE_SHARED_LIBRARY_PREFIX "")
+
 file(GLOB_RECURSE TEST_PROJECT_SOURCES "Source/*.cpp")
 file(GLOB_RECURSE TEST_PROJECT_HEADERS "Source/*.hpp")
 set(GENERATED_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/Source/generated/generated.cpp")
-set(REFLECTION_GENERATOR_BIN "${SE_CMAKE_INSTALL}/bin/ReflectionGenerator.exe")
 add_library(TestProject SHARED ${TEST_PROJECT_SOURCES} ${TEST_PROJECT_HEADERS} ${GENERATED_MODULE_PATH})
 
 set(TEST_PROJECT_BINARY_DIR "${CMAKE_CURRENT_SOURCE_DIR}/Binaries")
@@ -30,11 +25,6 @@ set_target_properties(TestProject
 	RUNTIME_OUTPUT_DIRECTORY ${TEST_PROJECT_BINARY_DIR}
 )
 
-set_target_properties(TestProject PROPERTIES
-	ARCHIVE_OUTPUT_DIRECTORY ${TEST_PROJECT_BINARY_DIR}
-	LIBRARY_OUTPUT_DIRECTORY ${TEST_PROJECT_BINARY_DIR}
-	RUNTIME_OUTPUT_DIRECTORY ${TEST_PROJECT_BINARY_DIR}
-)
 
 target_include_directories(TestProject PRIVATE
 	${Engine_INCLUDE_DIRS}
@@ -57,8 +47,8 @@ define_platform(TestProject)
 
 add_custom_command(
 		OUTPUT ${GENERATED_MODULE_PATH}
-		COMMAND ${REFLECTION_GENERATOR_BIN} "${CMAKE_CURRENT_SOURCE_DIR}/Source/TestProject/" "${CMAKE_CURRENT_SOURCE_DIR}/Source/generated"
-		DEPENDS ${REFLECTION_GENERATOR_BIN}
+		COMMAND $<TARGET_FILE:ReflectionGenerator> "${CMAKE_CURRENT_SOURCE_DIR}/Source/TestProject/" "${CMAKE_CURRENT_SOURCE_DIR}/Source/generated"
+		DEPENDS $<TARGET_FILE:ReflectionGenerator>
 		WORKING_DIRECTORY ${CMAKE_CURRENT_SOURCE_DIR}
 		COMMENT "Running ReflectionGenerator"
 )

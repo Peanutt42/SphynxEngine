@@ -24,7 +24,9 @@ namespace Sphynx {
 			OnCrash(reason, true);
 		});
 
+#if WINDOWS
 		_set_invalid_parameter_handler(InvalidParameterHandler);
+#endif
 
 		if (std::signal(SIGABRT, AbortHandler) == SIG_ERR)
 			SE_ERR("Failed to register AbortHandler");
@@ -36,14 +38,14 @@ namespace Sphynx {
 		if (Platform::IsDebuggerAttached())
 			return;
 
-		Platform::Process::Run("CrashReporter.exe", std::to_wstring(Platform::Process::GetCurrentProcessId()));
+		Platform::Process::Run("CrashReporter.exe", { std::to_string(Platform::Process::GetCurrentProcessId()) });
 	}
 
 	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32 line, [[maybe_unused]] uintptr Reserved) {
 		std::string expressionStr = Platform::WideToNarrow(expression);
 		std::string functionStr = Platform::WideToNarrow(function);
 		std::string fileStr = Platform::WideToNarrow(file);
-		CrashHandler::OnCrash(std::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line), true);
+		CrashHandler::OnCrash(fmt::format("{} in {} in {}:{}", expressionStr, functionStr, fileStr, line), true);
 	}
 
 
@@ -72,11 +74,16 @@ namespace Sphynx {
 		for (size_t i = 0; i < stacktrace.size(); i++) {
 			backward::ResolvedTrace trace = stacktrace_resolver.resolve(stacktrace[i]);
 			std::cout << "[" + std::to_string(i + 1) + "] At ";
-			if (!trace.object_filename.empty())
-				std::cout << trace.object_filename << "::";
-			std::cout << trace.source.function;
-			if (!trace.source.filename.empty())
-				std::cout << "\n    " << " in " << trace.source.filename + ":" + std::to_string(trace.source.line);
+			if (trace.source.filename.empty()) {
+				std::cout << std::filesystem::path(trace.object_filename).filename().string() << " - ";
+				if (trace.object_function.empty())
+					std::cout << trace.addr;
+				else
+					std::cout << trace.object_function;
+			}
+			else {
+				std::cout << trace.source.filename << " in " << trace.source.function;
+			}
 			std::cout << std::endl;
 		}
 
@@ -116,16 +123,27 @@ namespace Sphynx {
 		out << YAML::BeginSeq;
 		for (size_t i = 0; i < stacktrace.size(); i++) {
 			backward::ResolvedTrace trace = stacktrace_resolver.resolve(stacktrace[i]);
-			out << YAML::BeginMap;
-			out << YAML::Key << "FunctionName" << YAML::Value << trace.source.function;
-			
-			if (!trace.object_filename.empty())
-				out << YAML::Key << "ModuleName" << YAML::Value << trace.object_filename;
 
-			if (!trace.source.filename.empty()) {
+			out << YAML::BeginMap;
+			if (trace.source.filename.empty()) {
+				if (trace.object_function.empty()) {
+					std::ostringstream addrStr;
+					addrStr << trace.addr;
+					out << YAML::Key << "FunctionName" << YAML::Value << addrStr.str();
+				}
+				else
+					out << YAML::Key << "FunctionName" << YAML::Value << trace.object_function;
+			}
+			else {
+				out << YAML::Key << "FunctionName" << YAML::Value << trace.source.function;
+
 				out << YAML::Key << "SourceFile" << YAML::Value << trace.source.filename;
 				out << YAML::Key << "SourceLine" << YAML::Value << trace.source.line;
 			}
+			
+			if (!trace.object_filename.empty())
+				out << YAML::Key << "ModuleName" << YAML::Value << std::filesystem::path(trace.object_filename).filename().string();
+
 			out << YAML::EndMap;
 		}
 		out << YAML::EndSeq;

@@ -19,7 +19,6 @@ namespace Sphynx::Rendering {
 		void SaveMesh(const std::filesystem::path& filepath);
 	};
 
-
 	class VulkanBuffer;
 
 	class SE_API Mesh {
@@ -37,8 +36,8 @@ namespace Sphynx::Rendering {
 		Mesh& operator=(Mesh&&) = delete;
 
 	private:
-		VulkanBuffer* m_VertexBuffer = nullptr;
-		VulkanBuffer* m_IndexBuffer = nullptr;
+		std::unique_ptr<VulkanBuffer> m_VertexBuffer;
+		std::unique_ptr<VulkanBuffer> m_IndexBuffer;
 		uint32 m_VertexCount = 0, m_IndicesCount = 0;
 	};
 }

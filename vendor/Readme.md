@@ -2,14 +2,30 @@
 - Link: https://github.com/assimp/assimp
 - Commit: 3cf7d28bc
 
+## bullet3
+- Link: https://github.com/bulletphysics/bullet3
+- Release: 3.25
+- Build CMAKE_BUILD_TYPE as Debug and Release and set CMAKE_POSITION_INDEPENDENT_CODE to TRUE
+- Copy /src/ into vendor/bullet3/include
+- Copy library files from BulletCollision, BulletDynamics and LinearMath inside the build/src/ folder into vendor/bullet3/lib/$Platform/$Config
+
 ## backward-cpp
 - Link: https://github.com/bombela/backward-cpp/tree/master
 - Commit: 65a769f
 - Just copy the backward.hpp, the CMakeLists.txt is our own
 
+## entt
+- Link 
+- Release: 3.12.2
+- Just copy /single_include/entt/entt.hpp into /vendor/entt/include/entt/entt.hpp
+
 ## filewatch
 - Link: https://github.com/ThomasMonkman/filewatch
 - Commit: a59891b
+
+## fmt
+- Link: https://github.com/fmtlib/fmt/tree/master
+- Commit: d9063ba
 
 ## glfw
 - Link: https://github.com/Peanutt42/glfw

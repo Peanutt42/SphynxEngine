@@ -13,13 +13,13 @@ namespace Sphynx::Editor {
 
 		virtual void Draw() override {
 			Scene& scene = EditorApplication::GetCurrentScene();
-			scene.ForEach([&](ECS::EntityId entity) {
+			scene.ForEach([&](entt::entity entity) {
 				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 				if (s_SelectedEntity == entity)
 					flags |= ImGuiTreeNodeFlags_Selected;
 
 				const std::string& name = scene.GetComponent<ECS::NameComponent>(entity)->Name;
-				bool opened = ImGui::TreeNodeEx((void*)(uint64)(uint32)entity, flags, name.c_str());
+				bool opened = ImGui::TreeNodeEx((void*)(uint64)(uint32)entity, flags, "%s", name.c_str());
 
 				if (ImGui::IsItemClicked())
 					s_SelectedEntity = entity;
@@ -41,21 +41,21 @@ namespace Sphynx::Editor {
 
 				if (deleteEntity) {
 					scene.DestroyEntity(entity);
-					s_SelectedEntity = ECS::InvalidEntityId;
+					s_SelectedEntity = entt::null;
 				}
 			});
 
 			if (ImGui::IsMouseDown(0) && ImGui::IsWindowHovered())
-				s_SelectedEntity = ECS::InvalidEntityId;
+				s_SelectedEntity = entt::null;
 
 			// Right-click on blank space
 			if (ImGui::BeginPopupContextWindow("EntityCreateMenu", ImGuiPopupFlags_MouseButtonRight | ImGuiPopupFlags_NoOpenOverItems | ImGuiPopupFlags_NoOpenOverExistingPopup)) {
 				if (ImGui::MenuItem("Create Entity")) {
-					ECS::EntityId entity = EditorApplication::GetCurrentScene().CreateEntity();
+					entt::entity  entity = EditorApplication::GetCurrentScene().CreateEntity();
 					s_SelectedEntity = entity;
 					EditorApplication::SetSceneDirty(true);
 				}
-				if (ImGui::MenuItem("Paste Entity", "", nullptr, s_CopiedEntity)) {
+				if (s_CopiedEntity != entt::null && ImGui::MenuItem("Paste Entity")) {
 					s_SelectedEntity = EditorApplication::GetCurrentScene().DublicateEntity(s_CopiedEntity);
 					EditorApplication::SetSceneDirty(true);
 				}
@@ -64,7 +64,7 @@ namespace Sphynx::Editor {
 			}
 		}
 
-		inline static ECS::EntityId s_SelectedEntity = ECS::InvalidEntityId;
-		inline static ECS::EntityId s_CopiedEntity = ECS::InvalidEntityId;
+		inline static entt::entity s_SelectedEntity = entt::null;
+		inline static entt::entity s_CopiedEntity = entt::null;
 	};
 }

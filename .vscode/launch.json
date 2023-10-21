@@ -2,13 +2,21 @@
     "version": "0.2.0",
     "configurations": [
         {
-            "name": "Launch (msvc)",
+            "name": "Launch (Windows)",
             "type": "cppvsdbg",
             "request": "launch",
             "program": "${command:cmake.launchTargetPath}",
             "stopAtEntry": false,
             "cwd": "${command:cmake.launchTargetDirectory}",
             "console": "newExternalWindow"
-        }        
+        },
+        {
+            "name": "Launch (Linux/Mac)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${command:cmake.launchTargetPath}",
+            "stopAtEntry": false,
+            "cwd": "${command:cmake.launchTargetDirectory}"
+        }
     ]
 }

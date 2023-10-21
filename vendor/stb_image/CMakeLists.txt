@@ -9,3 +9,5 @@ target_include_directories(stb_image
 )
 
 target_compile_features(stb_image PRIVATE cxx_std_14)
+
+set_target_properties(stb_image PROPERTIES POSITION_INDEPENDENT_CODE ON)

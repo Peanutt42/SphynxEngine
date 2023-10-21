@@ -20,12 +20,12 @@ namespace Sphynx {
 	using uintptr = uintptr_t;
 
 
-	template<typename T, typename = std::enable_if_t<std::is_arithmetic_v<T>>>
-	std::optional<T> StringToNumber(const std::string_view str) {
-		T value;
-		auto result = std::from_chars(str.data(), str.data() + str.size(), value);
-		if (result.ec == std::errc())
-			return value;
+	template<typename T>
+	std::optional<T> StringToNumber(std::string_view str) {
+		T result{};
+		auto[ptr, ec] = std::from_chars(str.data(), str.data() + str.size(), result);
+		if (ec == std::errc())
+			return result;
 		else
 			return std::nullopt;
 	}

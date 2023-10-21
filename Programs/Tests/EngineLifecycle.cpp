@@ -18,7 +18,7 @@ TEST(Engine, HeadlessEngineLifecyle) {
 		.Fullscreen = false,
 	};
 
-	Sphynx::Project project("../../../../TestProject/TestProject.seproj");
+	Sphynx::Project project("../../../TestProject/TestProject.seproj");
 	NullApplication application;
 
 	Sphynx::Engine::Init(engineSettings, project, application);

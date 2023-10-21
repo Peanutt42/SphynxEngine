@@ -9,7 +9,20 @@ namespace Sphynx::Scripting {
 	void LoadGameModule(const std::filesystem::path& filepath);
 
 	void ScriptingEngine::Init() {
-		std::filesystem::path gameModuleFilepath = Engine::GetProject().BinariesDirectory / (Engine::GetProject().GameModuleName + ".dll");
+		std::filesystem::path gameModuleFilepath;
+
+		for (auto directory_iter : std::filesystem::directory_iterator(Engine::GetProject().BinariesDirectory)) {
+			auto path = directory_iter.path();
+			if (Platform::DynamicLinkLibrary::IsDLL(path)) {
+				
+				auto path_no_extension = path;
+				path_no_extension.replace_extension("");
+				if (path_no_extension.filename() == Engine::GetProject().GameModuleName)
+					gameModuleFilepath = path;
+			}
+		}
+		if (gameModuleFilepath.empty())
+			Engine::ForceShutdown(fmt::format("Can't find game module with name: {}", Engine::GetProject().GameModuleName));
 	
 		LoadGameModule(gameModuleFilepath);
 	}

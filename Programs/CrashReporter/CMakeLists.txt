@@ -18,12 +18,16 @@ add_dependencies(CrashReporter
 		glad
 )
 
+
+cmake_policy(SET CMP0072 NEW)
+find_package(OpenGL REQUIRED)
+
 target_link_libraries(CrashReporter PRIVATE
 		glfw
 		imgui
 		yaml
 		glad
-		${OPENGL_LIB}
+		${OPENGL_opengl_LIBRARY}
 )
 
 copy_file(CrashReporter $<TARGET_FILE:CrashReporter> $<TARGET_FILE_DIR:SphynxEditor>)

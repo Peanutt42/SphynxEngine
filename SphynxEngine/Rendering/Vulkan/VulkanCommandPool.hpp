@@ -5,8 +5,6 @@
 #include <vulkan/vulkan.hpp>
 
 namespace Sphynx::Rendering {
-	class VulkanContext;
-
 	class VulkanCommandPool {
 	public:
 		VulkanCommandPool();

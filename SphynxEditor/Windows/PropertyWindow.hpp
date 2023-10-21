@@ -14,7 +14,7 @@ namespace Sphynx::Editor {
 
 		virtual void Draw() override {
 			Scene& scene = EditorApplication::GetCurrentScene();
-			ECS::EntityId entity = HierarchyWindow::s_SelectedEntity;
+			entt::entity entity = HierarchyWindow::s_SelectedEntity;
 			if (!scene.IsValid(entity))
 				return;
 
@@ -75,7 +75,7 @@ namespace Sphynx::Editor {
 
 	private:
 		template<typename T>
-		bool BeginComponent(std::string_view name, Scene& scene, ECS::EntityId entity) {
+		bool BeginComponent(std::string_view name, Scene& scene, entt::entity entity) {
 			if (!scene.HasComponent<T>(entity))
 				return false;
 
@@ -85,7 +85,7 @@ namespace Sphynx::Editor {
 
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 			ImGui::Separator();
-			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, name.data());
+			bool open = ImGui::TreeNodeEx((void*)typeid(T).hash_code(), treeNodeFlags, "%s", name.data());
 			ImGui::PopStyleVar();
 			
 			

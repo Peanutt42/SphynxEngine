@@ -7,8 +7,10 @@
 #include <glad/glad.h>
 
 #include <GLFW/glfw3.h>
+#ifdef WINDOWS
 #define GLFW_EXPOSE_NATIVE_WIN32
 #include <GLFW/glfw3native.h>
+#endif
 
 #include <imgui.h>
 #include <backends/imgui_impl_glfw.h>
@@ -19,7 +21,11 @@ namespace Sphynx {
 	CrashReporterWindow* s_CrashReporterWindow = nullptr;
 
 	static void Fatal(const char* msg) {
+#ifdef WINDOWS
 		MessageBoxA(glfwGetWin32Window(s_Window), msg, "CrashReporter - Fatal", 0);
+#else
+		std::cout << "CrashReporter - Fatal: " << msg << '\n';
+#endif
 
 		std::exit(1);
 	}
@@ -157,7 +163,7 @@ namespace Sphynx {
         "[Docking][Data]\n"
         "DockSpace ID=0x10586157 Window=0x403722FD Pos=0,24 Size=1200,776 CentralNode=1 Selected=0x637884D7\n"
         "";
-        ImGui::LoadIniSettingsFromMemory(iniFile, std::strlen(iniFile));
+        ImGui::LoadIniSettingsFromMemory(iniFile, 0);
 
 		ImGui::StyleColorsDark();
 

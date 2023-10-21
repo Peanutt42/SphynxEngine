@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.26)
+cmake_minimum_required(VERSION 3.22)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
@@ -25,6 +25,10 @@ add_subdirectory(vendor/openal-soft)
 add_subdirectory(vendor/assimp)
 add_subdirectory(vendor/libsndfile)
 add_subdirectory(vendor/backward-cpp)
+add_subdirectory(vendor/fmt)
+set_target_properties(sndfile PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(OpenAL PROPERTIES POSITION_INDEPENDENT_CODE ON)
+set_target_properties(fmt PROPERTIES POSITION_INDEPENDENT_CODE ON)
 
 add_subdirectory(SphynxEngine)
 add_subdirectory(SphynxEditor)

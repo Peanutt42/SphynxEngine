@@ -133,7 +133,7 @@ namespace Sphynx {
 						ImGui::PushID(id);
 						ImGui::TableNextRow();
 						ImGui::TableSetColumnIndex(0);
-						ImGui::Text("%d", i + 1);
+						ImGui::Text("%ld", i + 1);
 						ImGui::TableSetColumnIndex(1);
 						static size_t s_Selection;
 						if (ImGui::Selectable(entry.FunctionName.c_str(), s_Selection == i, selectable_flags))

@@ -72,6 +72,10 @@ namespace Sphynx::ReflectionGenerator {
 	}
 
 	struct Token {
+		Token() = default;
+		Token(size_t line, size_t column, TokenType type, const std::string& code)
+			: Line(line), Column(column), Type(type), Code(code) {}
+
 		size_t Line = 0;
 		size_t Column = 0;
 		TokenType Type = TokenType::ERROR_TYPE;

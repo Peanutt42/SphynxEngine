@@ -74,4 +74,10 @@ int main(const int argc, const char** argv) {
 
 	return 0;
 }
+#elif defined(LINUX)
+
+int main(int argc, const char** argv) {
+	std::cout << "TODO: Implement Linux!\n";
+}
+
 #endif

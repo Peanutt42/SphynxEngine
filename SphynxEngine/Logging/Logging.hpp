@@ -1,6 +1,7 @@
 #pragma once
 
 #include "std.hpp"
+#include <fmt/color.h>
 #include "Debug/CrashHandler.hpp"
 
 namespace Sphynx {
@@ -42,37 +43,37 @@ namespace Sphynx {
 		}
 
 		template<typename... Args>
-		static std::string Log(Verbosity verbosity, Category category, std::format_string<Args...> msg, Args&&... args) {
-			std::string formatted = std::format(msg, std::forward<Args>(args)...);
+		static std::string Log(Verbosity verbosity, Category category, fmt::format_string<Args...> msg, Args&&... args) {
+			std::string formatted = fmt::format(msg, std::forward<Args>(args)...);
 			RawLog(verbosity, category, formatted);
 			return formatted;
 		}
 
 		template<typename... Args>
-		static std::string Log(Verbosity verbosity, std::format_string<Args...> msg, Args&&... args) {
-			std::string formatted = std::format(msg, std::forward<Args>(args)...);
+		static std::string Log(Verbosity verbosity, fmt::format_string<Args...> msg, Args&&... args) {
+			std::string formatted = fmt::format(msg, std::forward<Args>(args)...);
 			RawLog(verbosity, Category::General, formatted);
 			return formatted;
 		}
 
 		template<typename... Args>
-		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, Category category, const std::format_string<Args...>& msg, Args&&... args) {
-			std::string formatted = std::format(msg, std::forward<Args>(args)...);
-			std::string finalMsg = std::format("Assertion failed in {}\n{}: {}", file, expression, formatted);
+		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, Category category, const fmt::format_string<Args...>& msg, Args&&... args) {
+			std::string formatted = fmt::format(msg, std::forward<Args>(args)...);
+			std::string finalMsg = fmt::format("Assertion failed in {}\n{}: {}", file, expression, formatted);
 			RawLog(verbosity, category, finalMsg);
 			return finalMsg;
 		}
 
 		template<typename... Args>
-		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, std::format_string<Args...> msg, Args&&... args) {
-			std::string formatted = std::format(msg, std::forward<Args>(args)...);
-			std::string finalMsg = std::format("Assertion failed in {}\n{}: {}", file, expression, formatted);
+		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, fmt::format_string<Args...> msg, Args&&... args) {
+			std::string formatted = fmt::format(msg, std::forward<Args>(args)...);
+			std::string finalMsg = fmt::format("Assertion failed in {}\n{}: {}", file, expression, formatted);
 			RawLog(verbosity, Category::General, finalMsg);
 			return finalMsg;
 		}
 
 		static std::string AssertLog(const char* expression, const char* file, Verbosity verbosity, const char* assertMsg) {
-			std::string finalMsg = std::format("Assertion failed in {}\n{}: {}", file, expression, assertMsg);
+			std::string finalMsg = fmt::format("Assertion failed in {}\n{}: {}", file, expression, assertMsg);
 			RawLog(verbosity, Category::General, finalMsg);
 			return finalMsg;
 		}
@@ -105,7 +106,7 @@ namespace Sphynx {
 #define SE_FATAL(...) \
 {																																		\
 	if (Sphynx::Platform::IsDebuggerAttached())																							\
-		__debugbreak();																													\
+		DEBUGBREAK();																													\
 	else {                                                                                                                              \
         std::string formatted = Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);                                \
         Sphynx::CrashHandler::OnCrash("SE_FATAL: " + formatted);                                                                        \
@@ -114,7 +115,7 @@ namespace Sphynx {
 #define SE_ASSERT(result, ...) {	\
 	if (!(result)) {																													\
 		if (Sphynx::Platform::IsDebuggerAttached())																						\
-			__debugbreak();																												\
+			DEBUGBREAK();																												\
 		else {                         \
             std::string formatted = Sphynx::Logging::AssertLog(#result, __FILE__, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);   \
             Sphynx::CrashHandler::OnCrash("SE_ASSERT: " + formatted);                                                                   \

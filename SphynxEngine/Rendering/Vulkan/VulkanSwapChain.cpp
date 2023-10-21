@@ -17,10 +17,10 @@ namespace Sphynx::Rendering {
 
 	void VulkanSwapChain::Recreate(vk::RenderPass renderpass) {
 		VulkanContext::Window->SetResizeCallbackEnable(false);
+		
 		while ((VulkanContext::Window->GetWidth() == 0 || VulkanContext::Window->GetHeight() == 0) && !Engine::ShouldClose()) {
 			VulkanContext::Window->Update();
 		}
-		VulkanContext::Window->SetResizeCallbackEnable(true);
 		if (Engine::ShouldClose())
 			return;
 
@@ -29,6 +29,8 @@ namespace Sphynx::Rendering {
 		Cleanup();
 		Create();
 		CreateFramebuffers(renderpass);
+
+		VulkanContext::Window->SetResizeCallbackEnable(true);
 	}
 
 	void VulkanSwapChain::CreateFramebuffers(vk::RenderPass renderpass) {

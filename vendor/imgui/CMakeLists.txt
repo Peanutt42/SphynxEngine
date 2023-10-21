@@ -15,3 +15,5 @@ add_library(imgui STATIC
 target_include_directories(imgui PUBLIC $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>)
 
 target_compile_features(imgui PRIVATE cxx_std_17)
+
+set_target_properties(imgui PROPERTIES POSITION_INDEPENDENT_CODE ON)

@@ -12,7 +12,7 @@ target_compile_features(SphynxRuntime PRIVATE cxx_std_20)
 
 add_dependencies(SphynxRuntime SphynxEngine)
 
-target_link_libraries(SphynxRuntime PRIVATE SphynxEngine)
+target_link_libraries(SphynxRuntime PRIVATE SphynxEngine ${BULLET3_LIBS})
 
 target_precompile_headers(SphynxRuntime PUBLIC pch.hpp)
 

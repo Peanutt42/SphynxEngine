@@ -2,6 +2,17 @@
 
 #include "std.hpp"
 #include "Logging/Logging.hpp"
+#include <signal.h>
+
+
+#ifdef WINDOWS
+#define DEBUGBREAK() __debugbreak()
+#elif defined(LINUX)
+#define DEBUGBREAK() raise(SIGTRAP)
+#else
+#error "INVLALID PLATFORM"
+#endif
+
 
 namespace Sphynx::Platform {
     inline static std::thread::id s_MainThreadId = std::this_thread::get_id();
@@ -29,7 +40,7 @@ namespace Sphynx::Platform {
 
 
     namespace Process {
-        SE_API bool Run(const std::filesystem::path& filepath, const std::wstring& args);
+        SE_API bool Run(const std::filesystem::path& filepath, const std::vector<std::string>& args);
 
         SE_API unsigned long GetCurrentProcessId();
 
@@ -72,7 +83,7 @@ namespace Sphynx::Platform {
                 SE_ERR("Failed to find function '{}' in dll '{}'", name, m_Filepath.string());
                 return std::nullopt;
             }
-            m_FunctionMap[name] = function;
+            m_FunctionMap[name] = (void*)function;
             return function;
         }
 

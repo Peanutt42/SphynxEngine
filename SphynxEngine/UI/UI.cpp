@@ -129,7 +129,7 @@ namespace Sphynx::UI {
 
 		ImGui::Columns(2);
 		ImGui::SetColumnWidth(0, columnWidth);
-		ImGui::Text(label.data());
+		ImGui::TextUnformatted(label.data());
 		ImGui::NextColumn();
 
 		ImGui::PushMultiItemsWidths(3, ImGui::CalcItemWidth());

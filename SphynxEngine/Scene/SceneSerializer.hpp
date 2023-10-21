@@ -9,7 +9,7 @@
 namespace Sphynx {
 	class SceneSerializer {
 	public:
-		static void SerializeEntity(Scene& scene, ECS::EntityId entity, YAML::Emitter& out) {
+		static void SerializeEntity(Scene& scene, entt::entity entity, YAML::Emitter& out) {
 			out << YAML::BeginMap;
 			out << YAML::Key << "Entity" << YAML::Value << scene.GetComponent<ECS::UUIDComponent>(entity)->uuid;
 			out << YAML::Key << "Name" << YAML::Value << scene.GetComponent<ECS::NameComponent>(entity)->Name;
@@ -49,7 +49,7 @@ namespace Sphynx {
 			out << YAML::Key << "Name" << YAML::Value << scene.GetName();
 
 			out << YAML::Key << "Entities" << YAML::Value << YAML::BeginSeq;
-			scene.ForEach([&](ECS::EntityId entity) {
+			scene.ForEach([&](entt::entity entity) {
 				SerializeEntity(scene, entity, out);
 			});
 			out << YAML::EndSeq;
@@ -62,7 +62,7 @@ namespace Sphynx {
 #
 		static void DeserializeEntity(Scene& scene, const YAML::Node& entityNode) {
 			UUID uuid = entityNode["Entity"].as<UUID>();
-			ECS::EntityId entity = scene.CreateEntity(uuid);
+			entt::entity entity = scene.CreateEntity(uuid);
 			scene.GetComponent<ECS::NameComponent>(entity)->Name = entityNode["Name"].as<std::string>();
 			
 			if (YAML::Node transformNode = entityNode["Transform"]) {

@@ -42,6 +42,7 @@ namespace Sphynx {
 			return ReadData((char*)type.data(), size * sizeof(wchar_t));
 		}
 
+		
 		template<typename Key, typename Value>
 		void ReadMap(std::map<Key, Value>& map) {
 			size_t size = 0;
