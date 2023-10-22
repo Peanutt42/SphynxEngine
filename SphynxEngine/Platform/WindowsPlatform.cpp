@@ -168,7 +168,7 @@ namespace Sphynx::Platform {
 	}
 
 
-	bool Process::Run(const std::filesystem::path& filepath, const std::wstring& args) {
+	bool Process::Run(const std::filesystem::path& filepath, const std::vector<std::string>& args) {
 		if (!std::filesystem::exists(filepath)) {
 			SE_ERR(Logging::General, "Can't find process to start in {}", filepath.string());
 			return false;
@@ -182,7 +182,11 @@ namespace Sphynx::Platform {
 
 		ZeroMemory(&pi, sizeof(pi));
 
-		std::wstring _args = filepath.native() + L" " + args;
+		std::wstring _args = filepath.native() + L" ";
+		for (const std::string& arg : args) {
+			_args += NarrowToWide(arg + " ");
+		}
+
 		if (CreateProcessW(nullptr, _args.data(), nullptr, nullptr, false, DETACHED_PROCESS, nullptr, nullptr, &si, &pi)) {
 			CloseHandle(pi.hProcess);
 			CloseHandle(pi.hThread);

@@ -19,7 +19,7 @@ target_link_libraries(SphynxEditor PRIVATE
 		SphynxEngine
 		assimp
 		${BULLET3_LIBS}
-		shaderc_combined
+		${Vulkan_SHADERC_LIB}
 		backward-cpp
 )
 

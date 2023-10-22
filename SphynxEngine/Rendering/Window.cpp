@@ -12,15 +12,15 @@ namespace Sphynx::Rendering {
 		SE_ERR(Logging::Rendering, "[GLFW]: ({}): {}", error, description);
 	}
 
-	Window::Window(const std::string_view title, bool maximized, bool fullscreen, bool customWindowControls)
+	Window::Window(const std::string_view title, bool maximized, bool fullscreen, bool& customWindowControls)
 		: m_Title(title), m_Maximized(maximized)
 	{
 		SE_PROFILE_FUNCTION();
 
 		if (s_WindowCount == 0) {
 			SE_PROFILE_SCOPE("InitGLFW");
-			SE_ASSERT(glfwInit(), Logging::Rendering, "Failed to initialize GLFW");
 			glfwSetErrorCallback(GLFWErrorCallback);
+			SE_ASSERT(glfwInit(), Logging::Rendering, "Failed to initialize GLFW");
 		}
 		s_WindowCount++;
 
@@ -30,8 +30,10 @@ namespace Sphynx::Rendering {
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 
 		// ImGui implements custom titlebar
-		if (Engine::GetSettings().ImGuiEnabled && !fullscreen)
+		if (glfwGetPlatform() == GLFW_PLATFORM_WIN32 && !fullscreen)
 			glfwWindowHint(GLFW_TITLEBAR, !customWindowControls);
+		else
+			customWindowControls = false;
 		
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {
@@ -54,9 +56,8 @@ namespace Sphynx::Rendering {
 		if (glfwRawMouseMotionSupported())
 			glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-		// disable custom window controls, if the platform doesn't support it
-		if (glfwGetWindowAttrib(m_Window, GLFW_TITLEBAR) == 0 && Engine::GetSettings().CustomWindowControls)
-			Engine::GetSettings().CustomWindowControls = false;
+
+		SE_INFO("{}, prefered: {}", glfwGetWindowAttrib(m_Window, GLFW_TITLEBAR), Engine::GetSettings().CustomWindowControls);
 
 		glfwSetWindowUserPointer(m_Window, this);
 		glfwSetFramebufferSizeCallback(m_Window, _FramebufferResizedCallback);
