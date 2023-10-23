@@ -56,9 +56,6 @@ namespace Sphynx::Rendering {
 		if (glfwRawMouseMotionSupported())
 			glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
 
-
-		SE_INFO("{}, prefered: {}", glfwGetWindowAttrib(m_Window, GLFW_TITLEBAR), Engine::GetSettings().CustomWindowControls);
-
 		glfwSetWindowUserPointer(m_Window, this);
 		glfwSetFramebufferSizeCallback(m_Window, _FramebufferResizedCallback);
 		glfwSetWindowSizeCallback(m_Window, _WindowResizedCallback);

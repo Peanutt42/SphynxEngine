@@ -51,17 +51,19 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanTexture::~VulkanTexture() {
-		VulkanContext::LogicalDevice.destroyImageView(m_View, nullptr);
-		m_View = nullptr;
-		
-		VulkanContext::LogicalDevice.destroyImage(m_Image, nullptr);
-		m_Image = nullptr;
-		
-		VulkanContext::LogicalDevice.freeMemory(m_Memory, nullptr);
-		m_Memory = nullptr;
+		if (VulkanContext::ShuttingDown) {
+			VulkanContext::LogicalDevice.destroyImageView(m_View, nullptr);
+			m_View = nullptr;
+			
+			VulkanContext::LogicalDevice.destroyImage(m_Image, nullptr);
+			m_Image = nullptr;
+			
+			VulkanContext::LogicalDevice.freeMemory(m_Memory, nullptr);
+			m_Memory = nullptr;
 
-		VulkanContext::LogicalDevice.destroySampler(m_Sampler, nullptr);
-		m_Sampler = VK_NULL_HANDLE;
+			VulkanContext::LogicalDevice.destroySampler(m_Sampler, nullptr);
+			m_Sampler = VK_NULL_HANDLE;
+		}
 	}
 
 	void VulkanTexture::UploadToGPU() {

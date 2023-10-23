@@ -99,6 +99,8 @@ namespace Sphynx::Rendering {
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
 
+		ShuttingDown = true;
+
 		delete InstanceBuffer;
 
 		LogicalDevice.destroySampler(DefaultSampler);
@@ -124,6 +126,8 @@ namespace Sphynx::Rendering {
 		Surface = VK_NULL_HANDLE;
 
 		Instance.reset();
+
+		ShuttingDown = false;
 	}
 
 	void VulkanContext::Begin() {
@@ -243,6 +247,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::WaitBeforeClose() {
+		ShuttingDown = true;
+		
 		LogicalDevice.waitIdle();
 	}
 

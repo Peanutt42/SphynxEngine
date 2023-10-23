@@ -33,6 +33,7 @@ namespace Sphynx::Rendering {
 
 		static void GenerateSceneTextureDescriptorSets();
 
+		inline static bool ShuttingDown = false;
 
 		inline static Rendering::Window* Window = nullptr;
 

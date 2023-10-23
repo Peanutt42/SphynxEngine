@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "VulkanInstance.hpp"
+#include "VulkanContext.hpp"
 #include "Core/Engine.hpp"
 
 #include <GLFW/glfw3.h>
@@ -48,10 +49,12 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanInstance::~VulkanInstance() {
-		if (Validation)
-			_DestroyDebugMessenger();
+		if (VulkanContext::ShuttingDown) {
+			if (Validation)
+				_DestroyDebugMessenger();
 
-		Instance.destroy();
+			Instance.destroy();
+		}
 	}
 
 

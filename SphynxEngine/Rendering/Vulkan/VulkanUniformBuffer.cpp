@@ -17,10 +17,12 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanUniformBuffer::~VulkanUniformBuffer() {
-		for (size_t i = 0; i < Buffers.size(); i++)
-			VulkanContext::LogicalDevice.unmapMemory(Buffers[i]->Memory);
+		if (VulkanContext::ShuttingDown) {
+			for (size_t i = 0; i < Buffers.size(); i++)
+				VulkanContext::LogicalDevice.unmapMemory(Buffers[i]->Memory);
 
-		MappedMemories.clear();
-		Buffers.clear();
+			MappedMemories.clear();
+			Buffers.clear();
+		}
 	}
 }

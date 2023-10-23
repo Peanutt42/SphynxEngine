@@ -27,8 +27,10 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanCommandPool::~VulkanCommandPool() {
-		VulkanContext::LogicalDevice.destroyCommandPool(m_Pool, nullptr);
-		m_Pool = VK_NULL_HANDLE;
+		if (VulkanContext::ShuttingDown) {
+			VulkanContext::LogicalDevice.destroyCommandPool(m_Pool, nullptr);
+			m_Pool = VK_NULL_HANDLE;
+		}
 	}
 
 	vk::CommandBuffer VulkanCommandPool::BeginRecording(uint32 frameIndex) {

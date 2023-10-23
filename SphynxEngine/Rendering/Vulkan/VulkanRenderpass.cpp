@@ -67,18 +67,20 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanRenderpass::~VulkanRenderpass() {
-		for (auto sceneFramebuffer : m_Framebuffers)
-			VulkanContext::LogicalDevice.destroyFramebuffer(sceneFramebuffer, nullptr);
+		if (VulkanContext::ShuttingDown) {
+			for (auto sceneFramebuffer : m_Framebuffers)
+				VulkanContext::LogicalDevice.destroyFramebuffer(sceneFramebuffer, nullptr);
 
-		for (auto imageView : m_FramebufferImageViews)
-			VulkanContext::LogicalDevice.destroyImageView(imageView, nullptr);
-		for (auto image : m_FramebufferImages)
-			VulkanContext::LogicalDevice.destroyImage(image, nullptr);
-		for (auto memory : m_FramebufferImageMemories)
-			VulkanContext::LogicalDevice.freeMemory(memory, nullptr);
+			for (auto imageView : m_FramebufferImageViews)
+				VulkanContext::LogicalDevice.destroyImageView(imageView, nullptr);
+			for (auto image : m_FramebufferImages)
+				VulkanContext::LogicalDevice.destroyImage(image, nullptr);
+			for (auto memory : m_FramebufferImageMemories)
+				VulkanContext::LogicalDevice.freeMemory(memory, nullptr);
 
-		VulkanContext::LogicalDevice.destroyRenderPass(m_Renderpass, nullptr);
-		m_Renderpass = VK_NULL_HANDLE;
+			VulkanContext::LogicalDevice.destroyRenderPass(m_Renderpass, nullptr);
+			m_Renderpass = VK_NULL_HANDLE;
+		}
 	}
 
 	void VulkanRenderpass::CreateFramebuffers(uint32 width, uint32 height, vk::Format format, bool sampled) {

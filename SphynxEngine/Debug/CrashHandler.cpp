@@ -38,7 +38,22 @@ namespace Sphynx {
 		if (Platform::IsDebuggerAttached())
 			return;
 
-		Platform::Process::Run("CrashReporter.exe", { std::to_string(Platform::Process::GetCurrentProcessId()) });
+		const char* crashReporterExeFilename =
+#if defined(WINDOWS)
+			"CrashReporter.exe";
+#elif defined(LINUX)
+			"./CrashReporter";
+#else
+			#error "IMPLEMENT"
+#endif
+
+		try {
+			std::filesystem::remove("CrashReport.txt");
+		}
+		catch(...) {}
+
+		if (!Platform::Process::Run(crashReporterExeFilename))
+			SE_ERR("Failed to run CrashReporter, crashed application will not show the CrashReporter UI, so look into the CrashReport.txt and Engine.log!");
 	}
 
 	void InvalidParameterHandler(const wchar_t* expression, const wchar_t* function, const wchar_t* file, uint32 line, [[maybe_unused]] uintptr Reserved) {
@@ -153,10 +168,6 @@ namespace Sphynx {
 		YAMLSerializer::SaveFile("CrashReport.txt", out);
 
         Sphynx::Logging::Shutdown(); // make sure log files are finished
-
-		std::cout << "Press any key to exit program, which will launch the crash reporter\n";
-
-		std::cin.get();
 
 		std::exit(1);
 	}

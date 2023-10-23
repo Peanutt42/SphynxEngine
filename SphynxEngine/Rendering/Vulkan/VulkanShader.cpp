@@ -270,14 +270,16 @@ namespace Sphynx::Rendering {
     }
 
     VulkanShader::~VulkanShader() {
-        m_UniformBuffers.clear();
+        if (VulkanContext::ShuttingDown) {
+            m_UniformBuffers.clear();
 
-        VulkanContext::LogicalDevice.destroyDescriptorSetLayout(m_DescriptorSetLayout, nullptr);
+            VulkanContext::LogicalDevice.destroyDescriptorSetLayout(m_DescriptorSetLayout, nullptr);
 
-        VulkanContext::LogicalDevice.destroyPipeline(m_Pipeline, nullptr);
-        m_Pipeline = VK_NULL_HANDLE;
-        VulkanContext::LogicalDevice.destroyPipelineLayout(m_PipelineLayout, nullptr);
-        m_PipelineLayout = VK_NULL_HANDLE;
+            VulkanContext::LogicalDevice.destroyPipeline(m_Pipeline, nullptr);
+            m_Pipeline = VK_NULL_HANDLE;
+            VulkanContext::LogicalDevice.destroyPipelineLayout(m_PipelineLayout, nullptr);
+            m_PipelineLayout = VK_NULL_HANDLE;
+        }
     }
 
     void VulkanShader::SetUniformBuffer(const std::string& name, const VulkanUniformBuffer& uniformBuffer) {

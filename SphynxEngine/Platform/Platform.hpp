@@ -40,7 +40,7 @@ namespace Sphynx::Platform {
 
 
     namespace Process {
-        SE_API bool Run(const std::filesystem::path& filepath, const std::vector<std::string>& args);
+        SE_API bool Run(const std::filesystem::path& filepath, const std::vector<std::string>& args = {});
 
         SE_API unsigned long GetCurrentProcessId();
 

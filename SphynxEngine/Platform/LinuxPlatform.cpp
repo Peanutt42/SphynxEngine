@@ -115,18 +115,28 @@ namespace Sphynx::Platform {
 
 
     bool Process::Run(const std::filesystem::path& filepath, const std::vector<std::string>& args) {
-        if (!std::filesystem::exists(filepath))
+        if (!std::filesystem::exists(filepath)) {
+            SE_WARN("Failed to run executable {}", filepath.string());
             return false;
+        }
         
         pid_t child_pid = fork();
         if (child_pid == 0) {
+            // inside of the new process
             std::string filepathStr = filepath;
-            std::vector<char*> argv(args.size() + 1);
+            std::vector<char*> argv(args.size() + 2);
+            argv.front() = (char*)filepathStr.c_str();
+
+            // offset by 1 since the first argument is the command (filepath to the executable)
             for (size_t i = 0; i < args.size(); i++)
-                argv[i] = (char*)args[i].data();
+                argv[i + 1] = (char*)args[i].data();
+
             argv.back() = nullptr;
-            execv(filepathStr.c_str(), argv.data());
+
+            execvp(filepathStr.c_str(), argv.data());
         }
+        else if (child_pid == -1)
+            return false;
         
         return true;
     }

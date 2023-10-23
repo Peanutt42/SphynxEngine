@@ -5,20 +5,14 @@
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
-#include <psapi.h>
+#endif
 
+#include <thread>
 #include <filesystem>
 #include <iostream>
 
-using namespace Sphynx;
-
-void crash(std::string_view msg) {
-	std::cout << msg << '\n';
-	std::cin.get();
-	std::exit(1);
-}
-
 int main(const int argc, const char** argv) {
+#if defined(WINDOWS)
 	std::wstring exeFilepathStr;
     exeFilepathStr.resize(MAX_PATH);
 	GetModuleFileNameW(nullptr, exeFilepathStr.data(), (DWORD)exeFilepathStr.size());
@@ -26,58 +20,22 @@ int main(const int argc, const char** argv) {
 	if (std::filesystem::exists(filepath))
         std::filesystem::current_path(filepath.parent_path());
 
-	if (argc != 2) {
-		crash("Usage: [process_id]");
-	}
-	unsigned int processId = 0;
+#elif defined(LINUX)
 
-	try {
-		processId = std::stoi(argv[1]);
-	}
-	catch (const std::exception& e) {
-		crash(std::string("Failed to parse process_id argument: ") + e.what());
-	}
+	std::string exePath;
+	exePath.resize(1024);
+	ssize_t pathLen = readlink("/proc/self/exe", exePath.data(), exePath.size());
+	if (pathLen != -1 && std::filesystem::exists(exePath))
+		std::filesystem::current_path(std::filesystem::path(exePath).parent_path());
+#endif
 
-	std::cout << "Attaching to process: " << processId << '\n';
-	
-	// Connect to main app
-	HANDLE process = OpenProcess(PROCESS_ALL_ACCESS, false, processId);
-	if (!process) {
-		crash(std::string("Failed to open processId: ") + std::to_string(processId) + '\n' + "Possible fixes:\n"
-					 "  - invalid processId\n"
-					 "  - access refused\n");
-	}
-
-	// Wait for process to exit
-	unsigned long result;
 	while (true) {
-		result = WaitForSingleObject(process, ULONG_MAX);
-		if (result != WAIT_TIMEOUT && result != WAIT_FAILED)
+		if (std::filesystem::exists("CrashReport.txt"))
 			break;
-		if (result == WAIT_FAILED)
-			std::cout << "Failed to wait for process termination of procid: " << processId << '\n';
-		std::cout << "Waiting..." << std::endl;
+		std::this_thread::sleep_for(std::chrono::milliseconds(500));
 	}
 
-	// Get exit code
-	unsigned long exitCode;
-	GetExitCodeProcess(process, &exitCode);
-	std::cout << "Process exited with code " << exitCode << '\n';
-	
-	if (exitCode != 0) {
-		std::cout << "Crash detected!\n";
-
-		CrashReporterGUIRun();
-	}
-	else
-		std::cout << "Main app finished correctly, closing CrashReporter...\n";
+	Sphynx::CrashReporterGUIRun();
 
 	return 0;
 }
-#elif defined(LINUX)
-
-int main(int argc, const char** argv) {
-	std::cout << "TODO: Implement Linux!\n";
-}
-
-#endif

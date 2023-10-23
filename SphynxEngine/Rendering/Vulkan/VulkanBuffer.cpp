@@ -46,10 +46,12 @@ namespace Sphynx::Rendering {
 	VulkanBuffer::~VulkanBuffer() {
 		SE_PROFILE_FUNCTION();
 
-		VulkanContext::LogicalDevice.destroyBuffer(Buffer, nullptr);
-		Buffer = VK_NULL_HANDLE;
-		VulkanContext::LogicalDevice.freeMemory(Memory, nullptr);
-		Memory = VK_NULL_HANDLE;
+		if (VulkanContext::ShuttingDown) {
+			VulkanContext::LogicalDevice.destroyBuffer(Buffer, nullptr);
+			Buffer = VK_NULL_HANDLE;
+			VulkanContext::LogicalDevice.freeMemory(Memory, nullptr);
+			Memory = VK_NULL_HANDLE;
+		}
 	}
 
 	VulkanBuffer* VulkanBuffer::CreateWithStaging(BufferView data, vk::BufferUsageFlags usage, vk::MemoryPropertyFlags properties) {
