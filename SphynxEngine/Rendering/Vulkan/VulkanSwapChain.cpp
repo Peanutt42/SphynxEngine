@@ -12,8 +12,7 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanSwapChain::~VulkanSwapChain() {
-		if (VulkanContext::ShuttingDown)
-			Cleanup();
+		Cleanup();
 	}
 
 	void VulkanSwapChain::Recreate(vk::RenderPass renderpass) {

@@ -19,10 +19,10 @@ namespace Sphynx::UI {
 	bool s_TitlebarHovered = false;
 	std::function<void()> s_MenubarCallback;
 
-	std::unique_ptr<Rendering::Image> s_MinimizeIcon;
-	std::unique_ptr<Rendering::Image> s_MaximizeIcon;
-	std::unique_ptr<Rendering::Image> s_RestoreIcon;
-	std::unique_ptr<Rendering::Image> s_CloseIcon;
+	Rendering::Image* s_MinimizeIcon = nullptr;
+	Rendering::Image* s_MaximizeIcon = nullptr;
+	Rendering::Image* s_RestoreIcon = nullptr;
+	Rendering::Image* s_CloseIcon = nullptr;
 
 	float s_MinimizeOpacity = 0.f;
 	float s_MaximizeOpacity = 0.f;
@@ -68,17 +68,17 @@ namespace Sphynx::UI {
 
 
 		// Load icons
-		s_MinimizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMinimizeIcon));
-		s_MaximizeIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowMaximizeIcon));
-		s_RestoreIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowRestoreIcon));
-		s_CloseIcon = std::make_unique<Rendering::Image>(BufferView(g_WindowCloseIcon));
+		s_MinimizeIcon = new Rendering::Image(BufferView(g_WindowMinimizeIcon));
+		s_MaximizeIcon = new Rendering::Image(BufferView(g_WindowMaximizeIcon));
+		s_RestoreIcon = new Rendering::Image(BufferView(g_WindowRestoreIcon));
+		s_CloseIcon = new Rendering::Image(BufferView(g_WindowCloseIcon));
 	}
 
 	void VulkanImGui::Shutdown() {
-		s_MinimizeIcon.reset();
-		s_MaximizeIcon.reset();
-		s_RestoreIcon.reset();
-		s_CloseIcon.reset();
+		delete s_MinimizeIcon;
+		delete s_MaximizeIcon;
+		delete s_RestoreIcon;
+		delete s_CloseIcon;
 
 		ImGui_ImplVulkan_Shutdown();
 

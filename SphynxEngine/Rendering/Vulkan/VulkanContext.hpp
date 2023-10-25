@@ -33,11 +33,9 @@ namespace Sphynx::Rendering {
 
 		static void GenerateSceneTextureDescriptorSets();
 
-		inline static bool ShuttingDown = false;
-
 		inline static Rendering::Window* Window = nullptr;
 
-		inline static std::unique_ptr<VulkanInstance> Instance;
+		inline static VulkanInstance* Instance = nullptr;
 		inline static vk::SurfaceKHR Surface;
 		inline static vk::PhysicalDevice PhysicalDevice;
 		inline static vk::Device LogicalDevice;

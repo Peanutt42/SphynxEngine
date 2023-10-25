@@ -24,9 +24,9 @@ namespace Sphynx::Rendering {
 	bool s_Initialized = false;
 
 	Window* s_Window = nullptr;
-	std::unique_ptr<Mesh> s_CubeMesh;
-	std::unique_ptr<Shader> s_DefaultShader;
-	std::unique_ptr<Shader> s_ScreenQuadShader;
+	Mesh* s_CubeMesh = nullptr;
+	Shader* s_DefaultShader = nullptr;
+	Shader* s_ScreenQuadShader = nullptr;
 
 	std::queue<std::function<void()>> s_BeforeNextRenderCallbacks;
 
@@ -58,13 +58,13 @@ namespace Sphynx::Rendering {
 
 		MeshData data;
 		data.LoadMesh("Content/Meshes/cube.semesh");
-		s_CubeMesh = std::make_unique<Mesh>(data);
+		s_CubeMesh = new Mesh(data);
 
-		s_DefaultShader = std::make_unique<Shader>(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
+		s_DefaultShader = new Shader(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
 		s_DefaultShader->UploadToGPU();
 		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("v_ubo", *VulkanContext::UniformBuffer);
 
-		s_ScreenQuadShader = std::make_unique<Shader>(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment));
+		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment));
 		s_ScreenQuadShader->UploadToGPU();
 		s_ScreenQuadShader->GetVulkanShader()->SetImageSampler("screen", VulkanContext::DefaultSampler, VulkanContext::SceneRenderpass->GetImageViews());
 
@@ -78,9 +78,9 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
-		s_ScreenQuadShader.reset();
-		s_DefaultShader.reset();
-		s_CubeMesh.reset();
+		delete s_ScreenQuadShader;
+		delete s_DefaultShader;
+		delete s_CubeMesh;
 		VulkanContext::Shutdown();
 
 		s_Initialized = false;

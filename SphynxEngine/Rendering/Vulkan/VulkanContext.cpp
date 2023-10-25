@@ -12,7 +12,7 @@ namespace Sphynx::Rendering {
 
 		Window = &window;
 
-		Instance = std::make_unique<VulkanInstance>(
+		Instance = new VulkanInstance(
 #if defined(DEBUG) || defined(DEVELOPMENT)
 			true
 #else
@@ -99,8 +99,6 @@ namespace Sphynx::Rendering {
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
 
-		ShuttingDown = true;
-
 		delete InstanceBuffer;
 
 		LogicalDevice.destroySampler(DefaultSampler);
@@ -125,9 +123,7 @@ namespace Sphynx::Rendering {
 		Instance->Instance.destroySurfaceKHR(Surface, nullptr);
 		Surface = VK_NULL_HANDLE;
 
-		Instance.reset();
-
-		ShuttingDown = false;
+		delete Instance;
 	}
 
 	void VulkanContext::Begin() {
@@ -247,8 +243,6 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanContext::WaitBeforeClose() {
-		ShuttingDown = true;
-		
 		LogicalDevice.waitIdle();
 	}
 

@@ -8,3 +8,8 @@ Why 'Sphynx'? Because I love cats and this game engine is bare bones
 - Linux specific:
     - For audio (openal-soft), install a audio backend, like:
         - PulseAudio: 'libpulse-dev' or PipeWire: 'libpipewire-0.3-dev'
+    - Install packages: libxrandr-dev, libxinerama-dev, libxcursor-dev, libxi-dev, libopengl-dev
+    - Example command:
+        ```bash
+        sudo apt install libpulse-dev libxrandr-dev libxinerama-dev libxcursor-dev libxi-dev libopengl-dev
+        ```

@@ -49,12 +49,10 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanInstance::~VulkanInstance() {
-		if (VulkanContext::ShuttingDown) {
-			if (Validation)
-				_DestroyDebugMessenger();
+		if (Validation)
+			_DestroyDebugMessenger();
 
-			Instance.destroy();
-		}
+		Instance.destroy();
 	}
 
 
