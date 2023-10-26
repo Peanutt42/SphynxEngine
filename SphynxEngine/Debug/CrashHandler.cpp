@@ -88,16 +88,16 @@ namespace Sphynx {
 		
 		for (size_t i = 0; i < stacktrace.size(); i++) {
 			backward::ResolvedTrace trace = stacktrace_resolver.resolve(stacktrace[i]);
-			std::cout << "[" + std::to_string(i + 1) + "] At ";
+			std::cout << "[" + std::to_string(i + 1) + "] ";
 			if (trace.source.filename.empty()) {
-				std::cout << std::filesystem::path(trace.object_filename).filename().string() << " - ";
 				if (trace.object_function.empty())
 					std::cout << trace.addr;
 				else
 					std::cout << trace.object_function;
+				std::cout << "\n\t" << std::filesystem::path(trace.object_filename).filename().string();
 			}
 			else {
-				std::cout << trace.source.filename << " in " << trace.source.function;
+				std::cout << trace.source.function << "\n     " << trace.source.filename << ":" << trace.source.line;
 			}
 			std::cout << std::endl;
 		}
