@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
 #include "Scene/DefaultComponents.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include "Vulkan/VulkanContext.hpp"
 

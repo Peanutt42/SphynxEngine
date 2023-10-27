@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "VulkanBuffer.hpp"
 #include "VulkanContext.hpp"
+#include "Profiling/Profiling.hpp"
 
 namespace Sphynx::Rendering {
 	std::optional<uint32> FindMemoryTypeIndex(uint32 typeFilter, vk::MemoryPropertyFlags properties) {

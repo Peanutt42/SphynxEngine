@@ -2,6 +2,7 @@
 
 #include "EditorWindow.hpp"
 #include "Rendering/Renderer.hpp"
+#include "Input/Input.hpp"
 
 namespace Sphynx::Editor {
 	class ViewportWindow : public EditorWindow {

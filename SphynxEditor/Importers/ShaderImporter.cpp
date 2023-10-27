@@ -1,5 +1,7 @@
 #include "pch.hpp"
 #include "ShaderImporter.hpp"
+#include "Core/Time.hpp"
+#include "Serialization/FileStream.hpp"
 
 #include <shaderc/shaderc.hpp>
 

@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "PhysicEngine.hpp"
 #include "Core/Engine.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include "btUtils.hpp"
 

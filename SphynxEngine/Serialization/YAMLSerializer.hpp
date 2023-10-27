@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.hpp"
+#include "Core/Version.hpp"
 #include <yaml-cpp/yaml.h>
 
 namespace YAML {

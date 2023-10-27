@@ -1,8 +1,7 @@
 #pragma once
 
 #include "std.hpp"
-#include <fmt/color.h>
-#include "Debug/CrashHandler.hpp"
+#include <fmt/core.h>
 
 namespace Sphynx {
 	class SE_API Logging {
@@ -103,26 +102,6 @@ namespace Sphynx {
 #define SE_INFO(...)			Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Info, __VA_ARGS__)
 #define SE_WARN(...)			Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Warning, __VA_ARGS__)
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
-#define SE_FATAL(...) \
-{																																		\
-	if (Sphynx::Platform::IsDebuggerAttached())																							\
-		DEBUGBREAK();																													\
-	else {                                                                                                                              \
-        std::string formatted = Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);                                \
-        Sphynx::CrashHandler::OnCrash("SE_FATAL: " + formatted);                                                                        \
-   }                                                                                                                                    \
-}
-#define SE_ASSERT(result, ...) {	\
-	if (!(result)) {																													\
-		if (Sphynx::Platform::IsDebuggerAttached())																						\
-			DEBUGBREAK();																												\
-		else {                         \
-            std::string formatted = Sphynx::Logging::AssertLog(#result, __FILE__, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);   \
-            Sphynx::CrashHandler::OnCrash("SE_ASSERT: " + formatted);                                                                   \
-        }                                                                                                                               \
-        std::exit(1);	/* This will never be reached but suppresses warnings for not checking if the expr is 0 */					    \
-	}																																	\
-}
 
 #else
 
@@ -130,13 +109,6 @@ namespace Sphynx {
 #define SE_INFO(...)			{}
 #define SE_WARN(...)			{}
 #define SE_ERR(...)				Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Error, __VA_ARGS__)
-#define SE_FATAL(...)			{ std::string formatted = Sphynx::Logging::Log(Sphynx::Logging::Verbosity::Critical, __VA_ARGS__); Sphynx::CrashHandler::OnCrash("SE_FATAL: " + formatted); }
-#define SE_ASSERT(result, ...) {	\
-	if (!(result)) {																													\
-		std::string formatted = Sphynx::Logging::AssertLog(#result, __FILE__, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);		\
-		Sphynx::CrashHandler::OnCrash("SE_ASSERT: " + formatted);																		\
-	}																																	\
-}
 
 #endif
 }

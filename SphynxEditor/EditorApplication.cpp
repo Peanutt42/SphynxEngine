@@ -2,6 +2,7 @@
 #include "EditorApplication.hpp"
 #include "EditorAssetManager.hpp"
 #include "Physics/PhysicEngine.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include "Scene/SceneSerializer.hpp"
 

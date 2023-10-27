@@ -2,6 +2,7 @@
 
 #include "EditorWindow.hpp"
 #include "Core/Engine.hpp"
+#include "Core/Time.hpp"
 
 namespace Sphynx::Editor {
 	class ProfilingWindow : public EditorWindow {

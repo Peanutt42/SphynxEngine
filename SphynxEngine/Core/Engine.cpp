@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Engine.hpp"
 #include "CommandHandler.hpp"
+#include "Time.hpp"
 
 #include "Audio/AudioEngine.hpp"
 #include "Rendering/Renderer.hpp"
@@ -8,6 +9,8 @@
 #include "Scripting/ScriptingEngine.hpp"
 #include "Physics/PhysicEngine.hpp"
 #include "UI/VulkanImGui.hpp"
+#include "Input/Input.hpp"
+#include "Profiling/Profiling.hpp"
 
 namespace Sphynx {
 	std::atomic_bool s_Quit = false;

@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Mesh.hpp"
+#include "Serialization/FileStream.hpp"
 #include "Vulkan/VulkanShader.hpp"
 #include "Vulkan/VulkanContext.hpp"
 #include "Vulkan/VulkanBuffer.hpp"

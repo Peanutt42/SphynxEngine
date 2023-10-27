@@ -2,8 +2,8 @@
 #include "VulkanContext.hpp"
 #include "VulkanDevice.hpp"
 
+#include "Profiling/Profiling.hpp"
 #include <backends/imgui_impl_vulkan.h>
-
 #include <GLFW/glfw3.h>
 
 namespace Sphynx::Rendering {

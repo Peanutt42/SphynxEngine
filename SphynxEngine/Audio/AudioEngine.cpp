@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "AudioEngine.hpp"
 #include "Core/Engine.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include "ALErrors.hpp"
 #include "AudioBuffer.hpp"

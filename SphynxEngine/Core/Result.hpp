@@ -2,7 +2,7 @@
 
 #include "std.hpp"
 #include "Logging/Logging.hpp"
-#include "Platform/Platform.hpp"
+#include "Debug/CrashHandler.hpp"
 
 namespace Sphynx {
     template<typename T, typename E = std::string_view>
