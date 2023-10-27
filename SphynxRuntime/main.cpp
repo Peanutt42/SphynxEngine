@@ -44,18 +44,19 @@ namespace Sphynx {
 }
 
 int GuardedMain(int argc, const char** argv) {
-	Sphynx::Platform::SetWorkingDirToExe();
-
 	// Get project filepath
 	std::filesystem::path projectFilepath;
-	if (argc >= 2)
+	if (argc >= 2) {
 		projectFilepath = argv[1];
-	
-	if (!std::filesystem::exists(projectFilepath))
-		projectFilepath = Sphynx::Platform::FileDialogs::OpenFile("Sphynx Engine Project", "*.seproj");
-	if (!std::filesystem::exists(projectFilepath))
-		return 0;
+		projectFilepath = std::filesystem::absolute(projectFilepath);
+	}
+	else {
+		std::cout << "Usage: [projectFilepath]\n";
+		return 1;
+	}
 
+	Sphynx::Platform::SetWorkingDirToExe();
+	
 	Sphynx::Project project(projectFilepath);
 
 	if (project.EngineVersion != Sphynx::Engine::EngineVersion) {

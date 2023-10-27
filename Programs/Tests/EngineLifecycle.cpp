@@ -11,7 +11,9 @@ public:
 };
 
 TEST(Engine, HeadlessEngineLifecyle) {
-		Sphynx::EngineSettings engineSettings {
+	Sphynx::Platform::SetWorkingDirToExe();
+	
+	Sphynx::EngineSettings engineSettings {
 		.Headless = true,
 		.ImGuiEnabled = false,
 		.WindowName = "Headless Engine Lifecycle Test",

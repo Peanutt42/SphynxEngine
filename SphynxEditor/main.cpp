@@ -5,8 +5,6 @@
 #include <misc/cpp/imgui_stdlib.cpp>
 
 int GuardedMain(int argc, const char** argv) {
-	Sphynx::Platform::SetWorkingDirToExe();
-
 	// Get project filepath
 	std::filesystem::path projectFilepath;
 	if (argc >= 2)
@@ -16,6 +14,10 @@ int GuardedMain(int argc, const char** argv) {
 		projectFilepath = Sphynx::Platform::FileDialogs::OpenFile("Sphynx Engine Project", "*.seproj");
 	if (!std::filesystem::exists(projectFilepath))
 		return 0;
+
+	projectFilepath = std::filesystem::absolute(projectFilepath);
+
+	Sphynx::Platform::SetWorkingDirToExe();
 
 	Sphynx::Project project(projectFilepath);
 	if (project.EngineVersion != Sphynx::Engine::EngineVersion) {
