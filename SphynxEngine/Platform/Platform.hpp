@@ -7,10 +7,12 @@
 
 #ifdef WINDOWS
 #define DEBUGBREAK() __debugbreak()
-#elif defined(LINUX)
-#define DEBUGBREAK() raise(SIGTRAP)
+#elif defined(LINUX) || defined(MACOS)
+#define DEBUGBREAK() __builtin_trap()
+#elif defined(SIGTRAP)
+#define DEBUGBREAK() raise(SIGTRAP);
 #else
-#error "INVLALID PLATFORM"
+#error "Implement DEBUGBREAK for this platform"
 #endif
 
 
