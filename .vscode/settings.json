@@ -1,9 +1,4 @@
 {
     "cmake.configureOnOpen": true,
-    "files.associations": {
-        "array": "cpp",
-        "tuple": "cpp",
-        "variant": "cpp",
-        "type_traits": "cpp"
-    }
+    "cmake.preferredGenerators": [ "Ninja" ]
 }
