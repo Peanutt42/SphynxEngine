@@ -2,13 +2,13 @@
 
 #include "pch.hpp"
 
-//class btRigidBody;
+class btRigidBody;
 
 namespace Sphynx::Physics {
 	struct RigidbodyComponent {
 		bool Dynamic = true;
 
-		//btRigidBody* Body = nullptr;
+		btRigidBody* Body = nullptr;
 	};
 
 	struct BoxCollider {

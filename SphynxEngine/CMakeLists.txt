@@ -49,7 +49,6 @@ target_link_libraries(SphynxEngine
 		glfw
 		backward-cpp
 		${BULLET3_LIBS}
-		${BULLET_LIBRARIES}
 )
 
 if (CMAKE_SYSTEM_NAME STREQUAL "Windows")

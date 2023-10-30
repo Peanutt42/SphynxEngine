@@ -2,8 +2,6 @@
 
 #include "pch.hpp"
 
-#define BT_THREADSAFE 1
-#define BT_USE_DOUBLE_PRECISION
 #pragma warning (push)
 #pragma warning (disable: 4127) // expression could be constexpr
 #include "btBulletDynamicsCommon.h"
