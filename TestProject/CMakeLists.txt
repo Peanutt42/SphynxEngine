@@ -44,6 +44,12 @@ target_compile_definitions(TestProject PRIVATE SE_GAME)
 define_configuration(TestProject)
 define_platform(TestProject)
 
+# copy output file from Binaries/CONFIG/<Output> to Binaries/<Ouput>
+add_custom_command(
+		TARGET TestProject
+		POST_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_if_different $<TARGET_FILE:TestProject> "${CMAKE_CURRENT_SOURCE_DIR}/Binaries"
+)
 
 add_custom_command(
 		OUTPUT ${GENERATED_MODULE_PATH}
