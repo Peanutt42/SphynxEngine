@@ -216,19 +216,6 @@ namespace Sphynx::Rendering {
 		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		if (_window)
 			_window->m_Maximized = (bool)maximized;
-
-		// Center Window position on restore
-		if (maximized == 0) {
-			GLFWmonitor* windowMonitor = glfwGetWindowMonitor(window);
-			if (!windowMonitor)
-				windowMonitor = glfwGetPrimaryMonitor();
-			const GLFWvidmode* vidMode = glfwGetVideoMode(windowMonitor);
-			int windowWidth = 0, windowHeight = 0;
-			glfwGetWindowSize(window, &windowWidth, &windowHeight);
-			int centeredPosX = (vidMode->width - windowWidth) / 2;
-			int centeredPosY = (vidMode->height - windowHeight) / 2;
-			glfwSetWindowPos(window, centeredPosX, centeredPosY);
-		}
 	}
 
 	void Window::_TitlebarHitTestCallback(GLFWwindow* window, [[maybe_unused]] int x, [[maybe_unused]] int y, int* hit) {
