@@ -106,11 +106,14 @@ namespace Sphynx::Rendering {
 			glfwPollEvents();
 		}
 
-		m_Minimized = glfwGetWindowAttrib(m_Window, GLFW_ICONIFIED);
-		m_Maximized = glfwGetWindowAttrib(m_Window, GLFW_MAXIMIZED);
-		m_Hovered = glfwGetWindowAttrib(m_Window, GLFW_HOVERED);
-		m_Focused = glfwGetWindowAttrib(m_Window, GLFW_FOCUSED);
-		m_Fullscreen = glfwGetWindowMonitor(m_Window) != nullptr;
+		{
+			SE_PROFILE_SCOPE("GetInfo");
+			m_Minimized = glfwGetWindowAttrib(m_Window, GLFW_ICONIFIED);
+			m_Maximized = glfwGetWindowAttrib(m_Window, GLFW_MAXIMIZED);
+			m_Hovered = glfwGetWindowAttrib(m_Window, GLFW_HOVERED);
+			m_Focused = glfwGetWindowAttrib(m_Window, GLFW_FOCUSED);
+			m_Fullscreen = glfwGetWindowMonitor(m_Window) != nullptr;
+		}
 	}
 
 	bool Window::ShouldClose() {

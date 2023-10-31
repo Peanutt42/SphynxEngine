@@ -54,3 +54,7 @@
     - shaderc/third_party/glslang
     - shaderc/third_party/spirv-headers
     - shaderc/third_party/spirv-tools
+
+## Tracy
+- Link: https://github.com/wolfpld/tracy
+- Release: 0.10

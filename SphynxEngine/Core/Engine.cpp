@@ -101,7 +101,6 @@ namespace Sphynx {
 
 	void Engine::Update() {
 		SE_PROFILE_FUNCTION();
-
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
 		s_UpdateTimer.Reset();
 
