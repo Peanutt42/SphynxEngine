@@ -42,7 +42,7 @@ namespace Sphynx::Rendering {
 
 		GLFWwindow* GetGLFWHandle() { return m_Window; }
 
-		void SetResizeCallback(const std::function<void(Window*)>& callback) { m_ResizeCallback = callback; }
+		void SetResizeCallback(const std::function<void(Window*, int, int)>& callback) { m_ResizeCallback = callback; }
 		void SetResizeCallbackEnable(bool enabled) { m_EnableResizeCallback = enabled; }
 
 		void SetTitlebarhitTestCallback(const std::function<bool()>& callback) { m_TitlebarhitTest = callback; }
@@ -76,7 +76,7 @@ namespace Sphynx::Rendering {
 		// Stores all changes for the window for the next Update() call from the main thread
 		std::vector<std::function<void()>> m_PendingMainThreadCallbacks;
 
-		std::function<void(Window*)> m_ResizeCallback;
+		std::function<void(Window*, int, int)> m_ResizeCallback;
 		bool m_EnableResizeCallback = true;
 		std::function<bool()> m_TitlebarhitTest;
 	};

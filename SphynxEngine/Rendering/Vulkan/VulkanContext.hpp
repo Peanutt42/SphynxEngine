@@ -67,7 +67,6 @@ namespace Sphynx::Rendering {
 		inline static uint32 MaxFramesInFlight = 2;
 		inline static uint32 CurrentFrame = 0;
 		inline static uint32 CurrentImage = 0;
-		inline static bool FramebufferResized = false;
 
 		inline static vk::DescriptorPool DescriptorPool;
 

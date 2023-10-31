@@ -229,10 +229,8 @@ namespace Sphynx::Rendering {
 
 			vk::Result result = PresentQueue.presentKHR(&presentInfo);
 			if (result == vk::Result::eErrorOutOfDateKHR ||
-				result == vk::Result::eSuboptimalKHR ||
-				FramebufferResized)
+				result == vk::Result::eSuboptimalKHR)
 			{
-				FramebufferResized = false;
 				SwapChain->Recreate(Renderpass->GetHandle());
 			}
 			else if (result != vk::Result::eSuccess)

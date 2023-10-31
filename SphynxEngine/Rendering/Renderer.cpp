@@ -24,7 +24,6 @@ uint32_t g_ScreenQuadFragment[] = {
 namespace Sphynx::Rendering {
 	bool s_Initialized = false;
 
-	Window* s_Window = nullptr;
 	Mesh* s_CubeMesh = nullptr;
 	Shader* s_DefaultShader = nullptr;
 	Shader* s_ScreenQuadShader = nullptr;
@@ -46,16 +45,16 @@ namespace Sphynx::Rendering {
 		if (s_Initialized)
 			return true;
 
-		s_Window = &window;
-
-		s_Window->SetResizeCallback([resizeCallback](Window* window) {
-			if (window->GetWidth() != 0 && window->GetHeight() != 0 && resizeCallback) {
-				VulkanContext::FramebufferResized = true;
-				resizeCallback();
+		window.SetResizeCallback([resizeCallback](Window* window, int width, int height) {
+			if (width != 0 && height != 0) {
+				if (VulkanContext::SwapChain && VulkanContext::Renderpass)
+					VulkanContext::SwapChain->Recreate(VulkanContext::Renderpass->GetHandle());
+				if (resizeCallback)
+					resizeCallback();
 			}
 		});
 
-		VulkanContext::Init(*s_Window);
+		VulkanContext::Init(window);
 
 		MeshData data;
 		data.LoadMesh("Content/Meshes/cube.semesh");

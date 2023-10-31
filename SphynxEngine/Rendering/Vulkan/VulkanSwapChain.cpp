@@ -12,21 +12,18 @@ namespace Sphynx::Rendering {
 	}
 
 	VulkanSwapChain::~VulkanSwapChain() {
-		Cleanup();
+		for (vk::ImageView imageView : m_ImageViews)
+			VulkanContext::LogicalDevice.destroyImageView(imageView, nullptr);
+		for (vk::Framebuffer framebuffer : m_Framebuffers)
+			VulkanContext::LogicalDevice.destroyFramebuffer(framebuffer, nullptr);
+		VulkanContext::LogicalDevice.destroySwapchainKHR(m_SwapChain, nullptr);
 	}
 
 	void VulkanSwapChain::Recreate(vk::RenderPass renderpass) {
 		VulkanContext::Window->SetResizeCallbackEnable(false);
 		
-		while ((VulkanContext::Window->GetWidth() == 0 || VulkanContext::Window->GetHeight() == 0) && !Engine::ShouldClose()) {
-			VulkanContext::Window->Update();
-		}
-		if (Engine::ShouldClose())
-			return;
-
 		VulkanContext::LogicalDevice.waitIdle();
 
-		Cleanup();
 		Create();
 		CreateFramebuffers(renderpass);
 
@@ -89,8 +86,6 @@ namespace Sphynx::Rendering {
 	}
 
 	void VulkanSwapChain::Create() {
-		VulkanContext::Window->Update();
-
 		SupportDetails swapChainSupport = GetSupport(VulkanContext::PhysicalDevice);
 		std::optional<vk::SurfaceFormatKHR> surfaceFormat = ChooseFormat(swapChainSupport.Formats);
 		SE_ASSERT(surfaceFormat.has_value(), Logging::Rendering, "Failed to get format for swapchain");
@@ -125,10 +120,21 @@ namespace Sphynx::Rendering {
 		createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
 		createInfo.presentMode = presentMode;
 		createInfo.clipped = true;
-		createInfo.oldSwapchain = VK_NULL_HANDLE;
+		vk::SwapchainKHR oldSwapchain = m_SwapChain;
+		createInfo.oldSwapchain = oldSwapchain;
 
 		vk::Result result = VulkanContext::LogicalDevice.createSwapchainKHR(&createInfo, nullptr, &m_SwapChain);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create swapchain");
+		
+		if (oldSwapchain) {
+			for (auto oldImageView : m_ImageViews)
+				VulkanContext::LogicalDevice.destroyImageView(oldImageView, nullptr);
+			for (auto oldFramebuffer : m_Framebuffers)
+				VulkanContext::LogicalDevice.destroyFramebuffer(oldFramebuffer, nullptr);
+			m_ImageViews.clear();
+			m_Framebuffers.clear();
+			VulkanContext::LogicalDevice.destroySwapchainKHR(oldSwapchain, nullptr);
+		}
 
 		result = VulkanContext::LogicalDevice.getSwapchainImagesKHR(m_SwapChain, &imageCount, nullptr);
 		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get swapchain imageCount");
@@ -157,21 +163,6 @@ namespace Sphynx::Rendering {
 			vk::Result imageViewResult = VulkanContext::LogicalDevice.createImageView(&imageViewCreateInfo, nullptr, &m_ImageViews[i]);
 			SE_ASSERT(imageViewResult == vk::Result::eSuccess, Logging::Rendering, "Failed to create image view for swapchain");
 		}
-	}
-
-	void VulkanSwapChain::Cleanup() {
-		for (vk::Framebuffer& framebuffer : m_Framebuffers) {
-			vkDestroyFramebuffer(VulkanContext::LogicalDevice, framebuffer, nullptr);
-			framebuffer = VK_NULL_HANDLE;
-		}
-
-		for (vk::ImageView& imageView : m_ImageViews) {
-			vkDestroyImageView(VulkanContext::LogicalDevice, imageView, nullptr);
-			imageView = VK_NULL_HANDLE;
-		}
-
-		vkDestroySwapchainKHR(VulkanContext::LogicalDevice, m_SwapChain, nullptr);
-		m_SwapChain = VK_NULL_HANDLE;
 	}
 
 	std::optional<vk::SurfaceFormatKHR> VulkanSwapChain::ChooseFormat(const std::vector<vk::SurfaceFormatKHR>& formats) {

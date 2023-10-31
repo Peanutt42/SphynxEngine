@@ -63,18 +63,6 @@ namespace Sphynx::Rendering {
 		glfwSetWindowSizeLimits(m_Window, 200, 200, GLFW_DONT_CARE, GLFW_DONT_CARE);
 		glfwSetWindowMaximizeCallback(m_Window, _WindowMaximizeCallback);
 		glfwSetTitlebarHitTestCallback(m_Window, _TitlebarHitTestCallback);
-
-		
-		// Center Window
-		if (!m_Maximized) {
-			GLFWmonitor* windowMonitor = glfwGetWindowMonitor(m_Window);
-			if (!windowMonitor)
-				windowMonitor = glfwGetPrimaryMonitor();
-			const GLFWvidmode* vidMode = glfwGetVideoMode(windowMonitor);
-			int centeredPosX = (vidMode->width - m_Width) / 2;
-			int centeredPosY = (vidMode->height - m_Height) / 2;
-			glfwSetWindowPos(m_Window, centeredPosX, centeredPosY);
-		}
 	}
 
 	Window::~Window() {
@@ -191,12 +179,8 @@ namespace Sphynx::Rendering {
 
 	void Window::_FramebufferResizedCallback(GLFWwindow* window, int width, int height) {
 		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-		if (_window) {
-			_window->m_Width = width;
-			_window->m_Height = height;
-			if (_window->m_EnableResizeCallback && _window->m_ResizeCallback)
-				_window->m_ResizeCallback(_window);
-		}
+		if (_window && _window->m_EnableResizeCallback && _window->m_ResizeCallback)
+				_window->m_ResizeCallback(_window, width, height);
 	}
 
 	void Window::_WindowResizedCallback(GLFWwindow* window, int width, int height) {
@@ -204,8 +188,6 @@ namespace Sphynx::Rendering {
 		if (_window) {
 			_window->m_Width = width;
 			_window->m_Height = height;
-			if (_window->m_EnableResizeCallback && _window->m_ResizeCallback)
-				_window->m_ResizeCallback(_window);
 		}
 	}
 

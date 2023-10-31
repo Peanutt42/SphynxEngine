@@ -35,8 +35,6 @@ namespace Sphynx::Rendering {
 		VulkanSwapChain& operator=(VulkanSwapChain&&) = delete;
 
 		void Create();
-		void Cleanup();
-
 
 		static std::optional<vk::SurfaceFormatKHR> ChooseFormat(const std::vector<vk::SurfaceFormatKHR>& formats);
 	
