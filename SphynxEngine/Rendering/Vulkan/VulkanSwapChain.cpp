@@ -89,7 +89,7 @@ namespace Sphynx::Rendering {
 		SupportDetails swapChainSupport = GetSupport(VulkanContext::PhysicalDevice);
 		std::optional<vk::SurfaceFormatKHR> surfaceFormat = ChooseFormat(swapChainSupport.Formats);
 		SE_ASSERT(surfaceFormat.has_value(), Logging::Rendering, "Failed to get format for swapchain");
-		vk::PresentModeKHR presentMode = ChoosePresentMode(swapChainSupport.PresentModes);
+		m_Format = surfaceFormat->format;
 		m_Extent = ChooseExtent(swapChainSupport.Capabilities, VulkanContext::Window->GetGLFWHandle());
 
 		uint32 imageCount = swapChainSupport.Capabilities.minImageCount + 1;
@@ -99,7 +99,7 @@ namespace Sphynx::Rendering {
 		vk::SwapchainCreateInfoKHR createInfo{};
 		createInfo.surface = VulkanContext::Surface;
 		createInfo.minImageCount = imageCount;
-		createInfo.imageFormat = surfaceFormat->format;
+		createInfo.imageFormat = m_Format;
 		createInfo.imageColorSpace = surfaceFormat->colorSpace;
 		createInfo.imageExtent = m_Extent;
 		createInfo.imageArrayLayers = 1;
@@ -116,9 +116,14 @@ namespace Sphynx::Rendering {
 		else
 			createInfo.imageSharingMode = vk::SharingMode::eExclusive;
 
-		createInfo.preTransform = swapChainSupport.Capabilities.currentTransform;
-		createInfo.compositeAlpha = vk::CompositeAlphaFlagBitsKHR::eOpaque;
-		createInfo.presentMode = presentMode;
+		// non-rotated transform prefered
+		if (swapChainSupport.Capabilities.currentTransform & vk::SurfaceTransformFlagBitsKHR::eIdentity)
+			createInfo.preTransform = vk::SurfaceTransformFlagBitsKHR::eIdentity;
+		else
+			createInfo.preTransform = swapChainSupport.Capabilities.currentTransform;
+
+		createInfo.compositeAlpha = ChooseCompositeAlpha(swapChainSupport.Capabilities.supportedCompositeAlpha);
+		createInfo.presentMode = ChoosePresentMode(swapChainSupport.PresentModes);
 		createInfo.clipped = true;
 		vk::SwapchainKHR oldSwapchain = m_SwapChain;
 		createInfo.oldSwapchain = oldSwapchain;
@@ -136,50 +141,68 @@ namespace Sphynx::Rendering {
 			VulkanContext::LogicalDevice.destroySwapchainKHR(oldSwapchain, nullptr);
 		}
 
+		// get images
 		result = VulkanContext::LogicalDevice.getSwapchainImagesKHR(m_SwapChain, &imageCount, nullptr);
 		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get swapchain imageCount");
 		m_Images.resize(imageCount);
 		result = VulkanContext::LogicalDevice.getSwapchainImagesKHR(m_SwapChain, &imageCount, m_Images.data());
 		SE_ASSERT(result == vk::Result::eSuccess, "Failed to get swapchain images");
 
-		m_Format = surfaceFormat->format;
-
+		// create image views
+		vk::ImageViewCreateInfo imageViewCreateInfo{};
+		imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
+		imageViewCreateInfo.format = m_Format;
+		imageViewCreateInfo.components = {
+			vk::ComponentSwizzle::eR,
+			vk::ComponentSwizzle::eG,
+			vk::ComponentSwizzle::eB,
+			vk::ComponentSwizzle::eA
+		};
+		imageViewCreateInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
+		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		imageViewCreateInfo.subresourceRange.levelCount = 1;
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewCreateInfo.subresourceRange.layerCount = 1;
 		m_ImageViews.resize(m_Images.size());
 		for (size_t i = 0; i < m_ImageViews.size(); i++) {
-			vk::ImageViewCreateInfo imageViewCreateInfo{};
 			imageViewCreateInfo.image = m_Images[i];
-			imageViewCreateInfo.viewType = vk::ImageViewType::e2D;
-			imageViewCreateInfo.format = m_Format;
-			imageViewCreateInfo.components.r = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.components.g = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.components.b = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.components.a = vk::ComponentSwizzle::eIdentity;
-			imageViewCreateInfo.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
-			imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
-			imageViewCreateInfo.subresourceRange.levelCount = 1;
-			imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
-			imageViewCreateInfo.subresourceRange.layerCount = 1;
-
 			vk::Result imageViewResult = VulkanContext::LogicalDevice.createImageView(&imageViewCreateInfo, nullptr, &m_ImageViews[i]);
 			SE_ASSERT(imageViewResult == vk::Result::eSuccess, Logging::Rendering, "Failed to create image view for swapchain");
 		}
 	}
 
 	std::optional<vk::SurfaceFormatKHR> VulkanSwapChain::ChooseFormat(const std::vector<vk::SurfaceFormatKHR>& formats) {
+		constexpr auto preferredImageFormats = std::array{
+			vk::Format::eB8G8R8A8Unorm,
+			vk::Format::eR8G8B8A8Unorm,
+			vk::Format::eA8B8G8R8UnormPack32
+		};
 		for (const auto& format : formats) {
-			if (format.format == vk::Format::eB8G8R8A8Unorm && format.colorSpace == vk::ColorSpaceKHR::eSrgbNonlinear)
+			if (std::find(preferredImageFormats.begin(), preferredImageFormats.end(), format.format) != preferredImageFormats.end())
 				return format;
 		}
-		return {};
+
+		if (!formats.empty())
+			return formats[0];
+
+		return std::nullopt;
 	}
 
 	vk::PresentModeKHR VulkanSwapChain::ChoosePresentMode(const std::vector<vk::PresentModeKHR>& presentModes) {
+		vk::PresentModeKHR bestMode = vk::PresentModeKHR::eFifo;
+
+		// Search for presentMode that isn't vsync
 		for (const auto& presentMode : presentModes) {
-			if (presentMode == vk::PresentModeKHR::eMailbox)
-				return presentMode;
+			if (presentMode == vk::PresentModeKHR::eMailbox) {
+				bestMode = presentMode;
+				break;
+			}
+
+			if (presentMode == vk::PresentModeKHR::eImmediate)
+				bestMode = presentMode;
 		}
 
-		return vk::PresentModeKHR::eFifo;
+		return bestMode;
 	}
 
 	vk::Extent2D VulkanSwapChain::ChooseExtent(const vk::SurfaceCapabilitiesKHR& capabilities, GLFWwindow* window) {
@@ -201,5 +224,19 @@ namespace Sphynx::Rendering {
 
 			return actualExtent;
 		}
+	}
+
+	vk::CompositeAlphaFlagBitsKHR VulkanSwapChain::ChooseCompositeAlpha(vk::CompositeAlphaFlagsKHR supportedFlags) {
+		constexpr auto compositeAlphaFlags = std::array {
+			vk::CompositeAlphaFlagBitsKHR::eOpaque,
+			vk::CompositeAlphaFlagBitsKHR::ePreMultiplied,
+			vk::CompositeAlphaFlagBitsKHR::ePostMultiplied,
+			vk::CompositeAlphaFlagBitsKHR::eInherit
+		};
+		for (auto flag : compositeAlphaFlags) {
+			if (supportedFlags & flag)
+				return flag;
+		}
+		return vk::CompositeAlphaFlagBitsKHR::eOpaque;
 	}
 }

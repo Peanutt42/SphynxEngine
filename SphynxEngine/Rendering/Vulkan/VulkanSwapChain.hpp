@@ -41,6 +41,8 @@ namespace Sphynx::Rendering {
 		static vk::PresentModeKHR ChoosePresentMode(const std::vector<vk::PresentModeKHR>& presentModes);
 
 		static vk::Extent2D ChooseExtent(const vk::SurfaceCapabilitiesKHR& capabilities, GLFWwindow* window);
+
+		static vk::CompositeAlphaFlagBitsKHR ChooseCompositeAlpha(vk::CompositeAlphaFlagsKHR supportedFlags);
 	
 	private:
 		vk::SwapchainKHR m_SwapChain;
