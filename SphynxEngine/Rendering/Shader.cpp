@@ -2,6 +2,7 @@
 #include "Shader.hpp"
 #include "Mesh.hpp"
 #include "Vulkan/VulkanContext.hpp"
+#include "Rendering/InstanceData.hpp"
 
 namespace Sphynx::Rendering {
 	Shader::Shader(BufferView vertexCode, BufferView fragmentCode) {

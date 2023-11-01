@@ -10,7 +10,7 @@
 #include "VulkanTexture.hpp"
 #include "VulkanUniformBuffer.hpp"
 #include "VulkanInstanceBuffer.hpp"
-#include "Rendering/InstanceData.hpp"
+#include "VulkanPipelineCache.hpp"
 
 namespace Sphynx::Rendering {
 	struct UniformBufferData {
@@ -61,6 +61,9 @@ namespace Sphynx::Rendering {
 		inline static vk::Sampler DefaultSampler;
 
 		inline static vk::SharingMode SharingMode;
+
+		inline static VulkanPipelineCache* PipelineCache = nullptr;
+		inline static std::filesystem::path PipelineCacheFilepath;
 
 		inline static VulkanUniformBuffer* UniformBuffer = nullptr;
 

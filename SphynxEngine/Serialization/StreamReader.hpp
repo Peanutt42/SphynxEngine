@@ -16,10 +16,7 @@ namespace Sphynx {
 
 		template<typename T>
 		bool Read(T& type) {
-			bool success = ReadData((char*)&type, sizeof(T));
-			if (!success)
-				throw std::runtime_error("Failed to read data");
-			return success;
+			return ReadData((char*)&type, sizeof(T));
 		}
 
 		template<>

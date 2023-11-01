@@ -3,6 +3,7 @@
 #include "std.hpp"
 #include "StreamWriter.hpp"
 #include "StreamReader.hpp"
+#include "Core/Result.hpp"
 
 namespace Sphynx {
 	class FileStreamWriter : public StreamWriter {
@@ -75,24 +76,30 @@ namespace Sphynx {
 		}
 
 		template<typename CharT = char>
-		static void ReadTextFile(const std::filesystem::path& filepath, std::basic_string<CharT>& outText) {
-			SE_ASSERT(std::filesystem::exists(filepath), "Can't find file {}", filepath.string());
+		static Result<bool, std::string> ReadTextFile(const std::filesystem::path& filepath, std::basic_string<CharT>& outText) {
+			if (!std::filesystem::exists(filepath))
+				return Error<bool>("Can't find file {}", filepath.string());
 			std::ifstream stream(filepath, std::ifstream::in);
-			SE_ASSERT(stream, "Can't open file {}", filepath.string());
+			if (!stream)
+				return Error<bool>("Can't open file {}", filepath.string());
 			std::basic_ostringstream<CharT> ss;
 			ss << stream.rdbuf();
 			outText = ss.str();
+			return true;
 		}
 
-		static void ReadBinaryFile(const std::filesystem::path& filepath, std::vector<byte>& outData) {
-			SE_ASSERT(std::filesystem::exists(filepath), "Can't find file {}", filepath.string());
+		static Result<bool, std::string> ReadBinaryFile(const std::filesystem::path& filepath, std::vector<byte>& outData) {
+			if (!std::filesystem::exists(filepath))
+				return Error<bool>("Can't find file {}", filepath.string());
 			std::ifstream stream(filepath, std::ifstream::in | std::ios::ate);
-			SE_ASSERT(stream, "Can't open file {}", filepath.string());
+			if (!stream)
+				return Error<bool>("Can't open file {}", filepath.string());
 			std::streampos end = stream.tellg();
 			stream.seekg(0, std::ios::beg);
 			size_t fileSize = end - stream.tellg();
 			outData.resize(fileSize);
 			stream.read((char*)outData.data(), fileSize);
+			return true;
 		}
 
 	private:

@@ -43,8 +43,7 @@ namespace Sphynx {
 		size_t GetStreamPosition() override { return m_Position; }
 		void SetStreamPosition(size_t position) override { m_Position = position; }
 		bool ReadData(char* destination, size_t size) override {
-			bool valid = m_Position + size <= m_Buffer.Size;
-			if (!valid)
+			if (m_Position + size > m_Buffer.Size)
 				return false;
 
 			memcpy(destination, m_Buffer.Data + m_Position, size);

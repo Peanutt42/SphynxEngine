@@ -2,6 +2,7 @@
 #include "VulkanContext.hpp"
 #include "VulkanDevice.hpp"
 
+#include "Rendering/InstanceData.hpp"
 #include "Profiling/Profiling.hpp"
 #include <backends/imgui_impl_vulkan.h>
 #include <GLFW/glfw3.h>
@@ -67,6 +68,9 @@ namespace Sphynx::Rendering {
 
 		DefaultSampler = VulkanTexture::CreateSampler();
 
+		PipelineCacheFilepath = Engine::GetProject().CacheFolder / "ShaderPipeline.cache";
+		PipelineCache = new VulkanPipelineCache(PipelineCacheFilepath);
+
 		UniformBuffer = new VulkanUniformBuffer(sizeof(UniformBufferData));
 
 		// TODO: Change tutorial sizes to more acurate ones
@@ -99,7 +103,12 @@ namespace Sphynx::Rendering {
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
 
+		if (!PipelineCache->SaveToFile(PipelineCacheFilepath))
+			SE_WARN(Logging::Rendering, "Failed to save pipeline cache to '{}'", PipelineCacheFilepath.string());
+
 		delete InstanceBuffer;
+
+		delete PipelineCache;
 
 		LogicalDevice.destroySampler(DefaultSampler);
 
