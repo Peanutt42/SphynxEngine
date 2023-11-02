@@ -52,7 +52,7 @@ namespace Sphynx {
 		}
 		catch(...) {}
 
-		if (!Platform::Process::Run(crashReporterExeFilename))
+		if (!Platform::Process::Run(crashReporterExeFilename, { std::to_string(Platform::Process::GetCurrentProcessId()) }))
 			SE_ERR("Failed to run CrashReporter, crashed application will not show the CrashReporter UI, so look into the CrashReport.txt and Engine.log!");
 	}
 
