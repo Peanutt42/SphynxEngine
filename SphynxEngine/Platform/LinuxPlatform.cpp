@@ -36,7 +36,6 @@ namespace Sphynx::Platform {
         case SIGILL:    return "Illegal instruction";
         case SIGABRT:   return "Abnormal termination";
         case SIGSEGV:   return "Invalid access to memory (nullptr, etc)";
-        case SIGTERM:   return "Termination (abnormal)";
         }
     }
 
@@ -53,7 +52,6 @@ namespace Sphynx::Platform {
         signal(SIGILL, SignalHandler);
         signal(SIGABRT, SignalHandler);
         signal(SIGSEGV, SignalHandler);
-        signal(SIGTERM, SignalHandler);
         s_ExceptionCallback = callback;
     }
 
