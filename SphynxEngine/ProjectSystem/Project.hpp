@@ -21,6 +21,8 @@ namespace Sphynx {
 			: Filepath(filepath), Folderpath(Filepath.parent_path()), EngineConfigFilepath(Folderpath / "Config/EngineConfig.ini"),
 			BinariesDirectory(Folderpath / "Binaries"), CacheFolder(Folderpath / "Cache")
 		{
+			if (!std::filesystem::exists(CacheFolder)) std::filesystem::create_directory(CacheFolder);
+
 			std::string filepathStr = filepath.string();
 
 			YAML::Node data = YAMLSerializer::LoadFile(filepathStr).expect("Failed to open Project file");
