@@ -46,14 +46,14 @@ namespace Sphynx::Rendering {
 
 		std::vector<vk::PhysicalDevice> devices = VulkanContext::Instance->Instance.enumeratePhysicalDevices();
 
-		std::multimap<int, vk::PhysicalDevice> gpuChoices;
+		std::multimap<size_t, vk::PhysicalDevice> gpuChoices;
 		std::unordered_map<vk::PhysicalDevice::NativeType, std::vector<const char*>> unsupportedExtensionsMap;
 		for (const auto& device : devices) {
 			if (!IsDeviceSupported(device, deviceExtensions, unsupportedExtensionsMap[device]))
 				continue;
 
 			// give each GPU a score
-			int score = 0;
+			size_t score = 0;
 			vk::PhysicalDeviceProperties deviceProperties = device.getProperties();
 			
 			// Discrete GPUs have a significant performance advantage
@@ -72,8 +72,8 @@ namespace Sphynx::Rendering {
 			for (const char* extension : unsupportedExtensions)
 				SE_ERR(Logging::Rendering, "\t{}", extension);
 		}
-		
-		SE_ASSERT(gpuChoices.size() != 0, Logging::Rendering, "Couldn't find a suitable GPU");
+		assert(false);
+		SE_ASSERT(!gpuChoices.empty(), Logging::Rendering, "Couldn't find a suitable GPU");
 
 		if (gpuChoices.rbegin()->first > 0)
 			physicalDevice = gpuChoices.rbegin()->second;
