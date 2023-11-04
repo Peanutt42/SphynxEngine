@@ -11,7 +11,7 @@ namespace Sphynx {
 
 		static void StartCrashReporter();
 
-		static void OnCrash(const std::string& reason, bool msgBox = false);
+		[[noreturn]] static void OnCrash(const std::string& reason, bool msgBox = false);
 
 	private:
 		inline static bool s_Initialized = false;
@@ -32,11 +32,10 @@ namespace Sphynx {
 	if (!(result)) {																													\
 		if (Sphynx::Platform::IsDebuggerAttached())																						\
 			DEBUGBREAK();																												\
-		else {                         \
+		else {                                                                                                                          \
             std::string formatted = Sphynx::Logging::AssertLog(#result, __FILE__, Sphynx::Logging::Verbosity::Critical, __VA_ARGS__);   \
             Sphynx::CrashHandler::OnCrash("SE_ASSERT: " + formatted);                                                                   \
         }                                                                                                                               \
-        std::exit(1);	/* This will never be reached but suppresses warnings for not checking if the expr is 0 */					    \
 	}																																	\
 }
 #else

@@ -11,7 +11,7 @@
 namespace Sphynx {
 	void AbortHandler(int);
 	void InvalidParameterHandler(const wchar_t* Expression, const wchar_t* Function, const wchar_t* File, uint32 Line, uintptr Reserved);
-	void OnProcessCrashed(const std::string& reason, bool msgBox, void* context = nullptr);
+	[[noreturn]] void OnProcessCrashed(const std::string& reason, bool msgBox, void* context = nullptr);
 
 	void CrashHandler::Init() {
 		if (s_Initialized)
