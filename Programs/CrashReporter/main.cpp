@@ -5,6 +5,8 @@
 #ifdef WINDOWS
 #define WIN32_LEAN_AND_MEAN
 #include <Windows.h>
+#elif defined(LINUX)
+#include <sys/wait.h>
 #endif
 
 #include <thread>
@@ -20,9 +22,9 @@ bool ProcessExists(DWORD pid) {
 	CloseHandle(process);
 	return exitCode == STILL_ACTIVE;
 }
-#else defined(LINUX)
+#elif defined(LINUX)
 bool ProcessExists(pid_t pid) {
-	while (waitpid(-1, 0, WNOHANG) > 0) {}
+	while (waitpid(-1, nullptr, WNOHANG) > 0) {}
 	return kill(pid, 0) == 0;
 }
 #endif
