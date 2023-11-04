@@ -48,7 +48,7 @@ namespace Sphynx::Rendering {
 					cacheValid = false;
 				}
 				reader.Read(header.pipelineCacheUUID);
-				if (std::memcmp(header.pipelineCacheUUID, deviceProperties.pipelineCacheUUID, sizeof(deviceProperties.pipelineCacheUUID) != 0)) {
+				if (std::memcmp(header.pipelineCacheUUID, deviceProperties.pipelineCacheUUID, sizeof(deviceProperties.pipelineCacheUUID)) != 0) {
 					auto printUUID = [](std::stringstream& ss, const uint8_t uuid[VK_UUID_SIZE]) {
 						for (int i = 0; i < VK_UUID_SIZE; ++i) {
 							ss << std::setw(2) << (uint32_t)uuid[i];
