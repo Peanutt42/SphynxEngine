@@ -72,7 +72,7 @@ namespace Sphynx::Rendering {
 			for (const char* extension : unsupportedExtensions)
 				SE_ERR(Logging::Rendering, "\t{}", extension);
 		}
-		assert(false);
+
 		SE_ASSERT(!gpuChoices.empty(), Logging::Rendering, "Couldn't find a suitable GPU");
 
 		if (gpuChoices.rbegin()->first > 0)
