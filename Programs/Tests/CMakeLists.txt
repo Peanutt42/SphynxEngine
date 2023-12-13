@@ -13,15 +13,17 @@ target_include_directories(Tests PUBLIC
 target_compile_features(Tests PRIVATE cxx_std_20)
 
 target_link_libraries(Tests PRIVATE
-		gtest
+		gtest_main
 		SphynxEngine
 		yaml
 		imgui
-		tracy
+		TracyClient
 		${BULLET3_LIBS}
 )
 
-include(GoogleTest)
-gtest_discover_tests(Tests)
+target_compile_definitions(Tests PRIVATE TEST_PROJECT_DIR="${CMAKE_SOURCE_DIR}/TestProject")
 
 target_precompile_headers(Tests PUBLIC pch.hpp)
+
+include(GoogleTest)
+gtest_discover_tests(Tests)

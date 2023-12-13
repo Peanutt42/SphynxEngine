@@ -2,8 +2,8 @@ macro(copy_content_folder _TARGET BIN_DIR)
 	add_custom_command(
 			TARGET ${_TARGET}
 			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo "Copying Content folder to ${BIN_DIR}/Content"
 			COMMAND ${CMAKE_COMMAND} -E copy_directory ${SE_CONTENT_DIR} "${BIN_DIR}/Content"
-			COMMENT "Copying ${SE_CONTENT_DIR} to ${BIN_DIR}/Content"
 	)
 endmacro()
 
@@ -11,8 +11,8 @@ macro(copy_file _TARGET SOURCE DEST)
 	add_custom_command(
 			TARGET ${_TARGET}
 			POST_BUILD
+			COMMAND ${CMAKE_COMMAND} -E echo "Copying ${SOURCE} to ${DEST}"
 			COMMAND ${CMAKE_COMMAND} -E copy_if_different "${SOURCE}" "${DEST}"
-			COMMENT "Copying ${SOURCE} to ${DEST}"
 	)
 endmacro()
 

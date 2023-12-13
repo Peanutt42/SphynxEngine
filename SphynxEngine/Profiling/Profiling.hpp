@@ -2,8 +2,12 @@
 
 #if defined(DEBUG) || defined(DEVELOPMENT)
 
-#define TRACY_ENABLE
+#ifndef TRACY_ENABLE
+#define TRACY_ENABLE true
+#endif
+#ifndef TRACY_ON_DEMAND
 #define TRACY_ON_DEMAND
+#endif
 #include <tracy/Tracy.hpp>
 
 #define SE_PROFILE_FRAME_END(name) FrameMarkNamed(name)

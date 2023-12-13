@@ -53,7 +53,7 @@ namespace Sphynx::UI {
 		init_info.MinImageCount = Rendering::VulkanContext::MaxFramesInFlight;
 		init_info.ImageCount = Rendering::VulkanContext::MaxFramesInFlight;
 		init_info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-		init_info.PipelineCache = Rendering::VulkanContext::PipelineCache->GetHandle();
+		init_info.PipelineCache = VK_NULL_HANDLE;
 
 		ImGui_ImplVulkan_Init(&init_info, Rendering::VulkanContext::Renderpass->GetHandle());
 

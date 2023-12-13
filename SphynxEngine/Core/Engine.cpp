@@ -30,6 +30,8 @@ namespace Sphynx {
 		CrashHandler::Init();
 		CrashHandler::StartCrashReporter();
 
+		Timer initTimer;
+
 		s_Settings = settings;
 
 		Logging::Init();
@@ -67,9 +69,13 @@ namespace Sphynx {
 		s_Application->OnCreate();
 
 		s_UpdateTimer.Reset();
+
+		SE_INFO("Init took: {}s", initTimer.ElapsedSeconds());
 	}
 
 	void Engine::Shutdown() {
+		Timer shutdownTimer;
+
 		s_Application->OnDestroy();
 
 		if (Rendering::Renderer::IsInitialized())
@@ -81,18 +87,20 @@ namespace Sphynx {
 
 		if (ConsoleInput::IsInitialized())
 			ConsoleInput::Shutdown();
-		
+
 		if (s_Settings.ImGuiEnabled)
 			UI::VulkanImGui::Shutdown();
 
 		if (Rendering::Renderer::IsInitialized())
 			Rendering::Renderer::Shutdown();
-		
+
 		if (s_Window)
 			delete s_Window;
-		
+
 		if (Audio::AudioEngine::IsInitialized())
 			Audio::AudioEngine::Shutdown();
+
+		SE_INFO("Shutdown took: {}s", shutdownTimer.ElapsedSeconds());
 
 		SE_INFO("=== SPHYNX ENGINE SHUTDOWN ===");
 

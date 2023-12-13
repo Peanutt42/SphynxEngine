@@ -32,7 +32,7 @@ target_include_directories(TestProject PRIVATE
 
 target_link_libraries(TestProject PRIVATE
 	${Engine_LIBRARIES}
-	tracy
+	TracyClient
 )
 
 target_precompile_headers(TestProject PUBLIC "Source/pch.hpp")

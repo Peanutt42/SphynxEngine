@@ -15,14 +15,19 @@ int main(const int argc, const char** argv) {
 	Sphynx::CrashHandler::Init(); // Gets called by Engine::Init as well
 	
 	int errorCode = 0;
-	try {
+	if (Sphynx::Platform::IsDebuggerAttached()) {
 		errorCode = GuardedMain(argc, argv);
 	}
-	catch (const std::exception& e) {
-		Sphynx::CrashHandler::OnCrash("std::exception was thrown: " + std::string(e.what()), true);
-	}
-	catch (...) {
-		Sphynx::CrashHandler::OnCrash("unknown exception was thrown!", true);
+	else {
+		try {
+			errorCode = GuardedMain(argc, argv);
+		}
+		catch (const std::exception& e) {
+			Sphynx::CrashHandler::OnCrash("std::exception was thrown: " + std::string(e.what()), true);
+		}
+		catch (...) {
+			Sphynx::CrashHandler::OnCrash("unknown exception was thrown!", true);
+		}
 	}
 	return errorCode;
 }

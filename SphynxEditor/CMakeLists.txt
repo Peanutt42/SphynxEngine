@@ -20,11 +20,9 @@ target_link_libraries(SphynxEditor PRIVATE
 		assimp
 		${BULLET3_LIBS}
 		${Vulkan_SHADERC_LIB}
-		backward-cpp
+		backward
 )
 
 target_precompile_headers(SphynxEditor PUBLIC pch.hpp)
 
 copy_content_folder(SphynxEditor ${CMAKE_CURRENT_BINARY_DIR})
-
-set(SPHYNX_EDITOR_BIN_DIR ${CMAKE_CURRENT_BINARY_DIR} PARENT_SCOPE)

@@ -249,7 +249,7 @@ namespace Sphynx::Rendering {
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        result = VulkanContext::LogicalDevice.createGraphicsPipelines(VulkanContext::PipelineCache->GetHandle(), 1, &pipelineInfo, nullptr, &m_Pipeline);
+        result = VulkanContext::LogicalDevice.createGraphicsPipelines(VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline);
         SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create graphics pipeline");
 
         VulkanContext::LogicalDevice.destroyShaderModule(fragmentModule, nullptr);

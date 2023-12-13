@@ -18,20 +18,18 @@ target_include_directories(SphynxEngine
 	PUBLIC
 		$<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}>
 		$<BUILD_INTERFACE:${GLM_INCLUDE_DIR}>
-		$<BUILD_INTERFACE:${ENTT_INCLUDE_DIR}>
 	PRIVATE
 		${FILEWATCH_INCLUDE_DIR}
 		${Vulkan_INCLUDE_DIRS}
 		${BULLET3_INCLUDE_DIR}
 		"../Programs/"
 )
-
 add_dependencies(SphynxEngine
 		yaml
 		stb_image
 		imgui
 		glfw
-		tracy
+		TracyClient 
 )
 
 target_link_libraries(SphynxEngine
@@ -39,15 +37,16 @@ target_link_libraries(SphynxEngine
 		yaml
 		stb_image
 		imgui
-		tracy
+		TracyClient 
 		fmt
+		EnTT
 	PRIVATE
 		${Vulkan_LIBRARIES}
 		${Vulkan_SPIRV_CROSS_LIB}
 		sndfile
 		OpenAL
 		glfw
-		backward-cpp
+		backward
 		${BULLET3_LIBS}
 )
 
@@ -81,7 +80,7 @@ configure_package_config_file(
 )
 
 install(
-	TARGETS SphynxEngine yaml stb_image imgui tracy
+	TARGETS SphynxEngine yaml stb_image imgui TracyClient
 	EXPORT SphynxEngineTargets
 	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"
