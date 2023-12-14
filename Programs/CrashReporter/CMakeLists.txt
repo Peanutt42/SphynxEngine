@@ -14,7 +14,7 @@ target_compile_features(CrashReporter PRIVATE cxx_std_20)
 add_dependencies(CrashReporter
 		glfw
 		imgui
-		yaml
+		yaml-cpp
 		glad
 )
 
@@ -25,7 +25,7 @@ find_package(OpenGL REQUIRED)
 target_link_libraries(CrashReporter PRIVATE
 		glfw
 		imgui
-		yaml
+		yaml-cpp
 		glad
 		${OPENGL_opengl_LIBRARY}
 )

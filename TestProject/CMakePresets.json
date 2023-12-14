@@ -3,21 +3,21 @@
   "configurePresets": [
     {
       "name": "Debug",
-      "binaryDir": "${sourceDir}/build/Debug",
+      "binaryDir": "${sourceDir}/Binaries",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Debug"
       }
     },
     {
       "name": "Developent",
-      "binaryDir": "${sourceDir}/build/Development",
+      "binaryDir": "${sourceDir}/Binaries",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
       }
     },
     {
       "name": "Release",
-      "binaryDir": "${sourceDir}/build/Release",
+      "binaryDir": "${sourceDir}/Binaries",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "Release"
       }

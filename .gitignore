@@ -22,7 +22,6 @@ cmake_install/**
 *.app
 /bin
 **/build
-TestProject/Binaries
 Programs/ReflectionGenerator/bin
 Programs/CrashReporter/bin
 
@@ -38,12 +37,3 @@ Programs/CrashReporter/bin
 
 # Logging
 *.log
-/Logs
-
-# generated cached files
-*.cached_shader
-/TestProject/Cache
-
-
-# generated reflection info
-TestProject/Source/generated/generated.cpp

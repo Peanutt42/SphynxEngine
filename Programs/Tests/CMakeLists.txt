@@ -15,7 +15,7 @@ target_compile_features(Tests PRIVATE cxx_std_20)
 target_link_libraries(Tests PRIVATE
 		gtest_main
 		SphynxEngine
-		yaml
+		yaml-cpp
 		imgui
 		TracyClient
 		${BULLET3_LIBS}

@@ -25,19 +25,19 @@ target_include_directories(SphynxEngine
 		"../Programs/"
 )
 add_dependencies(SphynxEngine
-		yaml
+		yaml-cpp
 		stb_image
 		imgui
 		glfw
-		TracyClient 
+		TracyClient
 )
 
 target_link_libraries(SphynxEngine
 	PUBLIC
-		yaml
+		yaml-cpp
 		stb_image
 		imgui
-		TracyClient 
+		TracyClient
 		fmt
 		EnTT
 	PRIVATE
@@ -80,7 +80,7 @@ configure_package_config_file(
 )
 
 install(
-	TARGETS SphynxEngine yaml stb_image imgui TracyClient
+	TARGETS SphynxEngine yaml-cpp stb_image imgui TracyClient
 	EXPORT SphynxEngineTargets
 	LIBRARY DESTINATION "${CMAKE_INSTALL_LIBDIR}"
     ARCHIVE DESTINATION "${CMAKE_INSTALL_LIBDIR}"

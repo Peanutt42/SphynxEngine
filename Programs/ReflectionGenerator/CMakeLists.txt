@@ -5,7 +5,7 @@ file(GLOB REFLECTION_GENERATOR_SOURCES
 add_executable(ReflectionGenerator ${REFLECTION_GENERATOR_SOURCES})
 
 target_link_libraries(ReflectionGenerator
-	yaml
+	yaml-cpp
 )
 
 target_compile_features(ReflectionGenerator PRIVATE cxx_std_20)

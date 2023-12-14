@@ -1,0 +1,6 @@
+.vs/
+.vscode/
+
+# Executables
+Binaries/
+Source/generated/**

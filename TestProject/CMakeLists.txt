@@ -4,6 +4,8 @@ project(TestProject)
 
 set(CMAKE_MSVC_RUNTIME_LIBRARY  "MultiThreaded$<$<CONFIG:Debug>:Debug>DLL")
 
+find_package(Threads REQUIRED)
+
 set(SE_CMAKE_INSTALL "${CMAKE_CURRENT_SOURCE_DIR}/../cmake_install")
 list(APPEND CMAKE_PREFIX_PATH ${SE_CMAKE_INSTALL})
 
