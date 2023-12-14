@@ -11,7 +11,7 @@
 **/Intermediates
 
 # CMake Install files
-cmake_install/**
+CMakeInstall/**
 
 # Precompiled Headers
 *.gch
