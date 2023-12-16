@@ -4,12 +4,7 @@ file(GLOB_RECURSE SPHYNX_EDITOR_SOURCES
 
 add_executable(SphynxEditor ${SPHYNX_EDITOR_SOURCES})
 
-target_include_directories(SphynxEditor
-	PUBLIC
-		${CMAKE_CURRENT_SOURCE_DIR}
-	PRIVATE
-		${Vulkan_INCLUDE_DIRS}
-)
+target_include_directories(SphynxEditor PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
 target_compile_features(SphynxEditor PRIVATE cxx_std_20)
 
@@ -19,7 +14,6 @@ target_link_libraries(SphynxEditor PRIVATE
 		SphynxEngine
 		assimp
 		${BULLET3_LIBS}
-		${Vulkan_SHADERC_LIB}
 		backward
 )
 

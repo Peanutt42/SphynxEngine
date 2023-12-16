@@ -1,6 +1,5 @@
 #include "pch.hpp"
 #include "EditorApplication.hpp"
-#include "EditorAssetManager.hpp"
 #include "Physics/PhysicEngine.hpp"
 #include "Profiling/Profiling.hpp"
 
@@ -18,21 +17,11 @@ namespace Sphynx::Editor {
 
 		s_Instance = this;
 
-		ImGui::SetCurrentContext(UI::VulkanImGui::GetContext());
-
-		UI::VulkanImGui::EnableDocking();
-		UI::VulkanImGui::SetSaveFilepath("imgui.ini");
-		UI::VulkanImGui::SetMenubarCallback([this]() { OnDrawMenubar(); });
-
-		Rendering::Renderer::SetDrawSceneTextureEnabled(false);
-
 		m_Windows.push_back(std::make_unique<LoggingOutputWindow>());
 		m_Windows.push_back(std::make_unique<HierarchyWindow>());
 		m_Windows.push_back(std::make_unique<PropertyWindow>());
 		m_Windows.push_back(std::make_unique<ProfilingWindow>());
 		m_Windows.push_back(std::make_unique<ViewportWindow>());
-
-		EditorAssetManager::LoadAssets();
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
 		m_SceneFilepath = Engine::GetProject().StartSceneFilepath;

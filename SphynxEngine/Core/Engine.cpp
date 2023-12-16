@@ -8,7 +8,6 @@
 #include "Rendering/Window.hpp"
 #include "Scripting/ScriptingEngine.hpp"
 #include "Physics/PhysicEngine.hpp"
-#include "UI/VulkanImGui.hpp"
 #include "Input/Input.hpp"
 #include "Profiling/Profiling.hpp"
 
@@ -53,17 +52,11 @@ namespace Sphynx {
 		else {
 			SE_ASSERT(Audio::AudioEngine::Init(), "Failed to initialize Audio Engine");
 
-			if (!s_Settings.ImGuiEnabled)
-				s_Settings.CustomWindowControls = false;
-
-			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen, s_Settings.CustomWindowControls);
+			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen);
 
 			Input::Init(s_Window->GetGLFWHandle());
 
 			SE_ASSERT(Rendering::Renderer::Init(*s_Window, &Update), "Failed to initialize the Renderer");
-
-			if (s_Settings.ImGuiEnabled)
-				UI::VulkanImGui::Init();
 		}
 
 		s_Application->OnCreate();
@@ -78,18 +71,12 @@ namespace Sphynx {
 
 		s_Application->OnDestroy();
 
-		if (Rendering::Renderer::IsInitialized())
-			Rendering::Renderer::WaitBeforeClose();
-
 		Scripting::ScriptingEngine::Shutdown();
 
 		Physics::PhysicEngine::Shutdown();
 
 		if (ConsoleInput::IsInitialized())
 			ConsoleInput::Shutdown();
-
-		if (s_Settings.ImGuiEnabled)
-			UI::VulkanImGui::Shutdown();
 
 		if (Rendering::Renderer::IsInitialized())
 			Rendering::Renderer::Shutdown();
@@ -121,19 +108,9 @@ namespace Sphynx {
 
 		Scripting::ScriptingEngine::Update();
 
-		if (Rendering::Renderer::IsInitialized()) {
-			if (s_Settings.ImGuiEnabled) {
-				UI::VulkanImGui::Begin();
-				s_Application->DrawUI();
-				UI::VulkanImGui::End();
-			}
-
-			Rendering::Renderer::Begin();
-			if (s_Settings.ImGuiEnabled)
-				UI::VulkanImGui::Render();
-			Rendering::Renderer::End();
-		}
-		
+		if (Rendering::Renderer::IsInitialized())
+			Rendering::Renderer::Update();
+				
 		if (s_Window)
 			s_Window->Update();
 

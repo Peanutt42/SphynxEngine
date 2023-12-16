@@ -7,7 +7,7 @@ struct GLFWwindow;
 namespace Sphynx::Rendering {
 	class SE_API Window {
 	public:
-		Window(const std::string_view title, bool maximized, bool fullscreen, bool& customWindowControls);
+		Window(const std::string_view title, bool maximized, bool fullscreen);
 		~Window();
 
 		void Update();
@@ -57,7 +57,6 @@ namespace Sphynx::Rendering {
 		static void _WindowResizedCallback(GLFWwindow* window, int width, int height);
 		static void _WindowPositionCallback(GLFWwindow* window, int xpos, int ypos);
 		static void _WindowMaximizeCallback(GLFWwindow* window, int maximized);
-		static void _TitlebarHitTestCallback(GLFWwindow* window, int x, int y, int* hit);
 
 	private:
 		inline static int s_WindowCount = 0;

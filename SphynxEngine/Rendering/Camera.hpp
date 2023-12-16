@@ -30,7 +30,6 @@ namespace Sphynx::Rendering {
 
 		glm::mat4 GetPerspective(float aspect) const {
 			glm::mat4 perspective = glm::perspective(glm::radians(Fov), aspect, NearPlane, FarPlane);
-			perspective[1][1] *= -1; // glm was for opengl, vulkan needs this flipped
 			return perspective;
 		}
 

@@ -12,7 +12,7 @@ namespace Sphynx::Rendering {
 		SE_ERR(Logging::Rendering, "[GLFW]: ({}): {}", error, description);
 	}
 
-	Window::Window(const std::string_view title, bool maximized, bool fullscreen, bool& customWindowControls)
+	Window::Window(const std::string_view title, bool maximized, bool fullscreen)
 		: m_Title(title), m_Maximized(maximized)
 	{
 		SE_PROFILE_FUNCTION();
@@ -24,16 +24,11 @@ namespace Sphynx::Rendering {
 		}
 		s_WindowCount++;
 
-		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
-		glfwWindowHint(GLFW_SAMPLES, 0);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 		glfwWindowHint(GLFW_MAXIMIZED, m_Maximized);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-
-		// ImGui implements custom titlebar
-		if (glfwGetPlatform() == GLFW_PLATFORM_WIN32 && !fullscreen)
-			glfwWindowHint(GLFW_TITLEBAR, !customWindowControls);
-		else
-			customWindowControls = false;
 		
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {
@@ -52,6 +47,7 @@ namespace Sphynx::Rendering {
 
 		m_Window = glfwCreateWindow((int)m_Width, (int)m_Height, m_Title.c_str(), monitor, nullptr);
 		SE_ASSERT(m_Window, Logging::Rendering, "Failed to create window");
+		glfwMakeContextCurrent(m_Window);
 
 		if (glfwRawMouseMotionSupported())
 			glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -62,7 +58,6 @@ namespace Sphynx::Rendering {
 		glfwSetWindowPosCallback(m_Window, _WindowPositionCallback);
 		glfwSetWindowSizeLimits(m_Window, 200, 200, GLFW_DONT_CARE, GLFW_DONT_CARE);
 		glfwSetWindowMaximizeCallback(m_Window, _WindowMaximizeCallback);
-		glfwSetTitlebarHitTestCallback(m_Window, _TitlebarHitTestCallback);
 	}
 
 	Window::~Window() {
@@ -89,8 +84,12 @@ namespace Sphynx::Rendering {
 		}
 		
 		{
-			SE_PROFILE_SCOPE("PollEvents");
+			SE_PROFILE_SCOPE("SwapBuffers");
+			glfwSwapBuffers(m_Window);
+		}
 
+		{
+			SE_PROFILE_SCOPE("PollEvents");
 			glfwPollEvents();
 		}
 
@@ -201,13 +200,5 @@ namespace Sphynx::Rendering {
 		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
 		if (_window)
 			_window->m_Maximized = (bool)maximized;
-	}
-
-	void Window::_TitlebarHitTestCallback(GLFWwindow* window, [[maybe_unused]] int x, [[maybe_unused]] int y, int* hit) {
-		auto _window = reinterpret_cast<Window*>(glfwGetWindowUserPointer(window));
-		if (_window && _window->m_TitlebarhitTest)
-			*hit = _window->m_TitlebarhitTest();
-		else
-			*hit = false;
 	}
 }

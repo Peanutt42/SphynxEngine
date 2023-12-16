@@ -1,5 +1,4 @@
 ## Building
-- Download Vulkan SDK: https://vulkan.lunarg.com/sdk/home (preferably 1.3.261)
 - Use cmake
 - Platforms supported: Windows and Linux
 - Linux specific:

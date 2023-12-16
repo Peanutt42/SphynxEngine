@@ -2,10 +2,7 @@
 
 #include "pch.hpp"
 #include "Window.hpp"
-#include "Mesh.hpp"
-#include "Shader.hpp"
 #include "Camera.hpp"
-#include "InstanceData.hpp"
 #include "Scene/Scene.hpp"
 
 #include <queue>
@@ -18,17 +15,7 @@ namespace Sphynx::Rendering {
 
 		static void SubmitScene(Scene& scene, const Camera& camera);
 
-		static void Begin();
-		static void End();
-
-		static void WaitBeforeClose();
-
-		static void AddBeforeNextRenderCallback(const std::function<void()>& callback);
-
-		static void SetDrawSceneTextureEnabled(bool enable);
-
-		// ImTextureID
-		static void* GetSceneTextureID();
+		static void Update();
 
 		static bool IsInitialized();
 	};

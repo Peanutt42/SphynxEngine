@@ -2,7 +2,6 @@
 
 #include "pch.hpp"
 #include "Core/Engine.hpp"
-#include "UI/VulkanImGui.hpp"
 #include "EditorWindow.hpp"
 #include "Scene/Scene.hpp"
 #include "Rendering/Camera.hpp"

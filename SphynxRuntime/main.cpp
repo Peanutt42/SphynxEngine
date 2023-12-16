@@ -12,9 +12,6 @@ namespace Sphynx {
 
 
 		virtual void OnCreate() override {
-			if (Rendering::Renderer::IsInitialized())
-				Rendering::Renderer::SetDrawSceneTextureEnabled(true);
-
 			m_Scene = std::make_unique<Scene>("Scene");
 
 			SceneSerializer::Deserialize(Engine::GetProject().StartSceneFilepath, *m_Scene)

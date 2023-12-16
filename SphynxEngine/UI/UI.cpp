@@ -71,55 +71,6 @@ namespace Sphynx::UI {
 		window->DC.MenuBarAppending = false;
 	}
 
-
-
-	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
-		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-		ImVec2 rectMin, ImVec2 rectMax)
-	{
-		auto* drawList = ImGui::GetForegroundDrawList();
-		if (ImGui::IsItemActive())
-			drawList->AddImage(imagePressed.GetDescriptorSet(), rectMin, rectMax, ImVec2(0, 0), ImVec2(1, 1), tintPressed);
-		else if (ImGui::IsItemHovered())
-			drawList->AddImage(imageHovered.GetDescriptorSet(), rectMin, rectMax, ImVec2(0, 0), ImVec2(1, 1), tintHovered);
-		else
-			drawList->AddImage(imageNormal.GetDescriptorSet(), rectMin, rectMax, ImVec2(0, 0), ImVec2(1, 1), tintNormal);
-	};
-
-	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
-		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-		ImRect rectangle)
-	{
-		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
-	};
-
-	void DrawButtonImage(Rendering::Image& image,
-		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-		ImVec2 rectMin, ImVec2 rectMax)
-	{
-		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectMin, rectMax);
-	};
-
-	void DrawButtonImage(Rendering::Image& image,
-		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
-		ImRect rectangle)
-	{
-		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
-	};
-
-
-	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
-		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
-	{
-		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-	};
-
-	void DrawButtonImage(Rendering::Image& image,
-		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
-	{
-		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
-	}
-	
 	
 	bool Vec3(std::string_view label, glm::vec3& v, float resetValue, float columnWidth) {
 		bool changed = false;
