@@ -52,7 +52,7 @@ namespace Sphynx {
 		else {
 			SE_ASSERT(Audio::AudioEngine::Init(), "Failed to initialize Audio Engine");
 
-			s_Window = new Rendering::Window(s_Settings.WindowName, true, s_Settings.Fullscreen);
+			s_Window = new Rendering::Window(s_Settings.WindowName, false, s_Settings.Fullscreen);
 
 			Input::Init(s_Window->GetGLFWHandle());
 
