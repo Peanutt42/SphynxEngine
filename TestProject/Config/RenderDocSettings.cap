@@ -5,13 +5,13 @@
         "commandLine": "TestProject/TestProject.seproj",
         "environment": [
         ],
-        "executable": "C:\\dev\\cpp\\SphynxEngine\\bin\\windows-x86_64\\Release\\Editor\\Editor.exe",
+        "executable": "C:\\dev\\cpp\\SphynxEngine\\Build\\Development\\SphynxEditor\\SphynxEditor.exe",
         "inject": false,
         "numQueuedFrames": 0,
         "options": {
             "allowFullscreen": true,
             "allowVSync": true,
-            "apiValidation": false,
+            "apiValidation": true,
             "captureAllCmdLists": true,
             "captureCallstacks": true,
             "captureCallstacksOnlyDraws": false,
@@ -19,6 +19,7 @@
             "delayForDebugger": 0,
             "hookIntoChildren": false,
             "refAllResources": false,
+            "softMemoryLimit": 0,
             "verifyBufferAccess": true
         },
         "queuedFrameCap": 0,

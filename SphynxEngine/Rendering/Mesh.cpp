@@ -7,6 +7,9 @@ namespace Sphynx::Rendering {
 	int GetVertexAttribElementType(VertexAttrib attrib) {
 		switch (attrib) {
 		default: return 0;
+		case VertexAttrib::Int: return GL_INT;
+		case VertexAttrib::Float:
+		case VertexAttrib::Vec2:
 		case VertexAttrib::Vec3: return GL_FLOAT;
 		}
 	}
@@ -14,6 +17,9 @@ namespace Sphynx::Rendering {
 	int GetVertexAttribElementCount(VertexAttrib attrib) {
 		switch (attrib) {
 		default: return 0;
+		case VertexAttrib::Int:
+		case VertexAttrib::Float: return 1;
+		case VertexAttrib::Vec2: return 2;
 		case VertexAttrib::Vec3: return 3;
 		}
 	}
@@ -21,6 +27,9 @@ namespace Sphynx::Rendering {
 	size_t GetVertexAttribSize(VertexAttrib attrib) {
 		switch (attrib) {
 		default: return 0;
+		case VertexAttrib::Int: return sizeof(int);
+		case VertexAttrib::Float: return sizeof(float);
+		case VertexAttrib::Vec2: return 2 * sizeof(float);
 		case VertexAttrib::Vec3: return 3 * sizeof(float);
 		}
 	}

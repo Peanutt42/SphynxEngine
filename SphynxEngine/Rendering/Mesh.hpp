@@ -4,6 +4,9 @@
 
 namespace Sphynx::Rendering {
 	enum class VertexAttrib {
+		Int,
+		Float,
+		Vec2,
 		Vec3,
 	};
 

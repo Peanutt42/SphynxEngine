@@ -20,22 +20,21 @@ namespace Sphynx::Rendering {
 
 	Mesh* triangle = nullptr;
 	struct Vertex {
-		glm::vec3 position;
+		glm::vec3 position, color;
 
 		static VertexLayout GetVertexLayout() {
 			return VertexLayout{}
+			.add(VertexAttrib::Vec3)
 			.add(VertexAttrib::Vec3);
 		}
 	};
 	std::vector<Vertex> vertices = {
-		Vertex{{ 0.5f,  0.5f, 0.0f }},  // top right
-		Vertex{{ 0.5f, -0.5f, 0.0f }},  // bottom right
-		Vertex{{-0.5f, -0.5f, 0.0f }},  // bottom left
-		Vertex{{-0.5f,  0.5f, 0.0f }}   // top left 
+		Vertex{{ 0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // bottom right
+		Vertex{{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},  // bottom left
+		Vertex{{ 0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}   // top 
 	};
 	std::vector<uint32> indices = {
-		0, 1, 3,   // first triangle
-		1, 2, 3    // second triangle
+		0, 1, 2
 	};
 
 	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback) {
