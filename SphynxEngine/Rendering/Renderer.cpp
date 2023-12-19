@@ -4,6 +4,7 @@
 #include "Profiling/Profiling.hpp"
 #include "Shader.hpp"
 #include "Mesh.hpp"
+#include "Texture.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -18,23 +19,30 @@ namespace Sphynx::Rendering {
 
 	Shader* triangle_shader = nullptr;
 
+	Texture* cat = nullptr;
+
 	Mesh* triangle = nullptr;
 	struct Vertex {
 		glm::vec3 position, color;
+		glm::vec2 uv;
 
 		static VertexLayout GetVertexLayout() {
 			return VertexLayout{}
 			.add(VertexAttrib::Vec3)
-			.add(VertexAttrib::Vec3);
+			.add(VertexAttrib::Vec3)
+			.add(VertexAttrib::Vec2);
 		}
 	};
 	std::vector<Vertex> vertices = {
-		Vertex{{ 0.5f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},  // bottom right
-		Vertex{{-0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},  // bottom left
-		Vertex{{ 0.0f,  0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}   // top 
+		// positions          // colors           // texture coords
+		{{ 0.5f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},   // top right
+		{{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},   // bottom right
+		{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},   // bottom left
+		{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}}    // top left 
 	};
 	std::vector<uint32> indices = {
-		0, 1, 2
+		0, 1, 3,
+		1, 2, 3
 	};
 
 	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback) {
@@ -59,6 +67,9 @@ namespace Sphynx::Rendering {
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
 
 		triangle_shader = new Shader("Content/Shaders/triangle.vert", "Content/Shaders/triangle.frag");
+		triangle_shader->Bind();
+		triangle_shader->Set("a_texture", 0);
+		cat = new Texture("Content/Textures/wall.jpg");
 
 		triangle = new Mesh(vertices, indices);
 		
@@ -73,6 +84,7 @@ namespace Sphynx::Rendering {
 			return;
 
 		delete triangle;
+		delete cat;
 		delete triangle_shader;
 
 		s_Initialized = false;
@@ -95,6 +107,7 @@ namespace Sphynx::Rendering {
 		glClear(GL_COLOR_BUFFER_BIT);
 		
 		triangle_shader->Bind();
+		cat->Bind();
 		triangle->Draw();
 	}
 
