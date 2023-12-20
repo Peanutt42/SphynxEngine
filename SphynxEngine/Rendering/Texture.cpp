@@ -7,9 +7,10 @@
 namespace Sphynx::Rendering {
 	Texture::Texture(const std::filesystem::path& filepath) {
 		int width = 0, height = 0, channels = 0;
+		GLenum format = GL_RGBA, internalFormat = GL_RGBA8;
 		std::string filepathStr = filepath.string();
 		stbi_set_flip_vertically_on_load(true);
-		unsigned char* data = stbi_load(filepathStr.c_str(), &width, &height, &channels, 3);
+		unsigned char* data = stbi_load(filepathStr.c_str(), &width, &height, &channels, STBI_rgb_alpha);
 		
 		if (data) {
 			glGenTextures(1, &m_ID);
@@ -18,15 +19,6 @@ namespace Sphynx::Rendering {
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-			GLenum format = 0, internalFormat = 0;
-			if (channels == 4) {
-				format = GL_RGBA;
-				internalFormat = GL_RGBA8;
-			}
-			else if (channels == 3) {
-				format = GL_RGB;
-				internalFormat = GL_RGB8;
-			}
 			glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, width, height, 0, format, GL_UNSIGNED_BYTE, data);
 			glGenerateMipmap(GL_TEXTURE_2D);
 			stbi_image_free(data);

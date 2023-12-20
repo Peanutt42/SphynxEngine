@@ -69,7 +69,7 @@ namespace Sphynx::Rendering {
 		triangle_shader = new Shader("Content/Shaders/triangle.vert", "Content/Shaders/triangle.frag");
 		triangle_shader->Bind();
 		triangle_shader->Set("a_texture", 0);
-		cat = new Texture("Content/Textures/wall.jpg");
+		cat = new Texture("Content/Textures/cat.jpg");
 
 		triangle = new Mesh(vertices, indices);
 		
