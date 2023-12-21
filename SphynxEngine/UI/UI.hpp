@@ -2,6 +2,7 @@
 
 #include "pch.hpp"
 #include "Fonts.hpp"
+#include "Rendering/Window.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -41,11 +42,14 @@ namespace Sphynx::UI {
 		return RectOffset(rect, xy.x, xy.y);
 	}
 
-
-	SE_API bool BeginMenubar(const ImRect& bar);
-	SE_API void EndMenubar();
-
-
 	
 	SE_API bool Vec3(std::string_view label, glm::vec3& v, float resetValue = 0.f, float columnWidth = 100.f);
+
+
+	SE_API void Init(Rendering::Window& window);
+	SE_API void Shutdown();
+	SE_API void Begin();
+	SE_API void End();
+	SE_API void Render();
+	SE_API ImGuiContext* GetContext(); // For getting the imgui context from the SphynxEngine.dll
 }
