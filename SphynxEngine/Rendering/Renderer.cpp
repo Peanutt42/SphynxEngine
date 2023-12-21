@@ -14,6 +14,7 @@ namespace Sphynx::Rendering {
 	bool s_Initialized = false;
 
 	struct RenderCommand {
+		std::vector<glm::mat4> ModelMatrices;
 		Camera SceneCamera;
 	};
 	RenderCommand s_RenderCommand;
@@ -26,26 +27,27 @@ namespace Sphynx::Rendering {
 
 	Mesh* triangle = nullptr;
 	struct Vertex {
-		glm::vec3 position, color;
-		glm::vec2 uv;
+		glm::vec3 position;
 
 		static VertexLayout GetVertexLayout() {
 			return VertexLayout{}
-			.add(VertexAttrib::Vec3)
-			.add(VertexAttrib::Vec3)
-			.add(VertexAttrib::Vec2);
+			.add(VertexAttrib::Vec3);
 		}
 	};
 	std::vector<Vertex> vertices = {
-		// positions          // colors           // texture coords
-		{{ 0.5f,  0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}, {1.0f, 1.0f}},   // top right
-		{{ 0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}, {1.0f, 0.0f}},   // bottom right
-		{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}, {0.0f, 0.0f}},   // bottom left
-		{{-0.5f,  0.5f, 0.0f}, {1.0f, 1.0f, 0.0f}, {0.0f, 1.0f}}    // top left 
+		{{-1, -1,  0.5}},
+		{{ 1, -1,  0.5}},
+		{{-1,  1,  0.5}},
+		{{ 1,  1,  0.5}},
+		{{-1, -1, -0.5}},
+		{{ 1, -1, -0.5}},
+		{{-1,  1, -0.5}},
+		{{ 1,  1, -0.5}},
 	};
 	std::vector<uint32> indices = {
-		0, 1, 3,
-		1, 2, 3
+		2, 6, 7, 2, 3, 7, 0, 4, 5, 0, 1, 5,
+		0, 2, 6, 0, 4, 6, 1, 3, 7, 1, 5, 7,
+		0, 2, 3, 0, 1, 3, 4, 6, 7, 4, 5, 7
 	};
 
 	int s_ScreenWidth = 0, s_ScreenHeight = 0;
@@ -67,6 +69,8 @@ namespace Sphynx::Rendering {
 					resizeCallback();
 			}
 		});
+		s_ScreenWidth = window.GetWidth();
+		s_ScreenHeight = window.GetHeight();
 
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			SE_ERR(Logging::Rendering, "Failed to initialize glad!");
@@ -79,7 +83,6 @@ namespace Sphynx::Rendering {
 
 		triangle_shader = new Shader("Content/Shaders/triangle.vert", "Content/Shaders/triangle.frag");
 		triangle_shader->Bind();
-		triangle_shader->Set("a_texture", 0);
 		cat = new Texture("Content/Textures/cat.jpg");
 
 		triangle = new Mesh(vertices, indices);
@@ -108,6 +111,10 @@ namespace Sphynx::Rendering {
 			return;
 
 		s_RenderCommand.SceneCamera = camera;
+		s_RenderCommand.ModelMatrices.resize(0);
+		for (auto[entity, transform] : scene.View<ECS::TransformComponent>().each()) {
+			s_RenderCommand.ModelMatrices.push_back(transform.GetModelMatrix());
+		}
 	}
 
 	void Renderer::Update() {
@@ -119,8 +126,13 @@ namespace Sphynx::Rendering {
 		s_SceneFramebuffer->Bind();
 
 		triangle_shader->Bind();
-		cat->Bind();
-		triangle->Draw();
+		float aspect = s_ScreenWidth / s_ScreenHeight;
+		if (std::isnan(aspect)) aspect = 16.f / 9.f;
+		triangle_shader->Set("proj_view", s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView());
+		for (const auto& modelMatrix : s_RenderCommand.ModelMatrices) {
+			triangle_shader->Set("model_matrix", modelMatrix);
+			triangle->Draw();
+		}
 
 		// default framebuffer
 		Framebuffer::BindScreen();

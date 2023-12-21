@@ -13,6 +13,8 @@ namespace Sphynx::Rendering {
 		void Set(std::string_view name, bool value);
 		void Set(std::string_view name, int value);
 		void Set(std::string_view name, float value);
+		void Set(std::string_view name, const glm::vec3& vec);
+		void Set(std::string_view name, const glm::mat4& matrix);
 
 	private:
 		std::optional<int> GetUniformLocation(std::string_view name);

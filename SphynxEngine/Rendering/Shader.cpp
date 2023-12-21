@@ -2,6 +2,8 @@
 #include "Shader.hpp"
 #include "Serialization/FileStream.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include <glad/glad.h>
 
 namespace Sphynx::Rendering {
@@ -70,6 +72,16 @@ namespace Sphynx::Rendering {
 	void Shader::Set(std::string_view name, float value) {
 		if (auto location = GetUniformLocation(name))
 			glUniform1f(*location, value);
+	}
+
+	void Shader::Set(std::string_view name, const glm::vec3& vec) {
+		if (auto location = GetUniformLocation(name))
+			glUniform3fv(*location, 1, glm::value_ptr(vec));
+	}
+
+	void Shader::Set(std::string_view name, const glm::mat4& matrix) {
+		if (auto location = GetUniformLocation(name))
+			glUniformMatrix4fv(*location, 1, false, glm::value_ptr(matrix));
 	}
 
 	std::optional<int> Shader::GetUniformLocation(std::string_view name) {
