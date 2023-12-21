@@ -50,11 +50,13 @@ namespace Sphynx::Rendering {
 
 	int s_ScreenWidth = 0, s_ScreenHeight = 0;
 
-	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback) {
+	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback, bool vsync) {
 		SE_PROFILE_FUNCTION();
 
 		if (s_Initialized)
 			return true;
+
+		glfwSwapInterval(vsync ? 1 : 0);
 
 		window.SetResizeCallback([resizeCallback](Window* window, int width, int height) {
 			if (width != 0 && height != 0) {

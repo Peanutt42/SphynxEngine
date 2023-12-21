@@ -11,7 +11,7 @@ namespace Sphynx {
 		bool ImGuiEnabled = false;
 		std::string WindowName;
 		bool Fullscreen = false;
-		int MaxFPS = 0;
+		bool VSync = false;
 
 		void ParseArguments(int argc, const char** argv) {
 			for (int i = 0; i < argc; i++) {
@@ -20,10 +20,8 @@ namespace Sphynx {
 				if (arg == "-headless")
 					Headless = true;
 
-				if (arg.starts_with("-maxfps=")) {
-					if (auto result = StringToNumber<int>(arg.substr(std::size("-maxfps=") - 1)))
-						MaxFPS = *result;
-				}
+				if (arg == "-vsync")
+					VSync = true;
 			}
 		}
 
@@ -35,7 +33,7 @@ namespace Sphynx {
 				return Error<bool>("Failed to parse config file: {}", result.get_error());
 
 			YAML::Node& data = *result;
-			MaxFPS = data["MaxFPS"].as<int>();
+			VSync = data["VSync"].as<bool>();
 
 			return true;
 		}

@@ -57,7 +57,7 @@ namespace Sphynx {
 
 			Input::Init(s_Window->GetGLFWHandle());
 
-			SE_ASSERT(Rendering::Renderer::Init(*s_Window, &Update), "Failed to initialize the Renderer");
+			SE_ASSERT(Rendering::Renderer::Init(*s_Window, &Update, s_Settings.VSync), "Failed to initialize the Renderer");
 
 			if (s_Settings.ImGuiEnabled)
 				UI::Init(*s_Window);
@@ -131,15 +131,6 @@ namespace Sphynx {
 
 		if (Audio::AudioEngine::IsInitialized())
 			Audio::AudioEngine::Update();
-
-		if (s_Settings.MaxFPS > 0) {
-			float updateTime = s_UpdateTimer.ElapsedSeconds();
-			float timeLeft = (1.f / s_Settings.MaxFPS) - updateTime;
-			if (timeLeft > 0.f) {
-				SE_PROFILE_SCOPE("MaxFpsCap");
-				Time::MicroSleep((uint64)(floor(timeLeft * 1000 * 1000))); // Wait for microseconds
-			}
-		}
 
 		SE_PROFILE_FRAME_END("Main Thread");
 	}
