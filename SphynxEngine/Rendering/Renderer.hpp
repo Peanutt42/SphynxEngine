@@ -17,6 +17,8 @@ namespace Sphynx::Rendering {
 
 		static void Update();
 
+		static uint32 GetSceneTextureID();
+
 		static bool IsInitialized();
 	};
 }

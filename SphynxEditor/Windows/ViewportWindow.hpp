@@ -61,6 +61,9 @@ namespace Sphynx::Editor {
 		virtual void Draw() override {
 			m_Hovered = ImGui::IsWindowHovered();
 
+			ImVec2 rect = ImGui::GetContentRegionAvail();
+			uint32 textureId = Rendering::Renderer::GetSceneTextureID();
+			ImGui::Image((ImTextureID)textureId, rect, {0, 1}, {1, 0});
 		}
 
 	private:

@@ -5,6 +5,7 @@
 #include "Shader.hpp"
 #include "Mesh.hpp"
 #include "Texture.hpp"
+#include "Framebuffer.hpp"
 
 #include <glad/glad.h>
 #include <GLFW/glfw3.h>
@@ -17,6 +18,8 @@ namespace Sphynx::Rendering {
 	};
 	RenderCommand s_RenderCommand;
 
+	Framebuffer* s_SceneFramebuffer = nullptr;
+	
 	Shader* triangle_shader = nullptr;
 
 	Texture* cat = nullptr;
@@ -45,6 +48,8 @@ namespace Sphynx::Rendering {
 		1, 2, 3
 	};
 
+	int s_ScreenWidth = 0, s_ScreenHeight = 0;
+
 	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback) {
 		SE_PROFILE_FUNCTION();
 
@@ -53,7 +58,9 @@ namespace Sphynx::Rendering {
 
 		window.SetResizeCallback([resizeCallback](Window* window, int width, int height) {
 			if (width != 0 && height != 0) {
-				glViewport(0, 0, width, height);
+				s_ScreenWidth = width;
+				s_ScreenHeight = height;
+				glViewport(0, 0, s_ScreenWidth, s_ScreenHeight);
 				if (resizeCallback)
 					resizeCallback();
 			}
@@ -65,6 +72,8 @@ namespace Sphynx::Rendering {
 		}
 
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
+
+		s_SceneFramebuffer = new Framebuffer(1920, 1080);
 
 		triangle_shader = new Shader("Content/Shaders/triangle.vert", "Content/Shaders/triangle.frag");
 		triangle_shader->Bind();
@@ -87,6 +96,8 @@ namespace Sphynx::Rendering {
 		delete cat;
 		delete triangle_shader;
 
+		delete s_SceneFramebuffer;
+
 		s_Initialized = false;
 	}
 
@@ -103,13 +114,20 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
-		glClearColor(0.2f, 0.3f, 0.3f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT);
-		
+		s_SceneFramebuffer->Bind();
+
 		triangle_shader->Bind();
 		cat->Bind();
 		triangle->Draw();
+
+		// default framebuffer
+		Framebuffer::BindScreen();
+		glViewport(0, 0, s_ScreenWidth, s_ScreenHeight);
+		glClearColor(0.2f, 0.3f, 0.3f, 1.f);
+		glClear(GL_COLOR_BUFFER_BIT);
 	}
+
+	uint32 Renderer::GetSceneTextureID() { return s_SceneFramebuffer->GetColorTextureID(); }
 
 	bool Renderer::IsInitialized() { return s_Initialized; }
 }
