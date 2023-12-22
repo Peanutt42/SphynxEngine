@@ -259,5 +259,7 @@ namespace Sphynx::Rendering {
 
 	uint32 Renderer::GetSceneTextureID() { return s_SceneFramebuffer->GetColorTextureID(); }
 
+	float Renderer::GetSceneAspectRatio() { return s_SceneWidth / s_SceneHeight; }
+
 	bool Renderer::IsInitialized() { return s_Initialized; }
 }

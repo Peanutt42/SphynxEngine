@@ -1,6 +1,7 @@
 #pragma once
 
 #include "pch.hpp"
+#include "Camera.hpp"
 
 namespace Sphynx::Rendering {
 	struct LightComponent {
@@ -10,6 +11,16 @@ namespace Sphynx::Rendering {
 	
 	struct CameraComponent {
 		float FOV = 60.f;
-		// TODO: all the other stuff
+		float NearPlane = 0.1f, FarPlane = 1000.f;
+
+		Camera ToCamera(const ECS::TransformComponent& transform) const {
+			return {
+				.Position = transform.Position,
+				.Rotation = transform.Rotation,
+				.Fov = FOV,
+				.NearPlane = NearPlane,
+				.FarPlane = FarPlane
+			};
+		}
 	};
 }

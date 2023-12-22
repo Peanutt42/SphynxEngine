@@ -21,6 +21,8 @@ namespace Sphynx::Rendering {
 
 		static uint32 GetSceneTextureID();
 
+		static float GetSceneAspectRatio();
+
 		static bool IsInitialized();
 	};
 }
