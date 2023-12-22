@@ -30,8 +30,12 @@ namespace Sphynx::Rendering {
 	Shader::Shader(const std::filesystem::path& vertex_filepath, const std::filesystem::path& fragment_filepath) {
 		auto vertexShader = CompileShader(vertex_filepath);
 		auto fragmentShader = CompileShader(fragment_filepath);
-		if (!vertexShader || !fragmentShader) {
-			SE_ERR(Logging::Rendering, "Can't compile this shader!");
+		if (!vertexShader) {
+			SE_ERR(Logging::Rendering, "Can't compile shader {}!", vertex_filepath.string());
+			return;
+		}
+		if (!fragmentShader) {
+			SE_ERR(Logging::Rendering, "Can't compile shader {}!", fragment_filepath.string());
 			return;
 		}
 

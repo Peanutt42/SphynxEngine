@@ -32,15 +32,17 @@ namespace Sphynx::Rendering {
 	}
 
 	void Texture::Bind(uint32 slot) {
+		Texture::Bind(m_ID, slot);
+	}
+
+	void Texture::Bind(uint32 id, uint32 slot) {
 #ifndef GL_TEXTURE31
 #error "there should be at least 32 texture slots"
 #endif
 
 		if (slot < 32) {
 			glActiveTexture(GL_TEXTURE0 + slot);
-			glBindTexture(GL_TEXTURE_2D, m_ID);
+			glBindTexture(GL_TEXTURE_2D, id);
 		}
 	}
-
-
 }

@@ -13,19 +13,27 @@
 namespace Sphynx::Rendering {
 	bool s_Initialized = false;
 
+	struct Billboard {
+		glm::vec3 Position;
+		uint32 TextureID = 0;
+	};
+
 	struct RenderCommand {
 		std::vector<glm::mat4> ModelMatrices;
+		std::vector<Billboard> Billboards;
 		Camera SceneCamera;
 	};
 	RenderCommand s_RenderCommand;
 
 	Framebuffer* s_SceneFramebuffer = nullptr;
 	
-	Shader* triangle_shader = nullptr;
+	Shader* default_shader = nullptr;
+	Shader* billboard_shader = nullptr;
+	Mesh* quad = nullptr;
 
 	Texture* cat = nullptr;
 
-	Mesh* triangle = nullptr;
+	Mesh* cube = nullptr;
 	struct Vertex {
 		glm::vec3 position;
 
@@ -34,7 +42,7 @@ namespace Sphynx::Rendering {
 			.add(VertexAttrib::Vec3);
 		}
 	};
-	std::vector<Vertex> vertices = {
+	std::vector<Vertex> cube_vertices = {
 		{{-1, -1,  0.5}},
 		{{ 1, -1,  0.5}},
 		{{-1,  1,  0.5}},
@@ -44,11 +52,29 @@ namespace Sphynx::Rendering {
 		{{-1,  1, -0.5}},
 		{{ 1,  1, -0.5}},
 	};
-	std::vector<uint32> indices = {
+	std::vector<uint32> cube_indices = {
 		2, 6, 7, 2, 3, 7, 0, 4, 5, 0, 1, 5,
 		0, 2, 6, 0, 4, 6, 1, 3, 7, 1, 5, 7,
 		0, 2, 3, 0, 1, 3, 4, 6, 7, 4, 5, 7
 	};
+
+	struct BillboardVertex {
+		glm::vec3 Position;
+		glm::vec2 UV;
+
+		static VertexLayout GetVertexLayout() {
+			return VertexLayout{}
+				.add(VertexAttrib::Vec3)
+				.add(VertexAttrib::Vec2);
+		}
+	};
+	std::vector<BillboardVertex> quad_vertices = {
+		{{-1.f, 1.f, 0.f}, {0.f, 1.f}},
+		{{ 1.f, 1.f, 0.f}, {1.f, 1.f}},
+		{{ 1.f,-1.f, 0.f}, {1.f,  0.f}},
+		{{-1.f,-1.f, 0.f}, {0.f,  0.f}},
+	};
+	std::vector<uint32> quad_indices = { 0,1,2,2,3,0 };
 
 	int s_ScreenWidth = 0, s_ScreenHeight = 0;
 
@@ -81,11 +107,16 @@ namespace Sphynx::Rendering {
 
 		s_SceneFramebuffer = new Framebuffer(1920, 1080);
 
-		triangle_shader = new Shader("Content/Shaders/triangle.vert", "Content/Shaders/triangle.frag");
-		triangle_shader->Bind();
+		default_shader = new Shader("Content/Shaders/Default.vert", "Content/Shaders/Default.frag");
+		default_shader->Bind();
 		cat = new Texture("Content/Textures/cat.jpg");
 
-		triangle = new Mesh(vertices, indices);
+		billboard_shader = new Shader("Content/Shaders/Billboard.vert", "Content/Shaders/Billboard.frag");
+		billboard_shader->Bind();
+
+		quad = new Mesh(quad_vertices, quad_indices);
+
+		cube = new Mesh(cube_vertices, cube_indices);
 		
 		s_Initialized = true;
 		return true;
@@ -97,9 +128,11 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
-		delete triangle;
+		delete cube;
 		delete cat;
-		delete triangle_shader;
+		delete default_shader;
+		delete billboard_shader;
+		delete quad;
 
 		delete s_SceneFramebuffer;
 
@@ -115,6 +148,8 @@ namespace Sphynx::Rendering {
 		for (auto[entity, transform] : scene.View<ECS::TransformComponent>().each()) {
 			s_RenderCommand.ModelMatrices.push_back(transform.GetModelMatrix());
 		}
+		s_RenderCommand.Billboards.resize(0);
+		s_RenderCommand.Billboards.emplace_back(glm::vec3(0.f), cat->GetID());
 	}
 
 	void Renderer::Update() {
@@ -125,13 +160,27 @@ namespace Sphynx::Rendering {
 
 		s_SceneFramebuffer->Bind();
 
-		triangle_shader->Bind();
+		default_shader->Bind();
 		float aspect = s_ScreenWidth / s_ScreenHeight;
 		if (std::isnan(aspect)) aspect = 16.f / 9.f;
-		triangle_shader->Set("proj_view", s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView());
+		auto proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect)* s_RenderCommand.SceneCamera.GetView();
+		default_shader->Set("proj_view", proj_view);
 		for (const auto& modelMatrix : s_RenderCommand.ModelMatrices) {
-			triangle_shader->Set("model_matrix", modelMatrix);
-			triangle->Draw();
+			default_shader->Set("model_matrix", modelMatrix);
+			cube->Draw();
+		}
+
+		// billboards
+		billboard_shader->Bind();
+		billboard_shader->Set("billboard", 0);
+		billboard_shader->Set("proj_view", proj_view);
+		for (const auto& billboard : s_RenderCommand.Billboards) {
+			Texture::Bind(billboard.TextureID, 0);
+
+			glm::mat4 model_matrix = glm::translate(glm::mat4(1.f), billboard.Position) * 
+				glm::toMat4(glm::quat(s_RenderCommand.SceneCamera.Rotation));
+			billboard_shader->Set("model_matrix", model_matrix);
+			quad->Draw();
 		}
 
 		// default framebuffer
