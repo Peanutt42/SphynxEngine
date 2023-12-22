@@ -1,23 +1,25 @@
 Name: New
 Entities:
-  - Entity: 1394016767023174651
-    Name: Light
+  - Entity: 14345956937230840267
+    Name: Camera
     Transform:
-      Position: [2.5999999, 0, 0]
+      Position: [0, 0, 7.9000001]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    Light:
-      Color: [0, 0, 0]
-  - Entity: 11624051516532224898
-    Name: 1.
+    Camera:
+      FOV: 60
+      NearPlane: 0.100000001
+      FarPlane: 1000
+  - Entity: 4262648916456273196
+    Name: 3.
     Transform:
-      Position: [0, 4, 0]
+      Position: [-0.800000012, 0, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Rigidbody:
       Dynamic: true
-    BoxCollider:
-      HalfExtent: [0.5, 0.5, 0.5]
+    SphereCollider:
+      Radius: 0.5
     Mesh:
       {}
   - Entity: 17324187834077041472
@@ -32,25 +34,23 @@ Entities:
       HalfExtent: [0.5, 0.5, 0.5]
     Mesh:
       {}
-  - Entity: 4262648916456273196
-    Name: 3.
+  - Entity: 11624051516532224898
+    Name: 1.
     Transform:
-      Position: [-0.800000012, 0, 0]
+      Position: [0, 4, 0]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
     Rigidbody:
       Dynamic: true
-    SphereCollider:
-      Radius: 0.5
+    BoxCollider:
+      HalfExtent: [0.5, 0.5, 0.5]
     Mesh:
       {}
-  - Entity: 14345956937230840267
-    Name: Camera
+  - Entity: 1394016767023174651
+    Name: Light
     Transform:
-      Position: [0, 0, 7.9000001]
+      Position: [0.400000006, -2.20000005, 1.79999995]
       Rotation: [0, 0, 0]
       Scale: [1, 1, 1]
-    Camera:
-      FOV: 60
-      NearPlane: 0.100000001
-      FarPlane: 1000
+    Light:
+      Color: [0, 0, 0]

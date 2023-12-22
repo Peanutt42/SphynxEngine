@@ -15,10 +15,11 @@ namespace Sphynx::Rendering {
 	bool s_Initialized = false;
 
 	struct Vertex {
-		glm::vec3 position;
+		glm::vec3 position, normal;
 
 		static VertexLayout GetVertexLayout() {
 			return VertexLayout{}
+			.add(VertexAttrib::Vec3)
 			.add(VertexAttrib::Vec3);
 		}
 	};
@@ -30,6 +31,7 @@ namespace Sphynx::Rendering {
 
 	struct RenderCommand {
 		std::vector<glm::mat4> ModelMatrices;
+		std::vector<glm::vec3> LightPos;
 		std::vector<Billboard> Billboards;
 		std::vector<Vertex> Lines;
 		Camera SceneCamera;
@@ -47,19 +49,50 @@ namespace Sphynx::Rendering {
 
 	Mesh* cube = nullptr;
 	std::vector<Vertex> cube_vertices = {
-		{{-0.5f, -0.5f,  0.5f}},
-		{{ 0.5f, -0.5f,  0.5f}},
-		{{-0.5f,  0.5f,  0.5f}},
-		{{ 0.5f,  0.5f,  0.5f}},
-		{{-0.5f, -0.5f, -0.5f}},
-		{{ 0.5f, -0.5f, -0.5f}},
-		{{-0.5f,  0.5f, -0.5f}},
-		{{ 0.5f,  0.5f, -0.5f}},
+
+		// Front face
+		{{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+		{{-0.5f, 0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
+
+		// Back face
+		{{-0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+		{{0.5f, -0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+		{{-0.5f, 0.5f, -0.5f}, {0.0f, 0.0f, -1.0f}},
+
+		// Left face
+		{{-0.5f, -0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, 0.5f, -0.5f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, 0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
+		{{-0.5f, -0.5f, 0.5f}, {-1.0f, 0.0f, 0.0f}},
+
+		// Right face
+		{{0.5f, -0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f, -0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, 0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.5f}, {1.0f, 0.0f, 0.0f}},
+
+		// Top face
+		{{-0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{0.5f, 0.5f, 0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+		{{-0.5f, 0.5f, -0.5f}, {0.0f, 1.0f, 0.0f}},
+
+		// Bottom face
+		{{-0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
+		{{0.5f, -0.5f, 0.5f}, {0.0f, -1.0f, 0.0f}},
+		{{0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
+		{{-0.5f, -0.5f, -0.5f}, {0.0f, -1.0f, 0.0f}},
 	};
 	std::vector<uint32> cube_indices = {
-		2, 6, 7, 2, 3, 7, 0, 4, 5, 0, 1, 5,
-		0, 2, 6, 0, 4, 6, 1, 3, 7, 1, 5, 7,
-		0, 2, 3, 0, 1, 3, 4, 6, 7, 4, 5, 7
+		0, 1, 2, 2, 3, 0,     // Front face
+		4, 5, 6, 6, 7, 4,     // Back face
+		8, 9, 10, 10, 11, 8,  // Left face
+		12, 13, 14, 14, 15, 12,// Right face
+		16, 17, 18, 18, 19, 16,// Top face
+		20, 21, 22, 22, 23, 20,// Bottom face
 	};
 
 	struct BillboardVertex {
@@ -192,6 +225,10 @@ namespace Sphynx::Rendering {
 		for (auto[entity, transform, mesh] : scene.View<ECS::TransformComponent, Rendering::MeshComponent>().each()) {
 			s_RenderCommand.ModelMatrices.push_back(transform.GetModelMatrix());
 		}
+		s_RenderCommand.LightPos.resize(0);
+		for (auto [entity, transform, light] : scene.View<ECS::TransformComponent, Rendering::LightComponent>().each()) {
+			s_RenderCommand.LightPos.push_back(transform.Position);
+		}
 	}
 
 	void Renderer::SubmitBillboard(const glm::vec3& position, uint32 textureID) {
@@ -215,10 +252,14 @@ namespace Sphynx::Rendering {
 		float aspect = GetAspect(s_SceneWidth, s_SceneHeight);
 		auto proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView();
 		default_shader->Set("proj_view", proj_view);
+		
+		default_shader->Set("lightPos", s_RenderCommand.LightPos[0]);
+		default_shader->Set("cameraPos", s_RenderCommand.SceneCamera.Position);
 		for (const auto& modelMatrix : s_RenderCommand.ModelMatrices) {
 			default_shader->Set("model_matrix", modelMatrix);
 			cube->Draw();
 		}
+
 
 		glDisable(GL_DEPTH_TEST);
 
