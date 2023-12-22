@@ -2,6 +2,7 @@
 #include "EditorApplication.hpp"
 #include "Physics/PhysicEngine.hpp"
 #include "Profiling/Profiling.hpp"
+#include "Rendering/RenderingComponents.hpp"
 
 #include "Scene/SceneSerializer.hpp"
 
@@ -10,6 +11,8 @@
 #include "Windows/PropertyWindow.hpp"
 #include "Windows/ProfilingWindow.hpp"
 #include "Windows/ViewportWindow.hpp"
+
+#include "Guizmos.hpp"
 
 namespace Sphynx::Editor {
 	void EditorApplication::OnCreate() {
@@ -29,10 +32,14 @@ namespace Sphynx::Editor {
 		m_SceneFilepath = Engine::GetProject().StartSceneFilepath;
 		SceneSerializer::Deserialize(m_SceneFilepath, *m_EditingScene)
 			.expect("Failed to load start scene {}", m_SceneFilepath.string());
+
+		Guizmos::Init();
 	}
 
 	void EditorApplication::OnDestroy() {
 		SE_PROFILE_FUNCTION();
+	
+		Guizmos::Shutdown();
 
 		m_Windows.clear();
 		m_EditingScene.reset();
@@ -70,6 +77,15 @@ namespace Sphynx::Editor {
 			OnRuntimeUpdate();
 
 		Rendering::Renderer::SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
+		if (m_State == EditorState::Editing) {
+			for (auto [entity, transform, light] : m_EditingScene->View<ECS::TransformComponent, Rendering::LightComponent>().each()) {
+				Rendering::Renderer::SubmitBillboard(transform.Position, Guizmos::s_LightBulb->GetID());
+			}
+			for (auto [entity, transform, camera] : m_EditingScene->View<ECS::TransformComponent, Rendering::CameraComponent>().each()) {
+				Rendering::Renderer::SubmitBillboard(transform.Position, Guizmos::s_Camera->GetID());
+			}
+			Rendering::Renderer::SubmitLine(glm::vec3(0.f, 0.f, 0.f), glm::vec3(1.f, 0.f, 0.f));
+		}
 	}
 
 	void EditorApplication::DrawUI() {

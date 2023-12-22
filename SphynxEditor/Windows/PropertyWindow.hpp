@@ -3,7 +3,7 @@
 #include "EditorWindow.hpp"
 #include "HierarchyWindow.hpp"
 
-#include "Physics/PhysicsComponents.hpp"
+#include "Scene/AllComponents.hpp"
 
 namespace Sphynx::Editor {
 	class PropertyWindow : public EditorWindow {
@@ -50,6 +50,19 @@ namespace Sphynx::Editor {
 				EndComponent();
 			}
 
+			if (BeginComponent<Rendering::LightComponent>("Light", scene, entity)) {
+				auto* light = scene.GetComponent<Rendering::LightComponent>(entity);
+				UI::Vec3("Color", light->Color);
+
+				EndComponent();
+			}
+			if (BeginComponent<Rendering::CameraComponent>("Camera", scene, entity)) {
+				auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity);
+				ImGui::DragFloat("FOV", &camera->FOV);
+
+				EndComponent();
+			}
+
 
 			ImGui::Spacing();
 			ImGui::Spacing();
@@ -67,6 +80,11 @@ namespace Sphynx::Editor {
 					DisplayAddComponentEntry<Physics::SphereCollider>("SphereCollider");
 
 					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Rendering")) {
+					DisplayAddComponentEntry<Rendering::LightComponent>("Light");
+					DisplayAddComponentEntry<Rendering::CameraComponent>("Camera");
 				}
 
 				ImGui::EndPopup();

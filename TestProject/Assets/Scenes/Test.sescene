@@ -1,5 +1,13 @@
 Name: New
 Entities:
+  - Entity: 14345956937230840267
+    Name: Camera
+    Transform:
+      Position: [0, 0, 7.9000001]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Camera:
+      FOV: 60
   - Entity: 4262648916456273196
     Name: 3.
     Transform:
@@ -30,3 +38,11 @@ Entities:
       Dynamic: true
     BoxCollider:
       HalfExtent: [0.5, 0.5, 0.5]
+  - Entity: 1394016767023174651
+    Name: Light
+    Transform:
+      Position: [2.5999999, 0, 0]
+      Rotation: [0, 0, 0]
+      Scale: [1, 1, 1]
+    Light:
+      Color: [0, 0, 0]

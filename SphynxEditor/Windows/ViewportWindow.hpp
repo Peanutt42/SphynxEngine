@@ -63,7 +63,7 @@ namespace Sphynx::Editor {
 
 			ImVec2 rect = ImGui::GetContentRegionAvail();
 			uint32 textureId = Rendering::Renderer::GetSceneTextureID();
-			ImGui::Image((ImTextureID)textureId, rect, {0, 1}, {1, 0});
+			ImGui::Image((ImTextureID)(uint64)textureId, rect, {0, 1}, {1, 0});
 		}
 
 	private:

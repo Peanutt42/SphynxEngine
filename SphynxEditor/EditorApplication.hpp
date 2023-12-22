@@ -5,6 +5,7 @@
 #include "EditorWindow.hpp"
 #include "Scene/Scene.hpp"
 #include "Rendering/Camera.hpp"
+#include "Rendering/Texture.hpp"
 
 namespace Sphynx::Editor {
 	enum class EditorState {

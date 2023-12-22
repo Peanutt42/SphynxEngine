@@ -13,28 +13,6 @@
 namespace Sphynx::Rendering {
 	bool s_Initialized = false;
 
-	struct Billboard {
-		glm::vec3 Position;
-		uint32 TextureID = 0;
-	};
-
-	struct RenderCommand {
-		std::vector<glm::mat4> ModelMatrices;
-		std::vector<Billboard> Billboards;
-		Camera SceneCamera;
-	};
-	RenderCommand s_RenderCommand;
-
-	Framebuffer* s_SceneFramebuffer = nullptr;
-	
-	Shader* default_shader = nullptr;
-	Shader* billboard_shader = nullptr;
-	Mesh* quad = nullptr;
-
-	Texture* cat = nullptr;
-	Texture* light_bulb = nullptr;
-
-	Mesh* cube = nullptr;
 	struct Vertex {
 		glm::vec3 position;
 
@@ -43,6 +21,30 @@ namespace Sphynx::Rendering {
 			.add(VertexAttrib::Vec3);
 		}
 	};
+
+	struct Billboard {
+		glm::vec3 Position;
+		uint32 TextureID = 0;
+	};
+
+	struct RenderCommand {
+		std::vector<glm::mat4> ModelMatrices;
+		std::vector<Billboard> Billboards;
+		std::vector<Vertex> Lines;
+		Camera SceneCamera;
+	};
+	RenderCommand s_RenderCommand;
+
+	Framebuffer* s_SceneFramebuffer = nullptr;
+	
+	Shader* default_shader = nullptr;
+	Shader* line_shader = nullptr;
+	Shader* billboard_shader = nullptr;
+	Mesh* quad = nullptr;
+
+	Texture* cat = nullptr;
+
+	Mesh* cube = nullptr;
 	std::vector<Vertex> cube_vertices = {
 		{{-0.5f, -0.5f,  0.5f}},
 		{{ 0.5f, -0.5f,  0.5f}},
@@ -76,6 +78,10 @@ namespace Sphynx::Rendering {
 		{{-0.5f,-0.5f, 0.f}, {0.f,  0.f}},
 	};
 	std::vector<uint32> quad_indices = { 0,1,2,2,3,0 };
+
+	std::shared_ptr<VertexArray> s_BatchLineVA;
+	std::shared_ptr<VertexBuffer> s_BatchLineVB;
+	constexpr uint32 k_MaxLines = 1024;
 
 	int s_ScreenWidth = 0, s_ScreenHeight = 0;
 	constexpr int s_SceneWidth = 1920, s_SceneHeight = 1080;
@@ -112,10 +118,16 @@ namespace Sphynx::Rendering {
 		default_shader = new Shader("Content/Shaders/Default.vert", "Content/Shaders/Default.frag");
 		default_shader->Bind();
 		cat = new Texture("Content/Textures/cat.jpg");
-		light_bulb = new Texture("Content/Textures/Guizmos/light_bulb.png");
 
 		billboard_shader = new Shader("Content/Shaders/Billboard.vert", "Content/Shaders/Billboard.frag");
 		billboard_shader->Bind();
+
+		line_shader = new Shader("Content/Shaders/Line.vert", "Content/Shaders/Line.frag");
+
+		s_BatchLineVA = std::make_shared<VertexArray>();
+		s_BatchLineVB = std::make_shared<VertexBuffer>(k_MaxLines, Vertex::GetVertexLayout());
+		s_BatchLineVA->AddVertexBuffer(s_BatchLineVB);
+		s_RenderCommand.Lines.reserve(k_MaxLines);
 
 		quad = new Mesh(quad_vertices, quad_indices);
 
@@ -132,9 +144,9 @@ namespace Sphynx::Rendering {
 			return;
 
 		delete cube;
-		delete light_bulb;
 		delete cat;
 		delete default_shader;
+		delete line_shader;
 		delete billboard_shader;
 		delete quad;
 
@@ -152,8 +164,15 @@ namespace Sphynx::Rendering {
 		for (auto[entity, transform] : scene.View<ECS::TransformComponent>().each()) {
 			s_RenderCommand.ModelMatrices.push_back(transform.GetModelMatrix());
 		}
-		s_RenderCommand.Billboards.resize(0);
-		s_RenderCommand.Billboards.emplace_back(glm::vec3(0.f), light_bulb->GetID());
+	}
+
+	void Renderer::SubmitBillboard(const glm::vec3& position, uint32 textureID) {
+		s_RenderCommand.Billboards.emplace_back(position, textureID);
+	}
+
+	void Renderer::SubmitLine(const glm::vec3& start, const glm::vec3& end) {
+		s_RenderCommand.Lines.emplace_back(start);
+		s_RenderCommand.Lines.emplace_back(end);
 	}
 
 	void Renderer::Update() {
@@ -173,8 +192,9 @@ namespace Sphynx::Rendering {
 			cube->Draw();
 		}
 
-		// billboards
 		glDisable(GL_DEPTH_TEST);
+
+		// billboards
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		billboard_shader->Bind();
@@ -188,11 +208,23 @@ namespace Sphynx::Rendering {
 			billboard_shader->Set("model_matrix", model_matrix);
 			quad->Draw();
 		}
-		glEnable(GL_DEPTH_TEST);
+		s_RenderCommand.Billboards.resize(0);
 		glDisable(GL_BLEND);
 
+		// Lines
+		line_shader->Bind();
+		line_shader->Set("mvp", proj_view);
+		line_shader->Set("color", glm::vec3(0, 1, 0));
+		glLineWidth(2.5f);
+		s_BatchLineVB->SetData(s_RenderCommand.Lines);
+		s_BatchLineVA->Bind();
+		glDrawArrays(GL_LINES, 0, s_RenderCommand.Lines.size());
+		s_RenderCommand.Lines.resize(0);
+
+		glEnable(GL_DEPTH_TEST);
+
 		// default framebuffer
-		Framebuffer::BindScreen();
+		s_SceneFramebuffer->Unbind();
 		glViewport(0, 0, s_ScreenWidth, s_ScreenHeight);
 		glClearColor(0.2f, 0.3f, 0.3f, 1.f);
 		glClear(GL_COLOR_BUFFER_BIT);

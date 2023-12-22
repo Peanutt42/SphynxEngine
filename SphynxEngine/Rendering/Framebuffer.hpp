@@ -10,8 +10,7 @@ namespace Sphynx::Rendering {
 
 		void Bind();
 
-		// Binds the default framebuffer that is rendered to the screen
-		static void BindScreen();
+		void Unbind();
 
 		uint32 GetColorTextureID() const { return m_ColorTextureID; }
 

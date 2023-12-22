@@ -3,8 +3,7 @@
 #include "pch.hpp"
 #include "Serialization/YAMLSerializer.hpp"
 #include "Scene.hpp"
-#include "Scene/DefaultComponents.hpp"
-#include "Physics/PhysicsComponents.hpp"
+#include "Scene/AllComponents.hpp"
 
 namespace Sphynx {
 	class SceneSerializer {
@@ -36,6 +35,17 @@ namespace Sphynx {
 			if (Physics::SphereCollider* sphere = scene.GetComponent<Physics::SphereCollider>(entity)) {
 				out << YAML::Key << "SphereCollider" << YAML::BeginMap;
 				out << YAML::Key << "Radius" << YAML::Value << sphere->Radius;
+				out << YAML::EndMap;
+			}
+
+			if (auto* light = scene.GetComponent<Rendering::LightComponent>(entity)) {
+				out << YAML::Key << "Light" << YAML::BeginMap;
+				out << YAML::Key << "Color" << YAML::Value << light->Color;
+				out << YAML::EndMap;
+			}
+			if (auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity)) {
+				out << YAML::Key << "Camera" << YAML::BeginMap;
+				out << YAML::Key << "FOV" << YAML::Value << camera->FOV;
 				out << YAML::EndMap;
 			}
 
@@ -89,6 +99,19 @@ namespace Sphynx {
 				sphere.Radius = sphereNode["Radius"].as<float>();
 
 				scene.AddComponent<Physics::SphereCollider>(entity, sphere);
+			}
+
+			if (YAML::Node lightNode = entityNode["Light"]) {
+				Rendering::LightComponent light;
+				light.Color = lightNode["Color"].as<glm::vec3>();
+
+				scene.AddComponent<Rendering::LightComponent>(entity, light);
+			}
+			if (YAML::Node cameraNode = entityNode["Camera"]) {
+				Rendering::CameraComponent camera;
+				camera.FOV = cameraNode["FOV"].as<float>();
+
+				scene.AddComponent<Rendering::CameraComponent>(entity, camera);
 			}
 		}
 
