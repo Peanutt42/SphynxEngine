@@ -32,6 +32,7 @@ namespace Sphynx::Rendering {
 	Mesh* quad = nullptr;
 
 	Texture* cat = nullptr;
+	Texture* light_bulb = nullptr;
 
 	Mesh* cube = nullptr;
 	struct Vertex {
@@ -43,14 +44,14 @@ namespace Sphynx::Rendering {
 		}
 	};
 	std::vector<Vertex> cube_vertices = {
-		{{-1, -1,  0.5}},
-		{{ 1, -1,  0.5}},
-		{{-1,  1,  0.5}},
-		{{ 1,  1,  0.5}},
-		{{-1, -1, -0.5}},
-		{{ 1, -1, -0.5}},
-		{{-1,  1, -0.5}},
-		{{ 1,  1, -0.5}},
+		{{-0.5f, -0.5f,  0.5f}},
+		{{ 0.5f, -0.5f,  0.5f}},
+		{{-0.5f,  0.5f,  0.5f}},
+		{{ 0.5f,  0.5f,  0.5f}},
+		{{-0.5f, -0.5f, -0.5f}},
+		{{ 0.5f, -0.5f, -0.5f}},
+		{{-0.5f,  0.5f, -0.5f}},
+		{{ 0.5f,  0.5f, -0.5f}},
 	};
 	std::vector<uint32> cube_indices = {
 		2, 6, 7, 2, 3, 7, 0, 4, 5, 0, 1, 5,
@@ -69,14 +70,15 @@ namespace Sphynx::Rendering {
 		}
 	};
 	std::vector<BillboardVertex> quad_vertices = {
-		{{-1.f, 1.f, 0.f}, {0.f, 1.f}},
-		{{ 1.f, 1.f, 0.f}, {1.f, 1.f}},
-		{{ 1.f,-1.f, 0.f}, {1.f,  0.f}},
-		{{-1.f,-1.f, 0.f}, {0.f,  0.f}},
+		{{-0.5f, 0.5f, 0.f}, {0.f, 1.f}},
+		{{ 0.5f, 0.5f, 0.f}, {1.f, 1.f}},
+		{{ 0.5f,-0.5f, 0.f}, {1.f,  0.f}},
+		{{-0.5f,-0.5f, 0.f}, {0.f,  0.f}},
 	};
 	std::vector<uint32> quad_indices = { 0,1,2,2,3,0 };
 
 	int s_ScreenWidth = 0, s_ScreenHeight = 0;
+	constexpr int s_SceneWidth = 1920, s_SceneHeight = 1080;
 
 	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback, bool vsync) {
 		SE_PROFILE_FUNCTION();
@@ -105,11 +107,12 @@ namespace Sphynx::Rendering {
 
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
 
-		s_SceneFramebuffer = new Framebuffer(1920, 1080);
+		s_SceneFramebuffer = new Framebuffer(s_SceneWidth, s_SceneHeight);
 
 		default_shader = new Shader("Content/Shaders/Default.vert", "Content/Shaders/Default.frag");
 		default_shader->Bind();
 		cat = new Texture("Content/Textures/cat.jpg");
+		light_bulb = new Texture("Content/Textures/Guizmos/light_bulb.png");
 
 		billboard_shader = new Shader("Content/Shaders/Billboard.vert", "Content/Shaders/Billboard.frag");
 		billboard_shader->Bind();
@@ -129,6 +132,7 @@ namespace Sphynx::Rendering {
 			return;
 
 		delete cube;
+		delete light_bulb;
 		delete cat;
 		delete default_shader;
 		delete billboard_shader;
@@ -149,7 +153,7 @@ namespace Sphynx::Rendering {
 			s_RenderCommand.ModelMatrices.push_back(transform.GetModelMatrix());
 		}
 		s_RenderCommand.Billboards.resize(0);
-		s_RenderCommand.Billboards.emplace_back(glm::vec3(0.f), cat->GetID());
+		s_RenderCommand.Billboards.emplace_back(glm::vec3(0.f), light_bulb->GetID());
 	}
 
 	void Renderer::Update() {
@@ -161,9 +165,8 @@ namespace Sphynx::Rendering {
 		s_SceneFramebuffer->Bind();
 
 		default_shader->Bind();
-		float aspect = s_ScreenWidth / s_ScreenHeight;
-		if (std::isnan(aspect)) aspect = 16.f / 9.f;
-		auto proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect)* s_RenderCommand.SceneCamera.GetView();
+		float aspect = GetAspect(s_SceneWidth, s_SceneHeight);
+		auto proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView();
 		default_shader->Set("proj_view", proj_view);
 		for (const auto& modelMatrix : s_RenderCommand.ModelMatrices) {
 			default_shader->Set("model_matrix", modelMatrix);
@@ -171,6 +174,9 @@ namespace Sphynx::Rendering {
 		}
 
 		// billboards
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		billboard_shader->Bind();
 		billboard_shader->Set("billboard", 0);
 		billboard_shader->Set("proj_view", proj_view);
@@ -182,6 +188,8 @@ namespace Sphynx::Rendering {
 			billboard_shader->Set("model_matrix", model_matrix);
 			quad->Draw();
 		}
+		glEnable(GL_DEPTH_TEST);
+		glDisable(GL_BLEND);
 
 		// default framebuffer
 		Framebuffer::BindScreen();
