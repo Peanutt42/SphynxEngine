@@ -86,6 +86,25 @@ namespace Sphynx::Rendering {
 	int s_ScreenWidth = 0, s_ScreenHeight = 0;
 	constexpr int s_SceneWidth = 1920, s_SceneHeight = 1080;
 
+	SE_API void OpenGLMessageCallback(
+		unsigned source,
+		unsigned type,
+		unsigned id,
+		unsigned severity,
+		int length,
+		const char* message,
+		const void* userParam)
+	{
+		switch (severity) {
+		case GL_DEBUG_SEVERITY_HIGH:         SE_FATAL(Logging::Rendering, "{}", message); return;
+		case GL_DEBUG_SEVERITY_MEDIUM:       SE_ERR(Logging::Rendering, "{}", message); return;
+		case GL_DEBUG_SEVERITY_LOW:          SE_WARN(Logging::Rendering, "{}", message); return;
+		case GL_DEBUG_SEVERITY_NOTIFICATION: SE_TRACE(Logging::Rendering, "{}", message); return;
+		}
+
+		SE_FATAL(Logging::Rendering, "Unknown severity level!");
+	}
+
 	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback, bool vsync) {
 		SE_PROFILE_FUNCTION();
 
@@ -105,11 +124,19 @@ namespace Sphynx::Rendering {
 		});
 		s_ScreenWidth = window.GetWidth();
 		s_ScreenHeight = window.GetHeight();
-
+		
 		if (!gladLoadGLLoader((GLADloadproc)glfwGetProcAddress)) {
 			SE_ERR(Logging::Rendering, "Failed to initialize glad!");
 			return false;
 		}
+
+#ifdef DEBUG
+		glEnable(GL_DEBUG_OUTPUT);
+		glEnable(GL_DEBUG_OUTPUT_SYNCHRONOUS);
+		glDebugMessageCallback(OpenGLMessageCallback, nullptr);
+
+		glDebugMessageControl(GL_DONT_CARE, GL_DONT_CARE, GL_DEBUG_SEVERITY_NOTIFICATION, 0, NULL, GL_FALSE);
+#endif
 
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
 
