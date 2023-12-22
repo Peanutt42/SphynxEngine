@@ -46,6 +46,12 @@ namespace Sphynx {
 			if (auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity)) {
 				out << YAML::Key << "Camera" << YAML::BeginMap;
 				out << YAML::Key << "FOV" << YAML::Value << camera->FOV;
+				out << YAML::Key << "NearPlane" << YAML::Value << camera->NearPlane;
+				out << YAML::Key << "FarPlane" << YAML::Value << camera->FarPlane;
+				out << YAML::EndMap;
+			}
+			if (auto* mesh = scene.GetComponent<Rendering::MeshComponent>(entity)) {
+				out << YAML::Key << "Mesh" << YAML::BeginMap;
 				out << YAML::EndMap;
 			}
 
@@ -110,8 +116,14 @@ namespace Sphynx {
 			if (YAML::Node cameraNode = entityNode["Camera"]) {
 				Rendering::CameraComponent camera;
 				camera.FOV = cameraNode["FOV"].as<float>();
+				camera.NearPlane = cameraNode["NearPlane"].as<float>();
+				camera.FarPlane = cameraNode["FarPlane"].as<float>();
 
 				scene.AddComponent<Rendering::CameraComponent>(entity, camera);
+			}
+			if (YAML::Node meshNode = entityNode["Mesh"]) {
+				Rendering::MeshComponent mesh;
+				scene.AddComponent(entity, mesh);
 			}
 		}
 

@@ -4,6 +4,7 @@
 #include "Profiling/Profiling.hpp"
 #include "Shader.hpp"
 #include "Mesh.hpp"
+#include "RenderingComponents.hpp"
 #include "Texture.hpp"
 #include "Framebuffer.hpp"
 
@@ -188,7 +189,7 @@ namespace Sphynx::Rendering {
 
 		s_RenderCommand.SceneCamera = camera;
 		s_RenderCommand.ModelMatrices.resize(0);
-		for (auto[entity, transform] : scene.View<ECS::TransformComponent>().each()) {
+		for (auto[entity, transform, mesh] : scene.View<ECS::TransformComponent, Rendering::MeshComponent>().each()) {
 			s_RenderCommand.ModelMatrices.push_back(transform.GetModelMatrix());
 		}
 	}

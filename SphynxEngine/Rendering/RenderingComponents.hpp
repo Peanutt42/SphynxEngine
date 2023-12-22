@@ -23,4 +23,8 @@ namespace Sphynx::Rendering {
 			};
 		}
 	};
+
+	struct MeshComponent {
+		int __buffer; // just for a non 0 sized component
+	};
 }

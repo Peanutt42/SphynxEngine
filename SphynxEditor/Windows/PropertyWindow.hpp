@@ -59,6 +59,13 @@ namespace Sphynx::Editor {
 			if (BeginComponent<Rendering::CameraComponent>("Camera", scene, entity)) {
 				auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity);
 				ImGui::DragFloat("FOV", &camera->FOV);
+				ImGui::DragFloat("NearPlane", &camera->NearPlane);
+				ImGui::DragFloat("FarPlane", &camera->FarPlane);
+
+				EndComponent();
+			}
+			if (BeginComponent<Rendering::MeshComponent>("Mesh", scene, entity)) {
+
 
 				EndComponent();
 			}
@@ -85,6 +92,9 @@ namespace Sphynx::Editor {
 				if (ImGui::BeginMenu("Rendering")) {
 					DisplayAddComponentEntry<Rendering::LightComponent>("Light");
 					DisplayAddComponentEntry<Rendering::CameraComponent>("Camera");
+					DisplayAddComponentEntry<Rendering::MeshComponent>("Mesh");
+
+					ImGui::EndMenu();
 				}
 
 				ImGui::EndPopup();
