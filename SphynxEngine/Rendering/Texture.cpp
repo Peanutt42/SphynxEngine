@@ -1,11 +1,14 @@
 #include "pch.hpp"
 #include "Texture.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include <glad/glad.h>
 #include <stb_image.h>
 
 namespace Sphynx::Rendering {
 	Texture::Texture(const std::filesystem::path& filepath) {
+		SE_PROFILE_FUNCTION();
+
 		int width = 0, height = 0, channels = 0;
 		GLenum format = GL_RGBA, internalFormat = GL_RGBA8;
 		std::string filepathStr = filepath.string();
@@ -28,14 +31,20 @@ namespace Sphynx::Rendering {
 	}
 
 	Texture::~Texture() {
+		SE_PROFILE_FUNCTION();
+
 		glDeleteTextures(1, &m_ID);
 	}
 
 	void Texture::Bind(uint32 slot) {
+		SE_PROFILE_FUNCTION();
+
 		Texture::Bind(m_ID, slot);
 	}
 
 	void Texture::Bind(uint32 id, uint32 slot) {
+		SE_PROFILE_FUNCTION();
+
 #ifndef GL_TEXTURE31
 #error "there should be at least 32 texture slots"
 #endif

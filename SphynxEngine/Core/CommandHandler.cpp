@@ -1,9 +1,12 @@
 #include "pch.hpp"
 #include "CommandHandler.hpp"
 #include "Engine.hpp"
+#include "Profiling/Profiling.hpp"
 
 namespace Sphynx {
 	void CommandHandler::Update() {
+		SE_PROFILE_FUNCTION();
+
 		while (!s_QueuedCommands.empty()) {
 			const std::string& command = s_QueuedCommands.front();
 			if (command == "foo")

@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "VertexArray.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include <glad/glad.h>
 
@@ -45,15 +46,21 @@ namespace Sphynx::Rendering {
 	}
 
 	VertexArray::VertexArray() {
+		SE_PROFILE_FUNCTION();
+
 		glGenVertexArrays(1, &m_ID);
 	}
 
 	VertexArray::~VertexArray() {
+		SE_PROFILE_FUNCTION();
+
 		glDeleteVertexArrays(1, &m_ID);
 		m_ID = 0;
 	}
 
 	void VertexArray::AddVertexBuffer(std::shared_ptr<VertexBuffer> vertexBuffer) {
+		SE_PROFILE_FUNCTION();
+
 		glBindVertexArray(m_ID);
 		vertexBuffer->Bind();
 
@@ -76,12 +83,16 @@ namespace Sphynx::Rendering {
 	}
 
 	void VertexArray::SetIndexBuffer(std::shared_ptr<IndexBuffer> indexBuffer) {
+		SE_PROFILE_FUNCTION();
+
 		glBindVertexArray(m_ID);
 		indexBuffer->Bind();
 		m_IndexBuffer = indexBuffer;
 	}
 
 	void VertexArray::SetInstanceBuffer(std::shared_ptr<VertexBuffer> instanceBuffer) {
+		SE_PROFILE_FUNCTION();
+
 		glBindVertexArray(m_ID);
 		instanceBuffer->Bind();
 
@@ -103,10 +114,14 @@ namespace Sphynx::Rendering {
 	}
 
 	void VertexArray::Bind() {
+		SE_PROFILE_FUNCTION();
+
 		glBindVertexArray(m_ID);
 	}
 
 	void VertexArray::Unbind() {
+		SE_PROFILE_FUNCTION();
+
 		glBindVertexArray(0);
 	}
 }

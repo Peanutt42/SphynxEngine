@@ -25,5 +25,7 @@ target_compile_definitions(Tests PRIVATE TEST_PROJECT_DIR="${CMAKE_SOURCE_DIR}/T
 
 target_precompile_headers(Tests PUBLIC pch.hpp)
 
+copy_file(Tests $<TARGET_FILE:TracyClient> $<TARGET_FILE_DIR:Tests>)
+
 include(GoogleTest)
 gtest_discover_tests(Tests)

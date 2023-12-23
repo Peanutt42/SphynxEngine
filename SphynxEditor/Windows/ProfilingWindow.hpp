@@ -12,6 +12,8 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Draw() override {
+			SE_PROFILE_FUNCTION();
+
 			if (m_OneSecondTimer.ElapsedSeconds() >= 1.f) {
 				m_OneSecondTimer.Reset();
 				m_CurrentAvgFps = m_FrameCount;

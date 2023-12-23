@@ -102,6 +102,7 @@ namespace Sphynx {
 
 	void Engine::Update() {
 		SE_PROFILE_FUNCTION();
+
 		s_DeltaTime = s_UpdateTimer.ElapsedSeconds();
 		s_UpdateTimer.Reset();
 
@@ -132,7 +133,7 @@ namespace Sphynx {
 		if (Audio::AudioEngine::IsInitialized())
 			Audio::AudioEngine::Update();
 
-		SE_PROFILE_FRAME_END("Main Thread");
+		SE_PROFILE_FRAME_END();
 	}
 
 	bool Engine::ShouldClose() {

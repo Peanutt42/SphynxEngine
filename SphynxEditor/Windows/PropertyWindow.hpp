@@ -15,6 +15,8 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Draw() override {
+			SE_PROFILE_FUNCTION();
+
 			Scene& scene = EditorApplication::GetCurrentScene();
 			entt::entity entity = HierarchyWindow::s_SelectedEntity;
 			if (!scene.IsValid(entity))

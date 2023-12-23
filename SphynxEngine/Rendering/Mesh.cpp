@@ -1,10 +1,13 @@
 #include "pch.hpp"
 #include "Mesh.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include <glad/glad.h>
 
 namespace Sphynx::Rendering {
 	Mesh::Mesh(BufferView vertices, const VertexLayout& vertexLayout, const std::vector<uint32>& indices, const VertexLayout& instanceLayout) : m_Instanced(true) {
+		SE_PROFILE_FUNCTION();
+
 		m_VertexArray = std::make_shared<VertexArray>();
 		m_VertexBuffer = std::make_shared<VertexBuffer>(vertices, vertexLayout);
 		m_VertexArray->AddVertexBuffer(m_VertexBuffer);
@@ -16,12 +19,16 @@ namespace Sphynx::Rendering {
 	}
 
 	void Mesh::SetInstances(BufferView instances) {
+		SE_PROFILE_FUNCTION();
+
 		m_InstanceData.resize(instances.Size);
 		std::memcpy(m_InstanceData.data(), instances.Data, instances.Size);
 		m_InstanceCount = instances.Size / m_InstanceLayoutSize;
 	}
 
 	void Mesh::Draw() {
+		SE_PROFILE_FUNCTION();
+
 		m_VertexArray->Bind();
 		if (m_Instanced) {
 			m_InstanceBuffer->SetData(m_InstanceData);

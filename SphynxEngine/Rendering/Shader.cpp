@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "Shader.hpp"
 #include "Serialization/FileStream.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include <glm/gtc/type_ptr.hpp>
 
@@ -28,6 +29,8 @@ namespace Sphynx::Rendering {
 	}
 
 	Shader::Shader(const std::filesystem::path& vertex_filepath, const std::filesystem::path& fragment_filepath) {
+		SE_PROFILE_FUNCTION();
+
 		auto vertexShader = CompileShader(vertex_filepath);
 		auto fragmentShader = CompileShader(fragment_filepath);
 		if (!vertexShader) {
@@ -56,39 +59,55 @@ namespace Sphynx::Rendering {
 	}
 
 	Shader::~Shader() {
+		SE_PROFILE_FUNCTION();
+
 		glDeleteProgram(m_ProgramID);
 	}
 
 	void Shader::Bind() {
+		SE_PROFILE_FUNCTION();
+
 		glUseProgram(m_ProgramID);
 	}
 
 	void Shader::Set(std::string_view name, bool value) {
+		SE_PROFILE_FUNCTION();
+
 		if (auto location = GetUniformLocation(name))
 			glUniform1i(*location, (int)value);
 	}
 
 	void Shader::Set(std::string_view name, int value) {
+		SE_PROFILE_FUNCTION();
+
 		if (auto location = GetUniformLocation(name))
 			glUniform1i(*location, value);
 	}
 
 	void Shader::Set(std::string_view name, float value) {
+		SE_PROFILE_FUNCTION();
+
 		if (auto location = GetUniformLocation(name))
 			glUniform1f(*location, value);
 	}
 
 	void Shader::Set(std::string_view name, const glm::vec3& vec) {
+		SE_PROFILE_FUNCTION();
+
 		if (auto location = GetUniformLocation(name))
 			glUniform3fv(*location, 1, glm::value_ptr(vec));
 	}
 
 	void Shader::Set(std::string_view name, const glm::mat4& matrix) {
+		SE_PROFILE_FUNCTION();
+
 		if (auto location = GetUniformLocation(name))
 			glUniformMatrix4fv(*location, 1, false, glm::value_ptr(matrix));
 	}
 
 	void Shader::Set(std::string_view name, const UniformBuffer& uniformBuffer)	{
+		SE_PROFILE_FUNCTION();
+
 		if (auto index = GetUniformBufferIndex(name))
 			glUniformBlockBinding(m_ProgramID, *index, uniformBuffer.GetBinding());
 	}

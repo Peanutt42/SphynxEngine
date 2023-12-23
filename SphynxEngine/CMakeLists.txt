@@ -54,6 +54,8 @@ endif()
 
 target_compile_definitions(SphynxEngine PRIVATE "SE_EXPORT")
 
+target_compile_definitions(SphynxEngine PUBLIC "TRACY_IMPORTS")
+
 target_compile_features(SphynxEngine PRIVATE cxx_std_20)
 
 target_precompile_headers(SphynxEngine PUBLIC $<BUILD_INTERFACE:pch.hpp>)

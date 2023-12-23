@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Framebuffer.hpp"
+#include "Profiling/Profiling.hpp"
 
 #include <glad/glad.h>
 
@@ -7,6 +8,8 @@ namespace Sphynx::Rendering {
 	Framebuffer::Framebuffer(int width, int height) 
         : m_Width(width), m_Height(height)
     {
+        SE_PROFILE_FUNCTION();
+
         glGenFramebuffers(1, &m_ID);
         glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
         
@@ -29,10 +32,14 @@ namespace Sphynx::Rendering {
 	}
 
 	Framebuffer::~Framebuffer() {
+        SE_PROFILE_FUNCTION();
+
 		glDeleteFramebuffers(1, &m_ID);
 	}
 
 	void Framebuffer::Bind() {
+        SE_PROFILE_FUNCTION();
+
 		glBindFramebuffer(GL_FRAMEBUFFER, m_ID);
         glViewport(0, 0, m_Width, m_Height);
 		glEnable(GL_DEPTH_TEST);
@@ -41,6 +48,8 @@ namespace Sphynx::Rendering {
 	}
 
 	void Framebuffer::Unbind() {
+        SE_PROFILE_FUNCTION();
+
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 	}
 }

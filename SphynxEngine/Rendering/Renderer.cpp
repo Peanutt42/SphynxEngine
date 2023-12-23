@@ -264,6 +264,8 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
+		SE_PROFILE_FUNCTION();
+
 		s_RenderCommand.SceneCamera = camera;
 		s_RenderCommand.Instances.resize(0);
 		for (auto[entity, transform, mesh] : scene.View<ECS::TransformComponent, Rendering::MeshComponent>().each()) {
