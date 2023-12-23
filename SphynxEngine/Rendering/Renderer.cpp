@@ -26,6 +26,7 @@ namespace Sphynx::Rendering {
 
 	struct Billboard {
 		glm::vec3 Position;
+		glm::vec3 Color;
 		uint32 TextureID = 0;
 	};
 
@@ -241,8 +242,8 @@ namespace Sphynx::Rendering {
 		}
 	}
 
-	void Renderer::SubmitBillboard(const glm::vec3& position, uint32 textureID) {
-		s_RenderCommand.Billboards.emplace_back(position, textureID);
+	void Renderer::SubmitBillboard(const glm::vec3& position, uint32 textureID, const glm::vec3& color) {
+		s_RenderCommand.Billboards.emplace_back(position, color, textureID);
 	}
 
 	void Renderer::SubmitLine(const glm::vec3& start, const glm::vec3& end) {
@@ -292,6 +293,7 @@ namespace Sphynx::Rendering {
 			glm::mat4 model_matrix = glm::translate(glm::mat4(1.f), billboard.Position) * 
 				glm::toMat4(glm::quat(s_RenderCommand.SceneCamera.Rotation));
 			billboard_shader->Set("model_matrix", model_matrix);
+			billboard_shader->Set("color", billboard.Color);
 			quad->Draw();
 		}
 		s_RenderCommand.Billboards.resize(0);

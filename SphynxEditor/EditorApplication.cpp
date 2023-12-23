@@ -95,7 +95,7 @@ namespace Sphynx::Editor {
 		Rendering::Renderer::SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, scene_camera);
 		if (m_State == EditorState::Editing) {
 			for (auto [entity, transform, light] : m_EditingScene->View<ECS::TransformComponent, Rendering::LightComponent>().each()) {
-				Rendering::Renderer::SubmitBillboard(transform.Position, Guizmos::s_LightBulb->GetID());
+				Rendering::Renderer::SubmitBillboard(transform.Position, Guizmos::s_LightBulb->GetID(), light.Color);
 			}
 			for (auto [entity, transform, camera] : m_EditingScene->View<ECS::TransformComponent, Rendering::CameraComponent>().each()) {
 				Rendering::Renderer::SubmitBillboard(transform.Position, Guizmos::s_Camera->GetID());
