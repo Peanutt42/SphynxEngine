@@ -60,7 +60,6 @@ namespace Sphynx::Rendering {
 
 	Mesh* cube = nullptr;
 	std::vector<Vertex> cube_vertices = {
-
 		// Front face
 		{{-0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
 		{{0.5f, -0.5f, 0.5f}, {0.0f, 0.0f, 1.0f}},
@@ -99,11 +98,11 @@ namespace Sphynx::Rendering {
 	};
 	std::vector<uint32> cube_indices = {
 		0, 1, 2, 2, 3, 0,     // Front face
-		4, 5, 6, 6, 7, 4,     // Back face
-		8, 9, 10, 10, 11, 8,  // Left face
+		4, 6, 5, 6, 4, 7,     // Back face
+		8, 10, 9, 10, 8, 11,  // Left face
 		12, 13, 14, 14, 15, 12,// Right face
 		16, 17, 18, 18, 19, 16,// Top face
-		20, 21, 22, 22, 23, 20,// Bottom face
+		20, 22, 21, 22, 20, 23,// Bottom face
 	};
 
 	struct BillboardVertex {
@@ -122,7 +121,7 @@ namespace Sphynx::Rendering {
 		{{ 0.5f,-0.5f, 0.f}, {1.f,  0.f}},
 		{{-0.5f,-0.5f, 0.f}, {0.f,  0.f}},
 	};
-	std::vector<uint32> quad_indices = { 0,1,2,2,3,0 };
+	std::vector<uint32> quad_indices = { 0,2,1,2,0,3 };
 
 	std::shared_ptr<VertexArray> s_BatchLineVA;
 	std::shared_ptr<VertexBuffer> s_BatchLineVB;
@@ -184,6 +183,9 @@ namespace Sphynx::Rendering {
 #endif
 
 		glViewport(0, 0, window.GetWidth(), window.GetHeight());
+		glEnable(GL_CULL_FACE);
+		glCullFace(GL_BACK);
+		glFrontFace(GL_CCW);
 
 		s_SceneFramebuffer = new Framebuffer(s_SceneWidth, s_SceneHeight);
 
