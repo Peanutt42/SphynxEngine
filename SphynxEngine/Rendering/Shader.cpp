@@ -93,8 +93,10 @@ namespace Sphynx::Rendering {
 		if (find != m_UniformlocationMap.end())
 			return find->second;
 		int location = glGetUniformLocation(m_ProgramID, name.data());
-		if (location == -1)
+		if (location == -1) {
+			SE_WARN(Logging::Rendering, "Failed to find {}", name);
 			return std::nullopt;
+		}
 		m_UniformlocationMap[name] = location;
 		return location;
 	}

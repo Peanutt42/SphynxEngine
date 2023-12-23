@@ -29,10 +29,20 @@ namespace Sphynx::Rendering {
 		uint32 TextureID = 0;
 	};
 
+	struct Light {
+		glm::vec3 Position, Color;
+	};
+
+	struct CubeInstance {
+		glm::mat4 ModelMatrix;
+		glm::vec3 albedo;
+		float metalic, roughness;
+	};
+
 	struct RenderCommand {
-		std::vector<glm::mat4> ModelMatrices;
-		std::vector<glm::vec3> LightPos;
+		std::vector<CubeInstance> ModelMatrices;
 		std::vector<Billboard> Billboards;
+		std::vector<Light> Lights;
 		std::vector<Vertex> Lines;
 		Camera SceneCamera;
 	};
@@ -223,11 +233,11 @@ namespace Sphynx::Rendering {
 		s_RenderCommand.SceneCamera = camera;
 		s_RenderCommand.ModelMatrices.resize(0);
 		for (auto[entity, transform, mesh] : scene.View<ECS::TransformComponent, Rendering::MeshComponent>().each()) {
-			s_RenderCommand.ModelMatrices.push_back(transform.GetModelMatrix());
+			s_RenderCommand.ModelMatrices.emplace_back(transform.GetModelMatrix(), mesh.albedo, mesh.metalic, mesh.roughness);
 		}
-		s_RenderCommand.LightPos.resize(0);
+		s_RenderCommand.Lights.resize(0);
 		for (auto [entity, transform, light] : scene.View<ECS::TransformComponent, Rendering::LightComponent>().each()) {
-			s_RenderCommand.LightPos.push_back(transform.Position);
+			s_RenderCommand.Lights.emplace_back(transform.Position, light.Color);
 		}
 	}
 
@@ -252,11 +262,18 @@ namespace Sphynx::Rendering {
 		float aspect = GetAspect(s_SceneWidth, s_SceneHeight);
 		auto proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView();
 		default_shader->Set("proj_view", proj_view);
-		
-		default_shader->Set("lightPos", s_RenderCommand.LightPos[0]);
+		for (int i = 0; i < 4; i++) {
+			if (i >= s_RenderCommand.Lights.size()) break;
+			std::string iStr = std::to_string(i);
+			default_shader->Set("lightPositions[" + iStr + "]", s_RenderCommand.Lights[i].Position);
+			default_shader->Set("lightColors[" + iStr + "]", s_RenderCommand.Lights[i].Color);
+		}
 		default_shader->Set("cameraPos", s_RenderCommand.SceneCamera.Position);
-		for (const auto& modelMatrix : s_RenderCommand.ModelMatrices) {
-			default_shader->Set("model_matrix", modelMatrix);
+		for (const auto& instance : s_RenderCommand.ModelMatrices) {
+			default_shader->Set("model_matrix", instance.ModelMatrix);
+			default_shader->Set("material.albedo", instance.albedo);
+			default_shader->Set("material.metalic", instance.metalic);
+			default_shader->Set("material.roughness", instance.roughness);
 			cube->Draw();
 		}
 

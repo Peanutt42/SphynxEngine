@@ -3,6 +3,8 @@
 #include "EditorWindow.hpp"
 #include "HierarchyWindow.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Scene/AllComponents.hpp"
 
 namespace Sphynx::Editor {
@@ -52,20 +54,23 @@ namespace Sphynx::Editor {
 
 			if (BeginComponent<Rendering::LightComponent>("Light", scene, entity)) {
 				auto* light = scene.GetComponent<Rendering::LightComponent>(entity);
-				UI::Vec3("Color", light->Color);
+				ImGui::ColorEdit3("Color", glm::value_ptr(light->Color));
 
 				EndComponent();
 			}
 			if (BeginComponent<Rendering::CameraComponent>("Camera", scene, entity)) {
 				auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity);
-				ImGui::DragFloat("FOV", &camera->FOV);
+				ImGui::SliderFloat("FOV", &camera->FOV, 0.f, 180.f);
 				ImGui::DragFloat("NearPlane", &camera->NearPlane);
 				ImGui::DragFloat("FarPlane", &camera->FarPlane);
 
 				EndComponent();
 			}
 			if (BeginComponent<Rendering::MeshComponent>("Mesh", scene, entity)) {
-
+				auto* mesh = scene.GetComponent<Rendering::MeshComponent>(entity);
+				ImGui::ColorEdit3("Albedo", glm::value_ptr(mesh->albedo));
+				ImGui::SliderFloat("Metalic", &mesh->metalic, 0.f, 1.f);
+				ImGui::SliderFloat("Roughness", &mesh->roughness, 0.f, 1.f);
 
 				EndComponent();
 			}

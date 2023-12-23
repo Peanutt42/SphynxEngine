@@ -25,6 +25,8 @@ namespace Sphynx::Rendering {
 	};
 
 	struct MeshComponent {
-		int __buffer; // just for a non 0 sized component
+		glm::vec3 albedo;
+		float metalic;
+		float roughness;
 	};
 }

@@ -52,6 +52,9 @@ namespace Sphynx {
 			}
 			if (auto* mesh = scene.GetComponent<Rendering::MeshComponent>(entity)) {
 				out << YAML::Key << "Mesh" << YAML::BeginMap;
+				out << YAML::Key << "Albedo" << YAML::Value << mesh->albedo;
+				out << YAML::Key << "Metalic" << YAML::Value << mesh->metalic;
+				out << YAML::Key << "Roughness" << YAML::Value << mesh->roughness;
 				out << YAML::EndMap;
 			}
 
@@ -123,6 +126,9 @@ namespace Sphynx {
 			}
 			if (YAML::Node meshNode = entityNode["Mesh"]) {
 				Rendering::MeshComponent mesh;
+				mesh.albedo = meshNode["Albedo"].as<glm::vec3>();
+				mesh.metalic = meshNode["Metalic"].as<float>();
+				mesh.roughness = meshNode["Roughness"].as<float>();
 				scene.AddComponent(entity, mesh);
 			}
 		}
