@@ -88,6 +88,11 @@ namespace Sphynx::Rendering {
 			glUniformMatrix4fv(*location, 1, false, glm::value_ptr(matrix));
 	}
 
+	void Shader::Set(std::string_view name, const UniformBuffer& uniformBuffer)	{
+		if (auto index = GetUniformBufferIndex(name))
+			glUniformBlockBinding(m_ProgramID, *index, uniformBuffer.GetBinding());
+	}
+
 	std::optional<int> Shader::GetUniformLocation(std::string_view name) {
 		auto find = m_UniformlocationMap.find(name);
 		if (find != m_UniformlocationMap.end())
@@ -99,5 +104,18 @@ namespace Sphynx::Rendering {
 		}
 		m_UniformlocationMap[name] = location;
 		return location;
+	}
+
+	std::optional<int> Shader::GetUniformBufferIndex(std::string_view name) {
+		auto find = m_UniformBufferIDMap.find(name);
+		if (find != m_UniformBufferIDMap.end())
+			return find->second;
+		int index = glGetUniformBlockIndex(m_ProgramID, name.data());
+		if (index == -1) {
+			SE_WARN(Logging::Rendering, "Failed to find {}", name);
+			return std::nullopt;
+		}
+		m_UniformBufferIDMap[name] = index;
+		return index;
 	}
 }

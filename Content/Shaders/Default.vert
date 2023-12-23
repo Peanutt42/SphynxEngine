@@ -8,10 +8,14 @@ layout (location = 3) in float Metalic;
 layout (location = 4) in float Roughness;
 layout (location = 5) in mat4 InstanceModel;
 
-uniform mat4 proj_view;
+layout (std140) uniform CameraData {
+    mat4 ProjView;
+    vec3 CameraPosition;
+ };
 
 out VS_OUT {
     vec3 FragPos;
+    vec3 CameraPosition;
     vec3 Normal;
     vec3 Albedo;
     float Metalic;
@@ -21,8 +25,9 @@ out VS_OUT {
 void main()
 {
     vec4 frag_pos = InstanceModel * vec4(aPos, 1.0);
-    gl_Position = proj_view * frag_pos;
+    gl_Position = ProjView * frag_pos;
     vs_out.FragPos = frag_pos.xyz;
+    vs_out.CameraPosition = CameraPosition;
     vs_out.Normal = aNormal;
     vs_out.Albedo = Albedo;
     vs_out.Metalic = Metalic;

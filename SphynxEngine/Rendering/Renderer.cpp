@@ -142,6 +142,12 @@ namespace Sphynx::Rendering {
 	};
 	std::vector<uint32> quad_indices = { 0,2,1,2,0,3 };
 
+	struct CameraData {
+		glm::mat4 ProjView;
+		glm::vec3 CameraPosition;
+	};
+	UniformBuffer* s_CameraUniformBuffer = nullptr;
+
 	std::shared_ptr<VertexArray> s_BatchLineVA;
 	std::shared_ptr<VertexBuffer> s_BatchLineVB;
 	constexpr uint32 k_MaxLines = 1024;
@@ -208,12 +214,17 @@ namespace Sphynx::Rendering {
 
 		s_SceneFramebuffer = new Framebuffer(s_SceneWidth, s_SceneHeight);
 
+		s_CameraUniformBuffer = new UniformBuffer(sizeof(CameraData));
+
 		default_shader = new Shader("Content/Shaders/Default.vert", "Content/Shaders/Default.frag");
 		default_shader->Bind();
+		default_shader->Set("CameraData", *s_CameraUniformBuffer);
+
 		cat = new Texture("Content/Textures/cat.jpg");
 
 		billboard_shader = new Shader("Content/Shaders/Billboard.vert", "Content/Shaders/Billboard.frag");
 		billboard_shader->Bind();
+		billboard_shader->Set("CameraData", *s_CameraUniformBuffer);
 
 		line_shader = new Shader("Content/Shaders/Line.vert", "Content/Shaders/Line.frag");
 
@@ -236,6 +247,7 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
+		delete s_CameraUniformBuffer;
 		delete cube;
 		delete cat;
 		delete default_shader;
@@ -278,19 +290,23 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
+		float aspect = GetAspect(s_SceneWidth, s_SceneHeight);
+		auto proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView();
+		CameraData cameraData{
+			proj_view,
+			s_RenderCommand.SceneCamera.Position
+		};
+		s_CameraUniformBuffer->Update(cameraData);
+
 		s_SceneFramebuffer->Bind();
 
 		default_shader->Bind();
-		float aspect = GetAspect(s_SceneWidth, s_SceneHeight);
-		auto proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView();
-		default_shader->Set("proj_view", proj_view);
 		for (int i = 0; i < 4; i++) {
 			if (i >= s_RenderCommand.Lights.size()) break;
 			std::string iStr = std::to_string(i);
 			default_shader->Set("lightPositions[" + iStr + "]", s_RenderCommand.Lights[i].Position);
 			default_shader->Set("lightColors[" + iStr + "]", s_RenderCommand.Lights[i].Color);
 		}
-		default_shader->Set("cameraPos", s_RenderCommand.SceneCamera.Position);
 		cube->SetInstances(s_RenderCommand.Instances);
 		cube->Draw();
 
@@ -302,7 +318,6 @@ namespace Sphynx::Rendering {
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		billboard_shader->Bind();
 		billboard_shader->Set("billboard", 0);
-		billboard_shader->Set("proj_view", proj_view);
 		for (const auto&[textureID, instances] : s_RenderCommand.Billboards) {
 			Texture::Bind(textureID, 0);
 

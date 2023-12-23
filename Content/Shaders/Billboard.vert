@@ -8,11 +8,13 @@ layout (location = 3) in mat4 InstanceModel;
 out vec2 uv;
 out vec3 color;
 
-uniform mat4 proj_view;
+layout (std140) uniform CameraData {
+    mat4 ProjView;
+    vec3 CameraPosition;
+ };
 
-void main()
-{
-    gl_Position = proj_view * InstanceModel * vec4(aPos, 1.0);
+void main() {
+    gl_Position = ProjView * InstanceModel * vec4(aPos, 1.0);
     uv = aUV;
     color = InstanceColor;
 }
