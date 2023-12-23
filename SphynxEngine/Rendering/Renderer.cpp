@@ -24,25 +24,44 @@ namespace Sphynx::Rendering {
 		}
 	};
 
-	struct Billboard {
-		glm::vec3 Position;
+	struct BillboardInstanceData {
 		glm::vec3 Color;
-		uint32 TextureID = 0;
+		glm::mat4 ModelMatrix;
+
+		static VertexLayout GetVertexLayout() {
+			return VertexLayout{}
+				.add(VertexAttrib::Vec3)
+				.add(VertexAttrib::Mat4);
+		}
+	};
+
+	struct Billboard {
+		glm::vec3 Color;
+		glm::vec3 Position;
+	};
+
+	struct InstanceData {
+		glm::vec3 Albedo;
+		float Metalic;
+		float Roughness;
+		glm::mat4 ModelMatrix;
+
+		static VertexLayout GetVertexLayout() {
+			return VertexLayout{}
+				.add(VertexAttrib::Vec3)
+				.add(VertexAttrib::Float)
+				.add(VertexAttrib::Float)
+				.add(VertexAttrib::Mat4);
+		}
 	};
 
 	struct Light {
 		glm::vec3 Position, Color;
 	};
 
-	struct CubeInstance {
-		glm::mat4 ModelMatrix;
-		glm::vec3 albedo;
-		float metalic, roughness;
-	};
-
 	struct RenderCommand {
-		std::vector<CubeInstance> ModelMatrices;
-		std::vector<Billboard> Billboards;
+		std::vector<InstanceData> Instances;
+		std::unordered_map<uint32, std::vector<Billboard>> Billboards; // key is the textureID
 		std::vector<Light> Lights;
 		std::vector<Vertex> Lines;
 		Camera SceneCamera;
@@ -203,9 +222,9 @@ namespace Sphynx::Rendering {
 		s_BatchLineVA->AddVertexBuffer(s_BatchLineVB);
 		s_RenderCommand.Lines.reserve(k_MaxLines);
 
-		quad = new Mesh(quad_vertices, quad_indices);
+		quad = new Mesh(quad_vertices, quad_indices, BillboardInstanceData::GetVertexLayout());
 
-		cube = new Mesh(cube_vertices, cube_indices);
+		cube = new Mesh(cube_vertices, cube_indices, InstanceData::GetVertexLayout());
 		
 		s_Initialized = true;
 		return true;
@@ -234,9 +253,9 @@ namespace Sphynx::Rendering {
 			return;
 
 		s_RenderCommand.SceneCamera = camera;
-		s_RenderCommand.ModelMatrices.resize(0);
+		s_RenderCommand.Instances.resize(0);
 		for (auto[entity, transform, mesh] : scene.View<ECS::TransformComponent, Rendering::MeshComponent>().each()) {
-			s_RenderCommand.ModelMatrices.emplace_back(transform.GetModelMatrix(), mesh.albedo, mesh.metalic, mesh.roughness);
+			s_RenderCommand.Instances.emplace_back(mesh.albedo, mesh.metalic, mesh.roughness, transform.GetModelMatrix());
 		}
 		s_RenderCommand.Lights.resize(0);
 		for (auto [entity, transform, light] : scene.View<ECS::TransformComponent, Rendering::LightComponent>().each()) {
@@ -245,7 +264,7 @@ namespace Sphynx::Rendering {
 	}
 
 	void Renderer::SubmitBillboard(const glm::vec3& position, uint32 textureID, const glm::vec3& color) {
-		s_RenderCommand.Billboards.emplace_back(position, color, textureID);
+		s_RenderCommand.Billboards[textureID].emplace_back(color, position);
 	}
 
 	void Renderer::SubmitLine(const glm::vec3& start, const glm::vec3& end) {
@@ -272,13 +291,8 @@ namespace Sphynx::Rendering {
 			default_shader->Set("lightColors[" + iStr + "]", s_RenderCommand.Lights[i].Color);
 		}
 		default_shader->Set("cameraPos", s_RenderCommand.SceneCamera.Position);
-		for (const auto& instance : s_RenderCommand.ModelMatrices) {
-			default_shader->Set("model_matrix", instance.ModelMatrix);
-			default_shader->Set("material.albedo", instance.albedo);
-			default_shader->Set("material.metalic", instance.metalic);
-			default_shader->Set("material.roughness", instance.roughness);
-			cube->Draw();
-		}
+		cube->SetInstances(s_RenderCommand.Instances);
+		cube->Draw();
 
 
 		glDisable(GL_DEPTH_TEST);
@@ -289,16 +303,19 @@ namespace Sphynx::Rendering {
 		billboard_shader->Bind();
 		billboard_shader->Set("billboard", 0);
 		billboard_shader->Set("proj_view", proj_view);
-		for (const auto& billboard : s_RenderCommand.Billboards) {
-			Texture::Bind(billboard.TextureID, 0);
+		for (const auto&[textureID, instances] : s_RenderCommand.Billboards) {
+			Texture::Bind(textureID, 0);
 
-			glm::mat4 model_matrix = glm::translate(glm::mat4(1.f), billboard.Position) * 
-				glm::toMat4(glm::quat(s_RenderCommand.SceneCamera.Rotation));
-			billboard_shader->Set("model_matrix", model_matrix);
-			billboard_shader->Set("color", billboard.Color);
+			std::vector<BillboardInstanceData> billboard_instance_datas;
+			for (const auto& instance : instances) {
+				glm::mat4 model_matrix = glm::translate(glm::mat4(1.f), instance.Position) * 
+					glm::toMat4(glm::quat(s_RenderCommand.SceneCamera.Rotation));
+				billboard_instance_datas.emplace_back(instance.Color, model_matrix);
+			}
+			quad->SetInstances(billboard_instance_datas);
 			quad->Draw();
 		}
-		s_RenderCommand.Billboards.resize(0);
+		s_RenderCommand.Billboards.clear();
 		glDisable(GL_BLEND);
 
 		// Lines

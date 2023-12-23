@@ -3,9 +3,9 @@
 out vec4 FragColor;
 
 in vec2 uv;
+in vec3 color;
 
 uniform sampler2D billboard;
-uniform vec3 color;
 
 void main()
 {

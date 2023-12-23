@@ -10,7 +10,8 @@ namespace Sphynx::Rendering {
 		case VertexAttrib::Int: return GL_INT;
 		case VertexAttrib::Float:
 		case VertexAttrib::Vec2:
-		case VertexAttrib::Vec3: return GL_FLOAT;
+		case VertexAttrib::Vec3:
+		case VertexAttrib::Vec4: return GL_FLOAT;
 		}
 	}
 
@@ -21,6 +22,7 @@ namespace Sphynx::Rendering {
 		case VertexAttrib::Float: return 1;
 		case VertexAttrib::Vec2: return 2;
 		case VertexAttrib::Vec3: return 3;
+		case VertexAttrib::Vec4: return 4;
 		}
 	}
 
@@ -31,7 +33,15 @@ namespace Sphynx::Rendering {
 		case VertexAttrib::Float: return sizeof(float);
 		case VertexAttrib::Vec2: return 2 * sizeof(float);
 		case VertexAttrib::Vec3: return 3 * sizeof(float);
+		case VertexAttrib::Vec4: return 4 * sizeof(float);
 		}
+	}
+
+	int VertexLayout::GetTotalSize() const {
+		int total_size = 0;
+		for (const auto& attrib : Attributes)
+			total_size += GetVertexAttribSize(attrib);
+		return total_size;
 	}
 
 	VertexArray::VertexArray() {
@@ -49,17 +59,16 @@ namespace Sphynx::Rendering {
 
 		const auto& layout = vertexBuffer->GetLayout();
 
-		size_t total_vertex_size = 0;
-		for (const auto& attrib : layout.Attributes)
-			total_vertex_size += GetVertexAttribSize(attrib);
+		size_t total_vertex_size = layout.GetTotalSize();
 
 		byte* offset = nullptr;
 		for (int i = 0; i < layout.Attributes.size(); i++) {
 			const auto& attrib = layout.Attributes[i];
 
-			glVertexAttribPointer(i, GetVertexAttribElementCount(attrib), GetVertexAttribElementType(attrib), GL_FALSE, total_vertex_size, offset);
-			glEnableVertexAttribArray(i);
+			glVertexAttribPointer(m_VertexAttribLoc, GetVertexAttribElementCount(attrib), GetVertexAttribElementType(attrib), GL_FALSE, total_vertex_size, offset);
+			glEnableVertexAttribArray(m_VertexAttribLoc);
 
+			m_VertexAttribLoc++;
 			offset += GetVertexAttribSize(attrib);
 		}
 		
@@ -70,6 +79,27 @@ namespace Sphynx::Rendering {
 		glBindVertexArray(m_ID);
 		indexBuffer->Bind();
 		m_IndexBuffer = indexBuffer;
+	}
+
+	void VertexArray::SetInstanceBuffer(std::shared_ptr<VertexBuffer> instanceBuffer) {
+		glBindVertexArray(m_ID);
+		instanceBuffer->Bind();
+
+		const auto& layout = instanceBuffer->GetLayout();
+
+		size_t total_vertex_size = layout.GetTotalSize();
+
+		byte* offset = nullptr;
+		for (int i = 0; i < layout.Attributes.size(); i++) {
+			const auto& attrib = layout.Attributes[i];
+
+			glVertexAttribPointer(m_VertexAttribLoc, GetVertexAttribElementCount(attrib), GetVertexAttribElementType(attrib), GL_FALSE, total_vertex_size, offset);
+			glEnableVertexAttribArray(m_VertexAttribLoc);
+			glVertexAttribDivisor(m_VertexAttribLoc, 1); // per instance, not per vertex
+
+			m_VertexAttribLoc++;
+			offset += GetVertexAttribSize(attrib);
+		}
 	}
 
 	void VertexArray::Bind() {

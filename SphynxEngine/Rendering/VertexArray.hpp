@@ -19,6 +19,8 @@ namespace Sphynx::Rendering {
 
 		void SetIndexBuffer(std::shared_ptr<IndexBuffer> indexBuffer);
 
+		void SetInstanceBuffer(std::shared_ptr<VertexBuffer> instanceBuffer);
+
 		void Bind();
 		void Unbind();
 
@@ -26,5 +28,7 @@ namespace Sphynx::Rendering {
 		uint32 m_ID = 0;
 		std::vector<std::shared_ptr<VertexBuffer>> m_VertexBuffers;
 		std::shared_ptr<IndexBuffer> m_IndexBuffer;
+		std::shared_ptr<VertexBuffer> m_InstanceBuffer;
+		int m_VertexAttribLoc = 0;
 	};
 }

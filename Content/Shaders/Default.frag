@@ -5,14 +5,10 @@ out vec4 FragColor;
 in VS_OUT {
     vec3 FragPos;
     vec3 Normal;
+    vec3 Albedo;
+    float Metalic;
+    float Roughness;
 } fs_in;
-
-struct Material {
-    vec3 albedo;
-    float metalic;
-    float roughness;
-};
-uniform Material material;
 
 uniform vec3 lightPositions[4];
 uniform vec3 lightColors[4];
@@ -33,7 +29,7 @@ void main()
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    
     vec3 F0 = vec3(0.04); 
-    F0 = mix(F0, material.albedo, material.metalic);
+    F0 = mix(F0, fs_in.Albedo, fs_in.Metalic);
 
     // reflectance equation
     vec3 Lo = vec3(0.0);
@@ -47,8 +43,8 @@ void main()
         vec3 radiance = lightColors[i] * attenuation;
 
         // Cook-Torrance BRDF
-        float NDF = DistributionGGX(N, H, material.roughness);   
-        float G   = GeometrySmith(N, V, L, material.roughness);      
+        float NDF = DistributionGGX(N, H, fs_in.Roughness);   
+        float G   = GeometrySmith(N, V, L, fs_in.Roughness);      
         vec3 F    = fresnelSchlick(clamp(dot(H, V), 0.0, 1.0), F0);
            
         vec3 numerator    = NDF * G * F; 
@@ -64,18 +60,18 @@ void main()
         // multiply kD by the inverse metalness such that only non-metals 
         // have diffuse lighting, or a linear blend if partly metal (pure metals
         // have no diffuse light).
-        kD *= 1.0 - material.metalic;	  
+        kD *= 1.0 - fs_in.Metalic;	  
 
         // scale light by NdotL
         float NdotL = max(dot(N, L), 0.0);        
 
         // add to outgoing radiance Lo
-        Lo += (kD * material.albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
+        Lo += (kD * fs_in.Albedo / PI + specular) * radiance * NdotL;  // note that we already multiplied the BRDF by the Fresnel (kS) so we won't multiply by kS again
     }   
     
     // ambient lighting (note that the next IBL tutorial will replace 
     // this ambient lighting with environment lighting).
-    vec3 ambient = vec3(0.03) * material.albedo;
+    vec3 ambient = vec3(0.03) * fs_in.Albedo;
 
     vec3 color = ambient + Lo;
 

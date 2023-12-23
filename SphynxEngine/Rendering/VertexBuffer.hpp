@@ -8,12 +8,23 @@ namespace Sphynx::Rendering {
 		Float,
 		Vec2,
 		Vec3,
+		Vec4,
+		Mat4,
 	};
 	struct SE_API VertexLayout {
 		std::vector<VertexAttrib> Attributes;
 
+		int GetTotalSize() const;
+
 		VertexLayout& add(VertexAttrib attrib) {
-			Attributes.push_back(attrib);
+			if (attrib == VertexAttrib::Mat4) {
+				Attributes.push_back(VertexAttrib::Vec4);
+				Attributes.push_back(VertexAttrib::Vec4);
+				Attributes.push_back(VertexAttrib::Vec4);
+				Attributes.push_back(VertexAttrib::Vec4);
+			}
+			else
+				Attributes.push_back(attrib);
 			return *this;
 		}
 	};
