@@ -106,7 +106,8 @@ set(FILEWATCH_INCLUDE_DIR ${filewatch_SOURCE_DIR})
 CloneRepository(fmt https://github.com/fmtlib/fmt.git 10.1.1)
 
 # Tracy
-set(TRACY_STATIC OFF)
+set(TRACY_STATIC OFF CACHE BOOL "" FORCE)
+set(TRACY_ON_DEMAND ON CACHE BOOL "" FORCE)
 CloneRepository(Tracy https://github.com/wolfpld/tracy.git v0.10)
 
 # libsndfile
