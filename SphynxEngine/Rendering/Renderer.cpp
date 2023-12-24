@@ -62,7 +62,7 @@ namespace Sphynx::Rendering {
 
 		s_DefaultShader = new Shader(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
 		s_DefaultShader->UploadToGPU();
-		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("v_ubo", *VulkanContext::UniformBuffer);
+		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("CameraData", *VulkanContext::CameraUniformBuffer);
 
 		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment));
 		s_ScreenQuadShader->UploadToGPU();
@@ -117,10 +117,11 @@ namespace Sphynx::Rendering {
 
 
 		float aspect = GetAspect((float)VulkanContext::SceneWidth, (float)VulkanContext::SceneHeight);
-		UniformBufferData uniformBufferData{
-			.proj_view = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView()
+		CameraUniformBufferData cameraUniformBufferData{
+			.ProjView = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView(),
+			.CameraPosition = s_RenderCommand.SceneCamera.Position,
 		};
-		VulkanContext::UniformBuffer->Update(uniformBufferData);
+		VulkanContext::CameraUniformBuffer->Update(cameraUniformBufferData);
 
 		VulkanContext::InstanceBuffer->Set(s_RenderCommand.ModelMatrices);
 

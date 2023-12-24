@@ -12,8 +12,9 @@
 #include "VulkanInstanceBuffer.hpp"
 
 namespace Sphynx::Rendering {
-	struct UniformBufferData {
-		glm::mat4 proj_view; // proj * view
+	struct CameraUniformBufferData {
+		glm::mat4 ProjView; // proj * view
+		glm::vec3 CameraPosition;
 	};
 
 	class VulkanContext {
@@ -61,7 +62,7 @@ namespace Sphynx::Rendering {
 
 		inline static vk::SharingMode SharingMode;
 
-		inline static VulkanUniformBuffer* UniformBuffer = nullptr;
+		inline static VulkanUniformBuffer* CameraUniformBuffer = nullptr;
 
 		inline static uint32 MaxFramesInFlight = 2;
 		inline static uint32 CurrentFrame = 0;
