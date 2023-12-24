@@ -9,7 +9,7 @@
       }
     },
     {
-      "name": "Developent",
+      "name": "Development",
       "binaryDir": "${sourceDir}/Build/Development",
       "cacheVariables": {
         "CMAKE_BUILD_TYPE": "RelWithDebInfo"
