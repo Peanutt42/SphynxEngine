@@ -10,7 +10,7 @@
 #include "Physics/PhysicEngine.hpp"
 #include "Input/Input.hpp"
 #include "Profiling/Profiling.hpp"
-#include "UI/UI.hpp"
+#include "UI/VulkanImGui.hpp"
 
 namespace Sphynx {
 	std::atomic_bool s_Quit = false;
@@ -57,10 +57,10 @@ namespace Sphynx {
 
 			Input::Init(s_Window->GetGLFWHandle());
 
-			SE_ASSERT(Rendering::Renderer::Init(*s_Window, &Update, s_Settings.VSync), "Failed to initialize the Renderer");
+			SE_ASSERT(Rendering::Renderer::Init(*s_Window, &Update), "Failed to initialize the Renderer");
 
 			if (s_Settings.ImGuiEnabled)
-				UI::Init(*s_Window);
+				UI::VulkanImGui::Init();
 		}
 
 		s_Application->OnCreate();
@@ -73,6 +73,9 @@ namespace Sphynx {
 	void Engine::Shutdown() {
 		Timer shutdownTimer;
 
+		if (Rendering::Renderer::IsInitialized())
+			Rendering::Renderer::WaitBeforeClose();
+
 		s_Application->OnDestroy();
 
 		Scripting::ScriptingEngine::Shutdown();
@@ -83,7 +86,7 @@ namespace Sphynx {
 			ConsoleInput::Shutdown();
 
 		if (s_Settings.ImGuiEnabled)
-			UI::Shutdown();
+			UI::VulkanImGui::Shutdown();
 		if (Rendering::Renderer::IsInitialized())
 			Rendering::Renderer::Shutdown();
 
@@ -117,14 +120,15 @@ namespace Sphynx {
 
 		if (Rendering::Renderer::IsInitialized()) {
 			if (s_Settings.ImGuiEnabled) {
-				UI::Begin();
+				UI::VulkanImGui::Begin();
 				s_Application->DrawUI();
-				UI::End();
+				UI::VulkanImGui::End();
 			}
 
-			Rendering::Renderer::Update();
+			Rendering::Renderer::Begin();
 			if (s_Settings.ImGuiEnabled)
-				UI::Render();
+				UI::VulkanImGui::Render();
+			Rendering::Renderer::End();
 		}
 				
 		if (s_Window)

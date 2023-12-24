@@ -12,8 +12,6 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Update() override {
-			SE_PROFILE_FUNCTION();
-
 			if (m_Hovered && EditorApplication::GetState() == EditorState::Editing && Input::IsMouseButtonPressed(MouseButton::Right))
 				m_Looking = true;
 			if (Input::IsMouseButtonReleased(MouseButton::Right))
@@ -61,13 +59,12 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Draw() override {
-			SE_PROFILE_FUNCTION();
-
 			m_Hovered = ImGui::IsWindowHovered();
 
 			ImVec2 rect = ImGui::GetContentRegionAvail();
-			uint32 textureId = Rendering::Renderer::GetSceneTextureID();
-			ImGui::Image((ImTextureID)(uint64)textureId, rect, {0, 1}, {1, 0});
+			void* textureId = Rendering::Renderer::GetSceneTextureID();
+			if (textureId)
+				ImGui::Image((ImTextureID)textureId, rect);
 		}
 
 	private:

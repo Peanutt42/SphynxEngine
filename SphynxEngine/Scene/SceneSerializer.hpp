@@ -38,26 +38,6 @@ namespace Sphynx {
 				out << YAML::EndMap;
 			}
 
-			if (auto* light = scene.GetComponent<Rendering::LightComponent>(entity)) {
-				out << YAML::Key << "Light" << YAML::BeginMap;
-				out << YAML::Key << "Color" << YAML::Value << light->Color;
-				out << YAML::EndMap;
-			}
-			if (auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity)) {
-				out << YAML::Key << "Camera" << YAML::BeginMap;
-				out << YAML::Key << "FOV" << YAML::Value << camera->FOV;
-				out << YAML::Key << "NearPlane" << YAML::Value << camera->NearPlane;
-				out << YAML::Key << "FarPlane" << YAML::Value << camera->FarPlane;
-				out << YAML::EndMap;
-			}
-			if (auto* mesh = scene.GetComponent<Rendering::MeshComponent>(entity)) {
-				out << YAML::Key << "Mesh" << YAML::BeginMap;
-				out << YAML::Key << "Albedo" << YAML::Value << mesh->albedo;
-				out << YAML::Key << "Metalic" << YAML::Value << mesh->metalic;
-				out << YAML::Key << "Roughness" << YAML::Value << mesh->roughness;
-				out << YAML::EndMap;
-			}
-
 			out << YAML::EndMap;
 		}
 
@@ -108,28 +88,6 @@ namespace Sphynx {
 				sphere.Radius = sphereNode["Radius"].as<float>();
 
 				scene.AddComponent<Physics::SphereCollider>(entity, sphere);
-			}
-
-			if (YAML::Node lightNode = entityNode["Light"]) {
-				Rendering::LightComponent light;
-				light.Color = lightNode["Color"].as<glm::vec3>();
-
-				scene.AddComponent<Rendering::LightComponent>(entity, light);
-			}
-			if (YAML::Node cameraNode = entityNode["Camera"]) {
-				Rendering::CameraComponent camera;
-				camera.FOV = cameraNode["FOV"].as<float>();
-				camera.NearPlane = cameraNode["NearPlane"].as<float>();
-				camera.FarPlane = cameraNode["FarPlane"].as<float>();
-
-				scene.AddComponent<Rendering::CameraComponent>(entity, camera);
-			}
-			if (YAML::Node meshNode = entityNode["Mesh"]) {
-				Rendering::MeshComponent mesh;
-				mesh.albedo = meshNode["Albedo"].as<glm::vec3>();
-				mesh.metalic = meshNode["Metalic"].as<float>();
-				mesh.roughness = meshNode["Roughness"].as<float>();
-				scene.AddComponent(entity, mesh);
 			}
 		}
 

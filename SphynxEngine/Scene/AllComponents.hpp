@@ -2,7 +2,6 @@
 
 #include "DefaultComponents.hpp"
 #include "Physics/PhysicsComponents.hpp"
-#include "Rendering/RenderingComponents.hpp"
 
 namespace Sphynx::ECS {
     template<typename... Component>
@@ -14,9 +13,6 @@ namespace Sphynx::ECS {
         TransformComponent,
         Physics::RigidbodyComponent,
         Physics::BoxCollider,
-        Physics::SphereCollider,
-        Rendering::LightComponent,
-        Rendering::CameraComponent,
-        Rendering::MeshComponent
+        Physics::SphereCollider
     >;
 }

@@ -1,140 +1,83 @@
 #include "pch.hpp"
 #include "Shader.hpp"
-#include "Serialization/FileStream.hpp"
+#include "Mesh.hpp"
 #include "Profiling/Profiling.hpp"
-
-#include <glm/gtc/type_ptr.hpp>
-
-#include <glad/glad.h>
+#include "Vulkan/VulkanContext.hpp"
+#include "Rendering/InstanceData.hpp"
 
 namespace Sphynx::Rendering {
-	std::optional<uint32> CompileShader(const std::filesystem::path& filepath) {
-		GLenum type = filepath.filename().string().ends_with(".vert") ? GL_VERTEX_SHADER : GL_FRAGMENT_SHADER;
-		uint32 shader = glCreateShader(type);
-		std::string shaderCode;
-		if (FileStreamReader::ReadTextFile(filepath, shaderCode).is_error() || shaderCode.empty())
-			return std::nullopt;
-		const char* shaderCodePtr = shaderCode.data();
-		glShaderSource(shader, 1, &shaderCodePtr, nullptr);
-		glCompileShader(shader);
-		int success = 0;
-		glGetShaderiv(shader, GL_COMPILE_STATUS, &success);
-		if (!success) {
-			char infoLog[512];
-			glGetShaderInfoLog(shader, sizeof(infoLog), nullptr, infoLog);
-			SE_WARN(Logging::Rendering, "Failed to compile {}: {}", filepath.string(), infoLog);
-			return std::nullopt;
-		}
-		return shader;
-	}
-
-	Shader::Shader(const std::filesystem::path& vertex_filepath, const std::filesystem::path& fragment_filepath) {
+	Shader::Shader(BufferView vertexCode, BufferView fragmentCode) {
 		SE_PROFILE_FUNCTION();
 
-		auto vertexShader = CompileShader(vertex_filepath);
-		auto fragmentShader = CompileShader(fragment_filepath);
-		if (!vertexShader) {
-			SE_ERR(Logging::Rendering, "Can't compile shader {}!", vertex_filepath.string());
-			return;
-		}
-		if (!fragmentShader) {
-			SE_ERR(Logging::Rendering, "Can't compile shader {}!", fragment_filepath.string());
-			return;
-		}
+		m_VertexSpirv.resize(vertexCode.GetSize<uint32>());
+		std::memcpy(m_VertexSpirv.data(), vertexCode.As<uint32>(), vertexCode.Size);
 
-		m_ProgramID = glCreateProgram();
-		glAttachShader(m_ProgramID, *vertexShader);
-		glAttachShader(m_ProgramID, *fragmentShader);
-		glLinkProgram(m_ProgramID);
-		int success = 0;
-		glGetProgramiv(m_ProgramID, GL_LINK_STATUS, &success);
-		if (!success) {
-			char infoLog[512];
-			glGetProgramInfoLog(m_ProgramID, sizeof(infoLog), nullptr, infoLog);
-			SE_ERR(Logging::Rendering, "Failed to compile shader ({}, {}): {}", vertex_filepath.string(), fragment_filepath.string(), infoLog);
-			return;
-		}
-		glDeleteShader(*vertexShader);
-		glDeleteShader(*fragmentShader);
+		m_FragmentSpirv.resize(fragmentCode.GetSize<uint32>());
+		std::memcpy(m_FragmentSpirv.data(), fragmentCode.As<uint32>(), fragmentCode.Size);
 	}
 
 	Shader::~Shader() {
 		SE_PROFILE_FUNCTION();
 
-		glDeleteProgram(m_ProgramID);
+		delete m_VulkanShader;
 	}
 
 	void Shader::Bind() {
 		SE_PROFILE_FUNCTION();
 
-		glUseProgram(m_ProgramID);
+		m_VulkanShader->Bind(VulkanContext::CommandBuffer);
 	}
-
-	void Shader::Set(std::string_view name, bool value) {
+	
+	void Shader::UploadToGPU() {
 		SE_PROFILE_FUNCTION();
 
-		if (auto location = GetUniformLocation(name))
-			glUniform1i(*location, (int)value);
-	}
+		ShaderCreateInfo info{
+			.VertexCode = std::move(m_VertexSpirv),
+			.FragmentCode = std::move(m_FragmentSpirv),
+			.VertexInputBindings = std::vector<vk::VertexInputBindingDescription>{
+				vk::VertexInputBindingDescription{ 0, sizeof(Vertex), vk::VertexInputRate::eVertex },
+				vk::VertexInputBindingDescription{ 1, sizeof(InstanceData), vk::VertexInputRate::eInstance }
+			}
+		};
 
-	void Shader::Set(std::string_view name, int value) {
-		SE_PROFILE_FUNCTION();
+		SpirvHelper::GetReflectionInfo(info.VertexCode, vk::ShaderStageFlagBits::eVertex, info.ReflectionInfo);
+		SpirvHelper::GetReflectionInfo(info.FragmentCode, vk::ShaderStageFlagBits::eFragment, info.ReflectionInfo);
+		
+		std::sort(info.ReflectionInfo.VertexAttributes.begin(), info.ReflectionInfo.VertexAttributes.end(),
+			[](const vk::VertexInputAttributeDescription& l, const vk::VertexInputAttributeDescription& r) {
+				return l.location < r.location;
+			});
 
-		if (auto location = GetUniformLocation(name))
-			glUniform1i(*location, value);
-	}
+		// Find the first location of the instance attributes
+		uint32 firstInstanceLocation = std::numeric_limits<uint32>::max();
+		uint32 instanceAttributesSize = 0;
+		for (int i = (int)info.ReflectionInfo.VertexAttributes.size() - 1; i >= 0; i--) {
+			auto& attribute = info.ReflectionInfo.VertexAttributes[i];
 
-	void Shader::Set(std::string_view name, float value) {
-		SE_PROFILE_FUNCTION();
+			instanceAttributesSize += info.ReflectionInfo.VertexInputAttributeSizes.at(attribute.location);
 
-		if (auto location = GetUniformLocation(name))
-			glUniform1f(*location, value);
-	}
-
-	void Shader::Set(std::string_view name, const glm::vec3& vec) {
-		SE_PROFILE_FUNCTION();
-
-		if (auto location = GetUniformLocation(name))
-			glUniform3fv(*location, 1, glm::value_ptr(vec));
-	}
-
-	void Shader::Set(std::string_view name, const glm::mat4& matrix) {
-		SE_PROFILE_FUNCTION();
-
-		if (auto location = GetUniformLocation(name))
-			glUniformMatrix4fv(*location, 1, false, glm::value_ptr(matrix));
-	}
-
-	void Shader::Set(std::string_view name, const UniformBuffer& uniformBuffer)	{
-		SE_PROFILE_FUNCTION();
-
-		if (auto index = GetUniformBufferIndex(name))
-			glUniformBlockBinding(m_ProgramID, *index, uniformBuffer.GetBinding());
-	}
-
-	std::optional<int> Shader::GetUniformLocation(std::string_view name) {
-		auto find = m_UniformlocationMap.find(name);
-		if (find != m_UniformlocationMap.end())
-			return find->second;
-		int location = glGetUniformLocation(m_ProgramID, name.data());
-		if (location == -1) {
-			SE_WARN(Logging::Rendering, "Failed to find {}", name);
-			return std::nullopt;
+			if (sizeof(InstanceData) == instanceAttributesSize) {
+				firstInstanceLocation = attribute.location;
+				break;
+			}
 		}
-		m_UniformlocationMap[name] = location;
-		return location;
-	}
 
-	std::optional<int> Shader::GetUniformBufferIndex(std::string_view name) {
-		auto find = m_UniformBufferIDMap.find(name);
-		if (find != m_UniformBufferIDMap.end())
-			return find->second;
-		int index = glGetUniformBlockIndex(m_ProgramID, name.data());
-		if (index == -1) {
-			SE_WARN(Logging::Rendering, "Failed to find {}", name);
-			return std::nullopt;
+		// Set all the attribute's bindings and offsets
+		uint32 vertexAttributesSize = 0;
+		instanceAttributesSize = 0;
+		for (auto& attribute : info.ReflectionInfo.VertexAttributes) {
+			if (attribute.location < firstInstanceLocation) {
+				attribute.binding = 0;
+				attribute.offset = vertexAttributesSize;
+				vertexAttributesSize += info.ReflectionInfo.VertexInputAttributeSizes.at(attribute.location);
+			}
+			else {
+				attribute.binding = 1;
+				attribute.offset = instanceAttributesSize;
+				instanceAttributesSize += info.ReflectionInfo.VertexInputAttributeSizes.at(attribute.location);
+			}
 		}
-		m_UniformBufferIDMap[name] = index;
-		return index;
+
+		m_VulkanShader = new VulkanShader(info, *VulkanContext::SceneRenderpass);
 	}
 }

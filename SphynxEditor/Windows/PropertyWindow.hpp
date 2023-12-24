@@ -3,9 +3,7 @@
 #include "EditorWindow.hpp"
 #include "HierarchyWindow.hpp"
 
-#include <glm/gtc/type_ptr.hpp>
-
-#include "Scene/AllComponents.hpp"
+#include "Physics/PhysicsComponents.hpp"
 
 namespace Sphynx::Editor {
 	class PropertyWindow : public EditorWindow {
@@ -15,8 +13,6 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Draw() override {
-			SE_PROFILE_FUNCTION();
-
 			Scene& scene = EditorApplication::GetCurrentScene();
 			entt::entity entity = HierarchyWindow::s_SelectedEntity;
 			if (!scene.IsValid(entity))
@@ -54,29 +50,6 @@ namespace Sphynx::Editor {
 				EndComponent();
 			}
 
-			if (BeginComponent<Rendering::LightComponent>("Light", scene, entity)) {
-				auto* light = scene.GetComponent<Rendering::LightComponent>(entity);
-				ImGui::ColorEdit3("Color", glm::value_ptr(light->Color));
-
-				EndComponent();
-			}
-			if (BeginComponent<Rendering::CameraComponent>("Camera", scene, entity)) {
-				auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity);
-				ImGui::SliderFloat("FOV", &camera->FOV, 0.f, 180.f);
-				ImGui::DragFloat("NearPlane", &camera->NearPlane);
-				ImGui::DragFloat("FarPlane", &camera->FarPlane);
-
-				EndComponent();
-			}
-			if (BeginComponent<Rendering::MeshComponent>("Mesh", scene, entity)) {
-				auto* mesh = scene.GetComponent<Rendering::MeshComponent>(entity);
-				ImGui::ColorEdit3("Albedo", glm::value_ptr(mesh->albedo));
-				ImGui::SliderFloat("Metalic", &mesh->metalic, 0.f, 1.f);
-				ImGui::SliderFloat("Roughness", &mesh->roughness, 0.f, 1.f);
-
-				EndComponent();
-			}
-
 
 			ImGui::Spacing();
 			ImGui::Spacing();
@@ -92,14 +65,6 @@ namespace Sphynx::Editor {
 					DisplayAddComponentEntry<Physics::RigidbodyComponent>("Rigidbody");
 					DisplayAddComponentEntry<Physics::BoxCollider>("BoxCollider");
 					DisplayAddComponentEntry<Physics::SphereCollider>("SphereCollider");
-
-					ImGui::EndMenu();
-				}
-
-				if (ImGui::BeginMenu("Rendering")) {
-					DisplayAddComponentEntry<Rendering::LightComponent>("Light");
-					DisplayAddComponentEntry<Rendering::CameraComponent>("Camera");
-					DisplayAddComponentEntry<Rendering::MeshComponent>("Mesh");
 
 					ImGui::EndMenu();
 				}

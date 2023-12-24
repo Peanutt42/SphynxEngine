@@ -1,12 +1,56 @@
 #include "pch.hpp"
 #include "UI.hpp"
-#include "Profiling/Profiling.hpp"
-
-#include <backends/imgui_impl_opengl3.h>
-#include <backends/imgui_impl_glfw.h>
 
 namespace Sphynx::UI {
-    bool Vec3(std::string_view label, glm::vec3& v, float resetValue, float columnWidth) {
+	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax)
+	{
+		auto* drawList = ImGui::GetForegroundDrawList();
+		if (ImGui::IsItemActive())
+			drawList->AddImage(imagePressed.GetDescriptorSet(), rectMin, rectMax, ImVec2(0, 0), ImVec2(1, 1), tintPressed);
+		else if (ImGui::IsItemHovered())
+			drawList->AddImage(imageHovered.GetDescriptorSet(), rectMin, rectMax, ImVec2(0, 0), ImVec2(1, 1), tintHovered);
+		else
+			drawList->AddImage(imageNormal.GetDescriptorSet(), rectMin, rectMax, ImVec2(0, 0), ImVec2(1, 1), tintNormal);
+	};
+
+	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle)
+	{
+		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
+	};
+
+	void DrawButtonImage(Rendering::Image& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax)
+	{
+		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectMin, rectMax);
+	};
+
+	void DrawButtonImage(Rendering::Image& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle)
+	{
+		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, rectangle.Min, rectangle.Max);
+	};
+
+
+	void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
+	{
+		DrawButtonImage(imageNormal, imageHovered, imagePressed, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	};
+
+	void DrawButtonImage(Rendering::Image& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed)
+	{
+		DrawButtonImage(image, image, image, tintNormal, tintHovered, tintPressed, ImGui::GetItemRectMin(), ImGui::GetItemRectMax());
+	}
+	
+	
+	bool Vec3(std::string_view label, glm::vec3& v, float resetValue, float columnWidth) {
 		bool changed = false;
 		ImFont* extraBoldFont = Fonts::Get(Fonts::Type::ExtraBold);
 
@@ -80,90 +124,5 @@ namespace Sphynx::UI {
 		ImGui::PopID();
 
 		return changed;
-	}
-
-
-	void Init(Rendering::Window& window) {
-		SE_PROFILE_FUNCTION();
-
-		IMGUI_CHECKVERSION();
-
-		ImGui::CreateContext();
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
-		ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
-		ImGui::GetIO().IniFilename = "imgui.ini";
-
-		Fonts::Init();
-
-		ImGui::StyleColorsDark();
-		ImGui_ImplGlfw_InitForOpenGL(window.GetGLFWHandle(), true);
-
-		ImGui_ImplOpenGL3_Init("#version 330");
-	}
-
-	void Shutdown() {
-		SE_PROFILE_FUNCTION();
-
-		ImGui_ImplOpenGL3_Shutdown();
-		ImGui_ImplGlfw_Shutdown();
-		ImGui::DestroyContext();
-	}
-
-	void Begin() {
-		SE_PROFILE_FUNCTION();
-
-		ImGui_ImplOpenGL3_NewFrame();
-		ImGui_ImplGlfw_NewFrame();
-		ImGui::NewFrame();
-
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable) {
-			constexpr ImGuiDockNodeFlags dockspace_flags = ImGuiDockNodeFlags_None;
-
-			const ImGuiViewport* viewport = ImGui::GetMainViewport();
-			ImGui::SetNextWindowPos(viewport->WorkPos);
-			ImGui::SetNextWindowSize(viewport->WorkSize);
-			ImGui::SetNextWindowViewport(viewport->ID);
-			ImGuiWindowFlags window_flags = ImGuiWindowFlags_NoDocking | ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoCollapse | ImGuiWindowFlags_NoResize |
-				ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoBringToFrontOnFocus | ImGuiWindowFlags_NoNavFocus;
-
-			if constexpr (dockspace_flags & ImGuiDockNodeFlags_PassthruCentralNode)
-				window_flags |= ImGuiWindowFlags_NoBackground;
-
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowPadding, ImVec2(0.f, 0.f));
-			ImGui::PushStyleVar(ImGuiStyleVar_WindowBorderSize, 0.f);
-			static bool opened = true;
-			ImGui::Begin("Dockspace", &opened, window_flags);
-
-			ImGui::PopStyleVar(2);
-
-
-			ImGuiID dockspace_id = ImGui::GetID("Dockspace");
-			ImGui::DockSpace(dockspace_id, ImVec2(0, 0), dockspace_flags);
-		}
-	}
-
-	void End() {
-		SE_PROFILE_FUNCTION();
-
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_DockingEnable)
-			ImGui::End();
-
-		ImGui::Render();
-	}
-
-	void Render() {
-		SE_PROFILE_FUNCTION();
-
-		if (auto* drawData = ImGui::GetDrawData())
-			ImGui_ImplOpenGL3_RenderDrawData(drawData);
-
-		if (ImGui::GetIO().ConfigFlags & ImGuiConfigFlags_ViewportsEnable) {
-			ImGui::UpdatePlatformWindows();
-			ImGui::RenderPlatformWindowsDefault();
-		}
-	}
-
-	ImGuiContext* GetContext() {
-		return ImGui::GetCurrentContext();
 	}
 }

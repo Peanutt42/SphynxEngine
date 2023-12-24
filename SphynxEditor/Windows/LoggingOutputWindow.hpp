@@ -18,8 +18,6 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Draw() override {
-			SE_PROFILE_FUNCTION();
-
 			if (ImGui::Button("Clear")) {
 				s_Logs.clear();
 				s_Logs.reserve(1024);

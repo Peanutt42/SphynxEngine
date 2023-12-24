@@ -1,8 +1,8 @@
 #pragma once
 
 #include "pch.hpp"
+#include "Rendering/Image.hpp"
 #include "Fonts.hpp"
-#include "Rendering/Window.hpp"
 
 #include <imgui.h>
 #include <imgui_internal.h>
@@ -42,14 +42,29 @@ namespace Sphynx::UI {
 		return RectOffset(rect, xy.x, xy.y);
 	}
 
-	
+
+	SE_API void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax);
+
+	SE_API void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle);
+
+	SE_API void DrawButtonImage(Rendering::Image& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImVec2 rectMin, ImVec2 rectMax);
+
+	SE_API void DrawButtonImage(Rendering::Image& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed,
+		ImRect rectangle);
+
+	SE_API void DrawButtonImage(Rendering::Image& imageNormal, Rendering::Image& imageHovered, Rendering::Image& imagePressed,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
+
+	SE_API void DrawButtonImage(Rendering::Image& image,
+		ImU32 tintNormal, ImU32 tintHovered, ImU32 tintPressed);
+
+
 	SE_API bool Vec3(std::string_view label, glm::vec3& v, float resetValue = 0.f, float columnWidth = 100.f);
-
-
-	SE_API void Init(Rendering::Window& window);
-	SE_API void Shutdown();
-	SE_API void Begin();
-	SE_API void End();
-	SE_API void Render();
-	SE_API ImGuiContext* GetContext(); // For getting the imgui context from the SphynxEngine.dll
 }

@@ -1,30 +1,43 @@
 #pragma once
 
 #include "pch.hpp"
-#include "VertexArray.hpp"
-#include "VertexBuffer.hpp"
-#include "IndexBuffer.hpp"
 
 namespace Sphynx::Rendering {
+	struct Vertex {
+		glm::vec3 Position{ 0, 0, 0 };
+		glm::vec3 Normal{ 0, 0, 0 };
+		glm::vec2 UV{ 0, 0 };
+	};
+
+	struct SE_API MeshData {
+		std::vector<Vertex> Vertices;
+		std::vector<uint32> Indices;
+
+		// .semesh format only
+		void LoadMesh(const std::filesystem::path& filepath);
+		// .semesh format only
+		void SaveMesh(const std::filesystem::path& filepath);
+	};
+
+	class VulkanBuffer;
+
 	class SE_API Mesh {
 	public:
-		Mesh(BufferView vertices, const VertexLayout& vertexLayout, const std::vector<uint32>& indices, const VertexLayout& instanceLayout);
+		Mesh(const MeshData& data);
+		Mesh(BufferView vertices, uint32 vertexCount, const std::vector<uint32>& indices);
+		~Mesh();
 
-		template<typename T>
-		Mesh(const std::vector<T>& vertices, const std::vector<uint32>& indices, const VertexLayout& instanceLayout) : Mesh(BufferView(vertices), T::GetVertexLayout(), indices, instanceLayout) {}
-
-		void SetInstances(BufferView instances);
-
-		void Draw();
+		void Draw(uint32 instanceCount);
 
 	private:
-		std::shared_ptr<VertexArray> m_VertexArray;
-		std::shared_ptr<VertexBuffer> m_VertexBuffer;
-		std::shared_ptr<IndexBuffer> m_IndexBuffer;
-		bool m_Instanced = true;
-		std::shared_ptr<VertexBuffer> m_InstanceBuffer;
-		std::vector<byte> m_InstanceData;
-		int m_InstanceLayoutSize = 0;
-		int m_InstanceCount = 0;
+		Mesh(const Mesh&) = delete;
+		Mesh(Mesh&&) = delete;
+		Mesh& operator=(const Mesh&) = delete;
+		Mesh& operator=(Mesh&&) = delete;
+
+	private:
+		std::unique_ptr<VulkanBuffer> m_VertexBuffer;
+		std::unique_ptr<VulkanBuffer> m_IndexBuffer;
+		uint32 m_VertexCount = 0, m_IndicesCount = 0;
 	};
 }

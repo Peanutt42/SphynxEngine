@@ -2,7 +2,10 @@
 
 #include "pch.hpp"
 #include "Window.hpp"
+#include "Mesh.hpp"
+#include "Shader.hpp"
 #include "Camera.hpp"
+#include "InstanceData.hpp"
 #include "Scene/Scene.hpp"
 
 #include <queue>
@@ -10,18 +13,22 @@
 namespace Sphynx::Rendering {
 	class SE_API Renderer {
 	public:
-		static bool Init(Window& window, const std::function<void()>& resizeCallback, bool vsync);
+		static bool Init(Window& window, const std::function<void()>& resizeCallback);
 		static void Shutdown();
 
 		static void SubmitScene(Scene& scene, const Camera& camera);
-		static void SubmitBillboard(const glm::vec3& position, uint32 textureID, const glm::vec3& color = glm::vec3(1.f, 1.f, 1.f));
-		static void SubmitLine(const glm::vec3& start, const glm::vec3& end);
 
-		static void Update();
+		static void Begin();
+		static void End();
 
-		static uint32 GetSceneTextureID();
+		static void WaitBeforeClose();
 
-		static float GetSceneAspectRatio();
+		static void AddBeforeNextRenderCallback(const std::function<void()>& callback);
+
+		static void SetDrawSceneTextureEnabled(bool enable);
+
+		// ImTextureID
+		static void* GetSceneTextureID();
 
 		static bool IsInitialized();
 	};

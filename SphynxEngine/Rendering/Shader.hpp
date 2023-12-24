@@ -1,31 +1,32 @@
 #pragma once
 
 #include "pch.hpp"
-#include "UniformBuffer.hpp"
 
 namespace Sphynx::Rendering {
+	class VulkanShader;
+
+	// Difference to VulkanShader: 
+	//  Shader is more for game level shaders,
+	//  VulkanShader more for engine internal shaders
 	class SE_API Shader {
 	public:
-		Shader(const std::filesystem::path& vertex_filepath, const std::filesystem::path& fragment_filepath);
+		Shader(BufferView vertexCode, BufferView fragmentCode);
 		~Shader();
 
 		void Bind();
 
-		void Set(std::string_view name, bool value);
-		void Set(std::string_view name, int value);
-		void Set(std::string_view name, float value);
-		void Set(std::string_view name, const glm::vec3& vec);
-		void Set(std::string_view name, const glm::mat4& matrix);
+		void UploadToGPU();
 
-		void Set(std::string_view name, const UniformBuffer& uniformBuffer);
-		
-	private:
-		std::optional<int> GetUniformLocation(std::string_view name);
-		std::optional<int> GetUniformBufferIndex(std::string_view name);
+		VulkanShader* GetVulkanShader() { return m_VulkanShader; }
 
 	private:
-		uint32 m_ProgramID = 0;
-		std::unordered_map<std::string_view, int> m_UniformlocationMap;
-		std::unordered_map<std::string_view, int> m_UniformBufferIDMap;
+		Shader(const Shader&) = delete;
+		Shader(Shader&&) = delete;
+		Shader& operator=(const Shader&) = delete;
+		Shader& operator=(Shader&&) = delete;
+
+	private:
+		VulkanShader* m_VulkanShader = nullptr;
+		std::vector<uint32> m_VertexSpirv, m_FragmentSpirv;
 	};
 }

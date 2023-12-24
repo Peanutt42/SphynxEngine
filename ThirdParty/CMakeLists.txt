@@ -30,6 +30,24 @@ if(NOT DEFINED ENGINE_INCLUDE_DIR)
 endif()
 
 
+# Vulkan
+find_package(Vulkan REQUIRED)
+if (NOT Vulkan_FOUND)
+	message(FATAL_ERROR "Could not find Vulkan package!")
+else()
+	message(STATUS "Using vulkan lib at: ${Vulkan_LIBRARIES}")
+	cmake_path(GET Vulkan_LIBRARIES PARENT_PATH  Vulkan_LIB_DIR)
+	
+	if (CMAKE_SYSTEM_NAME STREQUAL "Windows")
+		set(Vulkan_SPIRV_CROSS_LIB "${Vulkan_LIB_DIR}/spirv-cross-core$<$<CONFIG:Debug>:d>.lib")
+		set(Vulkan_SHADERC_LIB "${Vulkan_LIB_DIR}/shaderc_combined$<$<CONFIG:Debug>:d>.lib")
+	elseif (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+		set(Vulkan_SPIRV_CROSS_LIB "${Vulkan_LIB_DIR}/libspirv-cross-core.a")
+		set(Vulkan_SHADERC_LIB "shaderc_combined")
+	endif()
+endif()
+
+
 include(FetchContent)
 
 # gtest
@@ -180,6 +198,11 @@ if (NOT DEFINED VENDOR_NO_PARENT)
 	set(GLM_INCLUDE_DIR ${GLM_INCLUDE_DIR} PARENT_SCOPE)
 	set(FILEWATCH_INCLUDE_DIR ${FILEWATCH_INCLUDE_DIR} PARENT_SCOPE)
 	set(OPENGL_LIB ${OPENGL_LIB} PARENT_SCOPE)
+	set(Vulkan_INCLUDE_DIRS ${Vulkan_INCLUDE_DIRS} PARENT_SCOPE)
+	set(Vulkan_LIBRARIES ${Vulkan_LIBRARIES} PARENT_SCOPE)
+	set(Vulkan_LIB_DIR ${Vulkan_LIB_DIR} PARENT_SCOPE)
+	set(Vulkan_SPIRV_CROSS_LIB ${Vulkan_SPIRV_CROSS_LIB} PARENT_SCOPE)
+	set(Vulkan_SHADERC_LIB ${Vulkan_SHADERC_LIB} PARENT_SCOPE)
 	set(ASSIMP_LIB ${ASSIMP_LIB} PARENT_SCOPE)
 	set(BULLET3_INCLUDE_DIR ${BULLET3_INCLUDE_DIR} PARENT_SCOPE)
 	set(BULLET3_LIBS ${BULLET3_LIBS} PARENT_SCOPE)

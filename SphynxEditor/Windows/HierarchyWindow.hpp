@@ -12,8 +12,6 @@ namespace Sphynx::Editor {
 		}
 
 		virtual void Draw() override {
-			SE_PROFILE_FUNCTION();
-
 			Scene& scene = EditorApplication::GetCurrentScene();
 			scene.ForEach([&](entt::entity entity) {
 				ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;

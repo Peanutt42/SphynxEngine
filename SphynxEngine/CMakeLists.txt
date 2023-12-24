@@ -20,6 +20,7 @@ target_include_directories(SphynxEngine
 		$<BUILD_INTERFACE:${GLM_INCLUDE_DIR}>
 	PRIVATE
 		${FILEWATCH_INCLUDE_DIR}
+		${Vulkan_INCLUDE_DIRS}
 		${BULLET3_INCLUDE_DIR}
 		"../Programs/"
 )
@@ -40,7 +41,8 @@ target_link_libraries(SphynxEngine
 		fmt
 		EnTT
 	PRIVATE
-		glad
+		${Vulkan_LIBRARIES}
+		${Vulkan_SPIRV_CROSS_LIB}
 		sndfile
 		OpenAL
 		glfw

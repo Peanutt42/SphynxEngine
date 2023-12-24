@@ -63,7 +63,6 @@ int GuardedMain(int argc, const char** argv) {
 	}
 
 	Sphynx::EngineSettings settings;
-	settings.ParseConfigFile(project.EngineConfigFilepath);
 	settings.ParseArguments(argc, argv);
 	settings.WindowName = "Sphynx Engine Runtime - " + project.Name;
 	settings.Fullscreen = true;

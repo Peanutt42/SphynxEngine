@@ -27,7 +27,6 @@ int GuardedMain(int argc, const char** argv) {
 	}
 
 	Sphynx::EngineSettings settings;
-	settings.ParseConfigFile(project.EngineConfigFilepath);
 	settings.ParseArguments(argc, argv);
 	settings.Headless = false; // forced
 	settings.WindowName = "Sphynx Engine Editor - " + project.Name;

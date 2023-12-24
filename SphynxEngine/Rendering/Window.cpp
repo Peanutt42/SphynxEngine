@@ -24,12 +24,11 @@ namespace Sphynx::Rendering {
 		}
 		s_WindowCount++;
 
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
-		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
-		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
+		glfwWindowHint(GLFW_SAMPLES, 0);
 		glfwWindowHint(GLFW_MAXIMIZED, m_Maximized);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-		
+
 		GLFWmonitor* monitor = nullptr;
 		if (fullscreen) {
 			monitor = glfwGetPrimaryMonitor();
@@ -47,7 +46,6 @@ namespace Sphynx::Rendering {
 
 		m_Window = glfwCreateWindow((int)m_Width, (int)m_Height, m_Title.c_str(), monitor, nullptr);
 		SE_ASSERT(m_Window, Logging::Rendering, "Failed to create window");
-		glfwMakeContextCurrent(m_Window);
 
 		if (glfwRawMouseMotionSupported())
 			glfwSetInputMode(m_Window, GLFW_RAW_MOUSE_MOTION, GLFW_TRUE);
@@ -84,12 +82,8 @@ namespace Sphynx::Rendering {
 		}
 		
 		{
-			SE_PROFILE_SCOPE("SwapBuffers");
-			glfwSwapBuffers(m_Window);
-		}
-
-		{
 			SE_PROFILE_SCOPE("PollEvents");
+
 			glfwPollEvents();
 		}
 
