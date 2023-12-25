@@ -26,7 +26,7 @@ namespace Sphynx::Rendering {
 		if (Validation)
 			ValidationLayers.push_back("VK_LAYER_KHRONOS_validation");
 		bool wantedValidation = Validation;
-		Validation = _ConfigureValidationLayers(createInfo, ValidationLayers);
+		Validation = _ConfigureValidationLayers(createInfo);
 		if (wantedValidation && !Validation)													// validation layers only work on locally installed VulkanSDK!
 			SE_WARN(Logging::Rendering, "Couldn't enable vulkan validation layers.\n    -> Fix: Install VulkanSDK locally from https://vulkan.lunarg.com/sdk/home");
 
@@ -92,11 +92,11 @@ namespace Sphynx::Rendering {
 	}
 
 
-	bool VulkanInstance::_ConfigureValidationLayers(vk::InstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers) {
+	bool VulkanInstance::_ConfigureValidationLayers(vk::InstanceCreateInfo& createInfo) {
 		std::vector<vk::LayerProperties> supportedLayers = vk::enumerateInstanceLayerProperties();
 
 		size_t unsupportedValidationLayerCount = 0;
-		for (const char* layer : validationLayers) {
+		for (const char* layer : ValidationLayers) {
 			bool foundLayer = false;
 			std::string_view layerStr = layer;
 			for (const vk::LayerProperties& supportedLayerProp : supportedLayers) {
@@ -114,8 +114,8 @@ namespace Sphynx::Rendering {
 			return false;
 		
 		if (Validation) {
-			createInfo.enabledLayerCount = (uint32)validationLayers.size();
-			createInfo.ppEnabledLayerNames = validationLayers.data();
+			createInfo.enabledLayerCount = (uint32)ValidationLayers.size();
+			createInfo.ppEnabledLayerNames = ValidationLayers.data();
 		}
 		return Validation;
 	}

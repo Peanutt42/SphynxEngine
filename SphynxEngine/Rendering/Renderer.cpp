@@ -66,7 +66,7 @@ namespace Sphynx::Rendering {
 
 		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment));
 		s_ScreenQuadShader->UploadToGPU();
-		s_ScreenQuadShader->GetVulkanShader()->SetImageSampler("screen", VulkanContext::DefaultSampler, VulkanContext::SceneRenderpass->GetImageViews());
+		s_ScreenQuadShader->GetVulkanShader()->SetImageSampler("screen", VulkanContext::DefaultSampler, VulkanContext::SceneRenderpass->GetImageViews(0/*color*/));
 
 		s_Initialized = true;
 		return true;

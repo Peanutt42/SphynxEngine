@@ -26,7 +26,7 @@ namespace Sphynx::Rendering {
 		void _ConfigureExtensions(vk::InstanceCreateInfo& createInfo);
 
 		// Returns if validation layers are usable (local VulkanSDK installation is required for validation layers!)
-		bool _ConfigureValidationLayers(vk::InstanceCreateInfo& createInfo, const std::vector<const char*>& validationLayers);
+		bool _ConfigureValidationLayers(vk::InstanceCreateInfo& createInfo);
 
 		void _ConfigureDebugMessengerCreateInfo(vk::DebugUtilsMessengerCreateInfoEXT& createInfo);
 		void _CreateDebugMessenger(const vk::DebugUtilsMessengerCreateInfoEXT& createInfo), _DestroyDebugMessenger();

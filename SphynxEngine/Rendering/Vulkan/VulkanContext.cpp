@@ -54,9 +54,11 @@ namespace Sphynx::Rendering {
 
 		SwapChain = new VulkanSwapChain();
 
-		SceneRenderpass = new VulkanRenderpass(RenderPassUsage::First, SwapChain->GetFormat(), true);
+		SceneRenderpass = new VulkanRenderpass(RenderPassUsage::First, 
+			{ std::make_shared<ColorAttachment>(SwapChain->GetFormat(), true), std::make_shared<DepthAttachment>() });
 
-		Renderpass = new VulkanRenderpass(RenderPassUsage::Last, SwapChain->GetFormat(), false);
+		Renderpass = new VulkanRenderpass(RenderPassUsage::Last, 
+			{ std::make_shared<ColorAttachment>(SwapChain->GetFormat(), false) });
 
 		SwapChain->CreateFramebuffers(Renderpass->GetHandle());
 
@@ -64,7 +66,7 @@ namespace Sphynx::Rendering {
 
 		_CreateSyncObjects();
 
-		SceneRenderpass->CreateFramebuffers(SceneWidth, SceneHeight, SwapChain->GetFormat(), true);
+		SceneRenderpass->CreateFramebuffers(SceneWidth, SceneHeight);
 
 		DefaultSampler = VulkanTexture::CreateSampler();
 
@@ -167,7 +169,7 @@ namespace Sphynx::Rendering {
 			barrier.newLayout = vk::ImageLayout::eShaderReadOnlyOptimal;
 			barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
 			barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-			barrier.image = SceneRenderpass->GetImage(CurrentImage);
+			barrier.image = SceneRenderpass->GetImage(0 /*color*/, CurrentImage);
 			barrier.subresourceRange.aspectMask = vk::ImageAspectFlagBits::eColor;
 			barrier.subresourceRange.baseMipLevel = 0;
 			barrier.subresourceRange.levelCount = 1;
@@ -248,7 +250,7 @@ namespace Sphynx::Rendering {
 	void VulkanContext::GenerateSceneTextureDescriptorSets() {
 		SceneTextureDescriptorSets.resize(MaxFramesInFlight);
 		for (size_t i = 0; i < SceneTextureDescriptorSets.size(); i++)
-			SceneTextureDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(DefaultSampler, SceneRenderpass->GetImageView((uint32)i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+			SceneTextureDescriptorSets[i] = ImGui_ImplVulkan_AddTexture(DefaultSampler, SceneRenderpass->GetImageView(0/*color*/, (uint32)i), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 	void VulkanContext::_CreateSyncObjects() {
