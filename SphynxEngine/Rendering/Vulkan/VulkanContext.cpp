@@ -54,9 +54,9 @@ namespace Sphynx::Rendering {
 
 		SwapChain = new VulkanSwapChain();
 
-		SceneRenderpass = new VulkanRenderpass(RenderPassUsage::First, SwapChain->GetFormat());
+		SceneRenderpass = new VulkanRenderpass(RenderPassUsage::First, SwapChain->GetFormat(), true);
 
-		Renderpass = new VulkanRenderpass(RenderPassUsage::Last, SwapChain->GetFormat());
+		Renderpass = new VulkanRenderpass(RenderPassUsage::Last, SwapChain->GetFormat(), false);
 
 		SwapChain->CreateFramebuffers(Renderpass->GetHandle());
 

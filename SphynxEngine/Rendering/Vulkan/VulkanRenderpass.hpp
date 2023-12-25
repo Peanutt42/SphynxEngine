@@ -13,7 +13,7 @@ namespace Sphynx::Rendering {
 
 	class VulkanRenderpass {
 	public:
-		VulkanRenderpass(RenderPassUsage usage, vk::Format format);
+		VulkanRenderpass(RenderPassUsage usage, vk::Format format, bool depth);
 		~VulkanRenderpass();
 
 		vk::RenderPass GetHandle() { return m_Renderpass; }
@@ -24,7 +24,7 @@ namespace Sphynx::Rendering {
 		vk::Framebuffer GetFramebuffer(uint32 imageIndex);
 		vk::Image GetImage(uint32 imageIndex);
 		vk::ImageView GetImageView(uint32 imageIndex);
-		const std::vector<vk::ImageView>& GetImageViews() { return m_FramebufferImageViews; }
+		const std::vector<vk::ImageView>& GetImageViews() { return m_ImageViews; }
 
 		void Begin(vk::Framebuffer framebuffer, vk::CommandBuffer commandBuffer, vk::Extent2D extent);
 		void End(vk::CommandBuffer commandBuffer);
@@ -35,13 +35,21 @@ namespace Sphynx::Rendering {
 		VulkanRenderpass& operator=(const VulkanRenderpass&) = delete;
 		VulkanRenderpass& operator=(VulkanRenderpass&&) = delete;
 
+		static vk::Format ChooseDepthFormat();
+
 	private:
 		vk::RenderPass m_Renderpass;
 
 		// own framebuffers
 		std::vector<vk::Framebuffer> m_Framebuffers;
-		std::vector<vk::Image> m_FramebufferImages;
-		std::vector<vk::DeviceMemory> m_FramebufferImageMemories;
-		std::vector<vk::ImageView> m_FramebufferImageViews;
+
+		std::vector<vk::Image> m_Images;
+		std::vector<vk::DeviceMemory> m_ImageMemories;
+		std::vector<vk::ImageView> m_ImageViews;
+
+		bool m_DepthEnabled = false;
+		vk::Image m_DepthImage;
+		vk::DeviceMemory m_DepthImageMemory;
+		vk::ImageView m_DepthImageView;
 	};
 }

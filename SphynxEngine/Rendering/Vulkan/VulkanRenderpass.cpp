@@ -3,7 +3,7 @@
 #include "VulkanContext.hpp"
 
 namespace Sphynx::Rendering {
-	VulkanRenderpass::VulkanRenderpass(RenderPassUsage usage, vk::Format format) {
+	VulkanRenderpass::VulkanRenderpass(RenderPassUsage usage, vk::Format format, bool depth) : m_DepthEnabled(depth) {
 		vk::ImageLayout initialLayout = vk::ImageLayout::eUndefined;
 		vk::ImageLayout finalLayout = vk::ImageLayout::eUndefined;
 		switch (usage) {
@@ -40,24 +40,43 @@ namespace Sphynx::Rendering {
 		colorAttachmentRef.attachment = 0;
 		colorAttachmentRef.layout = vk::ImageLayout::eColorAttachmentOptimal;
 
+		vk::AttachmentDescription depthAttachment{};
+		depthAttachment.format = ChooseDepthFormat();
+		depthAttachment.samples = vk::SampleCountFlagBits::e1;
+		depthAttachment.loadOp = vk::AttachmentLoadOp::eClear;
+		depthAttachment.storeOp = vk::AttachmentStoreOp::eDontCare;
+		depthAttachment.stencilLoadOp = vk::AttachmentLoadOp::eDontCare;
+		depthAttachment.stencilStoreOp = vk::AttachmentStoreOp::eDontCare;
+		depthAttachment.initialLayout = vk::ImageLayout::eUndefined;
+		depthAttachment.finalLayout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
+		vk::AttachmentReference depthAttachmentRef{};
+		depthAttachmentRef.attachment = 1;
+		depthAttachmentRef.layout = vk::ImageLayout::eDepthStencilAttachmentOptimal;
+
 		vk::SubpassDescription subpass{};
 		subpass.pipelineBindPoint = vk::PipelineBindPoint::eGraphics;
 		subpass.colorAttachmentCount = 1;
 		subpass.pColorAttachments = &colorAttachmentRef;
+		if (depth)
+			subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
+		std::vector<vk::AttachmentDescription> attachments = { colorAttachment };
+		if (depth)
+			attachments.push_back(depthAttachment);
 		vk::RenderPassCreateInfo createInfo{};
-		createInfo.attachmentCount = 1;
-		createInfo.pAttachments = &colorAttachment;
+		createInfo.attachmentCount = attachments.size();
+		createInfo.pAttachments = attachments.data();
 		createInfo.subpassCount = 1;
 		createInfo.pSubpasses = &subpass;
 
 		vk::SubpassDependency dependency{};
 		dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
 		dependency.dstSubpass = 0;
-		dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
+		dependency.srcStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
 		dependency.srcAccessMask = (vk::AccessFlags)0;
-		dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput;
-		dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite;
+		dependency.dstStageMask = vk::PipelineStageFlagBits::eColorAttachmentOutput | vk::PipelineStageFlagBits::eEarlyFragmentTests;
+		dependency.dstAccessMask = vk::AccessFlagBits::eColorAttachmentWrite | vk::AccessFlagBits::eDepthStencilAttachmentWrite;
 
 		createInfo.dependencyCount = 1;
 		createInfo.pDependencies = &dependency;
@@ -70,35 +89,50 @@ namespace Sphynx::Rendering {
 		for (auto sceneFramebuffer : m_Framebuffers)
 			VulkanContext::LogicalDevice.destroyFramebuffer(sceneFramebuffer, nullptr);
 
-		for (auto imageView : m_FramebufferImageViews)
+		for (auto imageView : m_ImageViews)
 			VulkanContext::LogicalDevice.destroyImageView(imageView, nullptr);
-		for (auto image : m_FramebufferImages)
+		for (auto image : m_Images)
 			VulkanContext::LogicalDevice.destroyImage(image, nullptr);
-		for (auto memory : m_FramebufferImageMemories)
+		for (auto memory : m_ImageMemories)
 			VulkanContext::LogicalDevice.freeMemory(memory, nullptr);
+
+		if (m_DepthEnabled) {
+			VulkanContext::LogicalDevice.destroyImageView(m_DepthImageView, nullptr);
+			VulkanContext::LogicalDevice.destroyImage(m_DepthImage, nullptr);
+			VulkanContext::LogicalDevice.freeMemory(m_DepthImageMemory, nullptr);
+		}
 
 		VulkanContext::LogicalDevice.destroyRenderPass(m_Renderpass, nullptr);
 		m_Renderpass = VK_NULL_HANDLE;
 	}
 
 	void VulkanRenderpass::CreateFramebuffers(uint32 width, uint32 height, vk::Format format, bool sampled) {
-		m_FramebufferImages.resize(VulkanContext::MaxFramesInFlight);
-		m_FramebufferImageMemories.resize(VulkanContext::MaxFramesInFlight);
-		m_FramebufferImageViews.resize(VulkanContext::MaxFramesInFlight);
+		m_Images.resize(VulkanContext::MaxFramesInFlight);
+		m_ImageMemories.resize(VulkanContext::MaxFramesInFlight);
+		m_ImageViews.resize(VulkanContext::MaxFramesInFlight);
 		for (size_t i = 0; i < VulkanContext::MaxFramesInFlight; i++) {
 			vk::ImageUsageFlags usage = vk::ImageUsageFlagBits::eColorAttachment;
 			if (sampled)
 				usage |= vk::ImageUsageFlagBits::eSampled;
-			VulkanTexture::CreateImage(width, height, format, vk::ImageTiling::eOptimal, usage, vk::MemoryPropertyFlagBits::eDeviceLocal, m_FramebufferImages[i], m_FramebufferImageMemories[i]);
-			m_FramebufferImageViews[i] = VulkanTexture::CreateImageView(m_FramebufferImages[i], format, vk::ImageAspectFlagBits::eColor);
+			VulkanTexture::CreateImage(width, height, format, vk::ImageTiling::eOptimal, usage, vk::MemoryPropertyFlagBits::eDeviceLocal, m_Images[i], m_ImageMemories[i]);
+			m_ImageViews[i] = VulkanTexture::CreateImageView(m_Images[i], format, vk::ImageAspectFlagBits::eColor);
+		}
+
+		if (m_DepthEnabled) {
+			vk::Format depthFormat = ChooseDepthFormat();
+			VulkanTexture::CreateImage(width, height, depthFormat, vk::ImageTiling::eOptimal, vk::ImageUsageFlagBits::eDepthStencilAttachment, vk::MemoryPropertyFlagBits::eDeviceLocal, m_DepthImage, m_DepthImageMemory);
+			m_DepthImageView = VulkanTexture::CreateImageView(m_DepthImage, depthFormat, vk::ImageAspectFlagBits::eDepth);
 		}
 
 		m_Framebuffers.resize(VulkanContext::MaxFramesInFlight);
 		for (size_t i = 0; i < VulkanContext::MaxFramesInFlight; i++) {
 			vk::FramebufferCreateInfo framebufferInfo{};
 			framebufferInfo.renderPass = m_Renderpass;
-			framebufferInfo.attachmentCount = 1;
-			framebufferInfo.pAttachments = &m_FramebufferImageViews[i];
+			std::vector<vk::ImageView> attachments = { m_ImageViews[i] };
+			if (m_DepthEnabled)
+				attachments.push_back(m_DepthImageView);
+			framebufferInfo.attachmentCount = attachments.size();
+			framebufferInfo.pAttachments = attachments.data();
 			framebufferInfo.width = width;
 			framebufferInfo.height = height;
 			framebufferInfo.layers = 1;
@@ -117,14 +151,14 @@ namespace Sphynx::Rendering {
 
 	vk::Image VulkanRenderpass::GetImage(uint32 imageIndex) {
 		if (imageIndex < m_Framebuffers.size())
-			return m_FramebufferImages[imageIndex];
+			return m_Images[imageIndex];
 		else
 			return VK_NULL_HANDLE;
 	}
 
 	vk::ImageView VulkanRenderpass::GetImageView(uint32 imageIndex) {
 		if (imageIndex < m_Framebuffers.size())
-			return m_FramebufferImageViews[imageIndex];
+			return m_ImageViews[imageIndex];
 		else
 			return VK_NULL_HANDLE;
 	}
@@ -136,10 +170,11 @@ namespace Sphynx::Rendering {
 		renderPassInfo.renderArea.offset = vk::Offset2D{ 0, 0 };
 		renderPassInfo.renderArea.extent = extent;
 
-		vk::ClearValue clearColor;
-		clearColor.color = vk::ClearColorValue(0.f, 0.f, 0.f, 1.f);
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		std::array<vk::ClearValue, 2> clearValues{};
+		clearValues[0].color = vk::ClearColorValue{0.f, 0.f, 0.f, 1.f};
+		clearValues[1].depthStencil = vk::ClearDepthStencilValue{ 1.f, 0 };
+		renderPassInfo.clearValueCount = clearValues.size();
+		renderPassInfo.pClearValues = clearValues.data();
 		
 		commandBuffer.beginRenderPass(renderPassInfo, vk::SubpassContents::eInline);
 
@@ -161,5 +196,29 @@ namespace Sphynx::Rendering {
 
 	void VulkanRenderpass::End(vk::CommandBuffer commandBuffer) {
 		commandBuffer.endRenderPass();
+	}
+
+
+	vk::Format FindSupportedFormat(const std::vector<vk::Format>& candidates, vk::ImageTiling tiling, vk::FormatFeatureFlags features) {
+		for (vk::Format format : candidates) {
+			vk::FormatProperties props = VulkanContext::PhysicalDevice.getFormatProperties(format);
+
+			if (tiling == vk::ImageTiling::eLinear && (props.linearTilingFeatures & features) == features) {
+				return format;
+			}
+			else if (tiling == vk::ImageTiling::eOptimal && (props.optimalTilingFeatures & features) == features) {
+				return format;
+			}
+		}
+
+		throw std::runtime_error("failed to find supported format!");
+	}
+
+	vk::Format VulkanRenderpass::ChooseDepthFormat() {
+		return FindSupportedFormat(
+			{ vk::Format::eD32Sfloat, vk::Format::eD32SfloatS8Uint, vk::Format::eD24UnormS8Uint },
+			vk::ImageTiling::eOptimal,
+			vk::FormatFeatureFlagBits::eDepthStencilAttachment
+		);
 	}
 }
