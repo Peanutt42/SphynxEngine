@@ -7,6 +7,7 @@ namespace Sphynx::Rendering {
 
 	class SE_API Image {
 	public:
+		Image(const std::filesystem::path& filepath);
 		Image(BufferView data);
 		~Image();
 
@@ -15,6 +16,8 @@ namespace Sphynx::Rendering {
 
 		//VkDescriptorSet
 		void* GetDescriptorSet();
+
+		VulkanTexture* GetVulkanTexture() { return m_Texture; }
 
 	private:
 		Image(const Image&) = delete;

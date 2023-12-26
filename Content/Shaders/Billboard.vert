@@ -10,17 +10,17 @@ const vec2 OFFSETS[6] = vec2[](
 );
 
 const vec2 UVS[6] = vec2[](
-    vec2(0,0, 0.0),
-    vec2(1,0, 0.0),
-    vec2(0,0, 1.0),
-    vec2(1,0, 0.0),
-    vec2(1,0, 1.0),
-    vec2(0,0, 1.0),
+    vec2(0.0, 0.0),
+    vec2(1.0, 0.0),
+    vec2(0.0, 1.0),
+    vec2(1.0, 0.0),
+    vec2(1.0, 1.0),
+    vec2(0.0, 1.0)
 );
 
 layout (location = 0) in vec3 in_InstancePosition;
 
-layout (locaiton = 0) out vec2 out_uv;
+layout (location = 0) out vec2 out_uv;
 
 layout(binding = 0) uniform CameraUniformBuffer {
     mat4 Projection;

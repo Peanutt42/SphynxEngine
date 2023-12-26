@@ -3,7 +3,6 @@
 #include "pch.hpp"
 #include "VulkanCommandPool.hpp"
 
-
 namespace Sphynx::Rendering {
 	enum class TextureFormat {
 		RGBA,
@@ -33,8 +32,9 @@ namespace Sphynx::Rendering {
 		uint32 GetHeight() const { return m_Height; }
 
 		vk::ImageView GetImageView() { return m_View; }
+		std::vector<vk::ImageView> GetImageViews();
 
-		vk::DescriptorSet GetDescriptorSet() { return m_DescriptorSet; }
+		vk::DescriptorSet GetDescriptorSet();
 
 	private:
 		VulkanTexture(const VulkanTexture&) = delete;
@@ -52,6 +52,6 @@ namespace Sphynx::Rendering {
 		vk::DeviceMemory m_Memory;
 
 		vk::Sampler m_Sampler;
-		vk::DescriptorSet m_DescriptorSet;
+		vk::DescriptorSet m_DescriptorSet = VK_NULL_HANDLE;
 	};
 }

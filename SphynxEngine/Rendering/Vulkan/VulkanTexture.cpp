@@ -81,8 +81,6 @@ namespace Sphynx::Rendering {
 		m_View = CreateImageView(m_Image, m_VulkanFormat, vk::ImageAspectFlagBits::eColor);
 	
 		m_Sampler = VulkanTexture::CreateSampler();
-
-		m_DescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_Sampler, m_View, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
 
@@ -234,5 +232,14 @@ namespace Sphynx::Rendering {
 		vk::Result result = VulkanContext::LogicalDevice.createSampler(&samplerInfo, nullptr, &sampler);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create image sampler");
 		return sampler;
+	}
+	std::vector<vk::ImageView> VulkanTexture::GetImageViews() {
+		return std::vector<vk::ImageView>(VulkanContext::MaxFramesInFlight, m_View);
+	}
+
+	vk::DescriptorSet VulkanTexture::GetDescriptorSet() {
+		if (m_DescriptorSet == vk::DescriptorSet(VK_NULL_HANDLE))
+			m_DescriptorSet = (VkDescriptorSet)ImGui_ImplVulkan_AddTexture(m_Sampler, m_View, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+		return m_DescriptorSet;
 	}
 }

@@ -1,5 +1,6 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
+#include "Image.hpp"
 #include "Scene/AllComponents.hpp"
 #include "Profiling/Profiling.hpp"
 
@@ -48,6 +49,7 @@ namespace Sphynx::Rendering {
 		glm::vec3 Position;
 	};
 	VulkanInstanceBuffer* s_BillboardInstanceBuffer = nullptr;
+	Image* s_LightImage = nullptr;
 
 	std::queue<std::function<void()>> s_BeforeNextRenderCallbacks;
 
@@ -111,7 +113,9 @@ namespace Sphynx::Rendering {
 		s_BillboardShader = new Shader(g_BillboardVertex, g_BillboardFragment, 0, sizeof(BillboardInstanceData));
 		s_BillboardShader->UploadToGPU();
 		s_BillboardShader->GetVulkanShader()->SetUniformBuffer("CameraData", *CameraUniformBuffer);
-
+		s_LightImage = new Image((std::filesystem::path)"Content/Guizmos/light_bulb.png");
+		s_BillboardShader->GetVulkanShader()->SetImageSampler("image", VulkanContext::DefaultSampler, s_LightImage->GetVulkanTexture()->GetImageViews());
+		
 		s_BillboardInstanceBuffer = new VulkanInstanceBuffer(sizeof(BillboardInstanceData));
 
 		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment), sizeof(Vertex));
@@ -131,6 +135,7 @@ namespace Sphynx::Rendering {
 		delete s_InstanceBuffer;
 		delete s_BillboardInstanceBuffer;
 
+		delete s_LightImage;
 		delete s_ScreenQuadShader;
 		delete s_BillboardShader;
 		delete s_DefaultShader;

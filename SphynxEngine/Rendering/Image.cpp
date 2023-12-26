@@ -12,6 +12,28 @@
 #include <backends/imgui_impl_vulkan.h>
 
 namespace Sphynx::Rendering {
+	Image::Image(const std::filesystem::path& filepath) {
+		SE_PROFILE_FUNCTION();
+
+		std::string filepathStr = filepath.string();
+		int width, height, channels;
+		stbi_set_flip_vertically_on_load(true);
+		uint8* data = stbi_load(filepathStr.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+		
+		TextureSpecification spec{
+			.Width = (uint32)width,
+			.Height = (uint32)height,
+			.Format = TextureFormat::RGBA
+		};
+
+		spec.Data.resize((size_t)width * (size_t)height * STBI_rgb_alpha);
+		std::memcpy(spec.Data.data(), data, spec.Data.size());
+		stbi_image_free(data);
+
+		m_Texture = new VulkanTexture(spec);
+		m_Texture->UploadToGPU();
+	}
+
 	Image::Image(BufferView data) {
 		SE_PROFILE_FUNCTION();
 
