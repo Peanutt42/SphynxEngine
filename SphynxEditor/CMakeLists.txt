@@ -26,3 +26,5 @@ target_link_libraries(SphynxEditor PRIVATE
 target_precompile_headers(SphynxEditor PUBLIC pch.hpp)
 
 copy_content_folder(SphynxEditor ${CMAKE_CURRENT_BINARY_DIR})
+
+copy_file(SphynxEditor $<TARGET_FILE:TracyClient> $<TARGET_FILE_DIR:SphynxEditor>)
