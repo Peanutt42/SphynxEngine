@@ -1,12 +1,12 @@
 #include "pch.hpp"
 #include "Shader.hpp"
-#include "Mesh.hpp"
 #include "Profiling/Profiling.hpp"
 #include "Vulkan/VulkanContext.hpp"
-#include "Rendering/InstanceData.hpp"
 
 namespace Sphynx::Rendering {
-	Shader::Shader(BufferView vertexCode, BufferView fragmentCode) {
+	Shader::Shader(BufferView vertexCode, BufferView fragmentCode, size_t vertexBufferElementSize, size_t instanceBufferElementSize)
+		: m_VertexBufferElementSize(vertexBufferElementSize), m_InstanceBufferElementSize(instanceBufferElementSize)
+	{
 		SE_PROFILE_FUNCTION();
 
 		m_VertexSpirv.resize(vertexCode.GetSize<uint32>());
@@ -35,8 +35,8 @@ namespace Sphynx::Rendering {
 			.VertexCode = std::move(m_VertexSpirv),
 			.FragmentCode = std::move(m_FragmentSpirv),
 			.VertexInputBindings = std::vector<vk::VertexInputBindingDescription>{
-				vk::VertexInputBindingDescription{ 0, sizeof(Vertex), vk::VertexInputRate::eVertex },
-				vk::VertexInputBindingDescription{ 1, sizeof(InstanceData), vk::VertexInputRate::eInstance }
+				vk::VertexInputBindingDescription{ 0, (uint32)m_VertexBufferElementSize, vk::VertexInputRate::eVertex },
+				vk::VertexInputBindingDescription{ 1, (uint32)m_InstanceBufferElementSize, vk::VertexInputRate::eInstance }
 			}
 		};
 
@@ -56,7 +56,7 @@ namespace Sphynx::Rendering {
 
 			instanceAttributesSize += info.ReflectionInfo.VertexInputAttributeSizes.at(attribute.location);
 
-			if (sizeof(InstanceData) == instanceAttributesSize) {
+			if (m_InstanceBufferElementSize == instanceAttributesSize) {
 				firstInstanceLocation = attribute.location;
 				break;
 			}

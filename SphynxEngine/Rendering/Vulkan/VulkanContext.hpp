@@ -51,8 +51,6 @@ namespace Sphynx::Rendering {
 		inline static uint32 SceneHeight = 1080;
 		inline static std::vector<vk::DescriptorSet> SceneTextureDescriptorSets;
 
-		inline static VulkanInstanceBuffer* InstanceBuffer = nullptr;
-
 		inline static vk::Sampler DefaultSampler;
 
 		inline static vk::SharingMode SharingMode;

@@ -2,7 +2,6 @@
 #include "VulkanContext.hpp"
 #include "VulkanDevice.hpp"
 
-#include "Rendering/InstanceData.hpp"
 #include "Profiling/Profiling.hpp"
 #include <backends/imgui_impl_vulkan.h>
 #include <GLFW/glfw3.h>
@@ -92,15 +91,10 @@ namespace Sphynx::Rendering {
 		pool_info.pPoolSizes = poolSizes.data();
 		vk::Result result = LogicalDevice.createDescriptorPool(&pool_info, nullptr, &DescriptorPool);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to create descriptor pool");
-
-
-		InstanceBuffer = new VulkanInstanceBuffer(sizeof(InstanceData));
 	}
 
 	void VulkanContext::Shutdown() {
 		SE_PROFILE_FUNCTION();
-
-		delete InstanceBuffer;
 
 		LogicalDevice.destroySampler(DefaultSampler);
 

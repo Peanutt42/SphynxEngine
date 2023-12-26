@@ -13,6 +13,14 @@ uint32_t g_DefaultFragment[] = {
 #include "../../Content/Shaders/Embedded/Default.frag.embed"
 };
 
+uint32_t g_BillboardVertex[] = {
+#include "../../Content/Shaders/Embedded/Billboard.vert.embed"
+};
+
+uint32_t g_BillboardFragment[] = {
+#include "../../Content/Shaders/Embedded/Billboard.frag.embed"
+};
+
 uint32_t g_ScreenQuadVertex[] = {
 #include "../../Content/Shaders/Embedded/ScreenQuad.vert.embed"
 };
@@ -27,11 +35,25 @@ namespace Sphynx::Rendering {
 	Mesh* s_CubeMesh = nullptr;
 	Shader* s_DefaultShader = nullptr;
 	Shader* s_ScreenQuadShader = nullptr;
+	struct InstanceData {
+		glm::vec3 Albedo;
+		float Metalic;
+		float Roughness;
+		glm::mat4 Model;
+	};
+	inline static VulkanInstanceBuffer* s_InstanceBuffer = nullptr;
+
+	Shader* s_BillboardShader = nullptr;
+	struct BillboardInstanceData {
+		glm::vec3 Position;
+	};
+	VulkanInstanceBuffer* s_BillboardInstanceBuffer = nullptr;
 
 	std::queue<std::function<void()>> s_BeforeNextRenderCallbacks;
 
 	struct CameraUniformBufferData {
-		glm::mat4 ProjView; // proj * view
+		glm::mat4 Projection;
+		glm::mat4 View;
 		glm::vec3 CameraPosition;
 	};
 	inline static VulkanUniformBuffer* CameraUniformBuffer = nullptr;
@@ -50,6 +72,7 @@ namespace Sphynx::Rendering {
 
 	struct RenderCommand {
 		std::vector<InstanceData> ModelMatrices;
+		std::vector<BillboardInstanceData> Billboards;
 		Camera SceneCamera;
 		LightsUniformBufferData LightsData;
 	};
@@ -79,12 +102,19 @@ namespace Sphynx::Rendering {
 		data.LoadMesh("Content/Meshes/cube.semesh");
 		s_CubeMesh = new Mesh(data);
 
-		s_DefaultShader = new Shader(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
+		s_DefaultShader = new Shader(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment), sizeof(Vertex), sizeof(InstanceData));
 		s_DefaultShader->UploadToGPU();
 		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("CameraData", *CameraUniformBuffer);
 		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("LightData", *LightsUniformBuffer);
+		s_InstanceBuffer = new VulkanInstanceBuffer(sizeof(InstanceData));
 
-		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment));
+		s_BillboardShader = new Shader(g_BillboardVertex, g_BillboardFragment, 0, sizeof(BillboardInstanceData));
+		s_BillboardShader->UploadToGPU();
+		s_BillboardShader->GetVulkanShader()->SetUniformBuffer("CameraData", *CameraUniformBuffer);
+
+		s_BillboardInstanceBuffer = new VulkanInstanceBuffer(sizeof(BillboardInstanceData));
+
+		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment), sizeof(Vertex));
 		s_ScreenQuadShader->UploadToGPU();
 		s_ScreenQuadShader->GetVulkanShader()->SetImageSampler("screen", VulkanContext::DefaultSampler, VulkanContext::SceneRenderpass->GetImageViews(0/*color*/));
 
@@ -98,7 +128,11 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
+		delete s_InstanceBuffer;
+		delete s_BillboardInstanceBuffer;
+
 		delete s_ScreenQuadShader;
+		delete s_BillboardShader;
 		delete s_DefaultShader;
 		delete s_CubeMesh;
 		delete LightsUniformBuffer;
@@ -115,7 +149,6 @@ namespace Sphynx::Rendering {
 		if (!s_Initialized)
 			return;
 
-		s_RenderCommand.ModelMatrices.clear();
 		s_RenderCommand.SceneCamera = camera;
 
 		for (auto[entity, transform, mesh] : scene.View<ECS::TransformComponent, MeshComponent>().each()) {
@@ -132,14 +165,21 @@ namespace Sphynx::Rendering {
 		}
 	}
 
+	void Renderer::SubmitBillboard(const glm::vec3& position) {
+		s_RenderCommand.Billboards.emplace_back(position);
+	}
+
 	void Renderer::Begin() {
 		SE_PROFILE_FUNCTION();
 
 		if (!s_Initialized)
 			return;
 
-		if (s_RenderCommand.ModelMatrices.size() > VulkanContext::InstanceBuffer->GetSize())
-			VulkanContext::InstanceBuffer->Resize(s_RenderCommand.ModelMatrices.size() * 2);
+		if (s_RenderCommand.ModelMatrices.size() > s_InstanceBuffer->GetSize())
+			s_InstanceBuffer->Resize(s_RenderCommand.ModelMatrices.size() * 2);
+
+		if (s_RenderCommand.Billboards.size() > s_BillboardInstanceBuffer->GetSize())
+			s_BillboardInstanceBuffer->Resize(s_RenderCommand.Billboards.size() * 2);
 
 		while (!s_BeforeNextRenderCallbacks.empty()) {
 			s_BeforeNextRenderCallbacks.front()();
@@ -149,22 +189,35 @@ namespace Sphynx::Rendering {
 
 		float aspect = GetAspect((float)VulkanContext::SceneWidth, (float)VulkanContext::SceneHeight);
 		CameraUniformBufferData cameraUniformBufferData{
-			.ProjView = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView(),
+			.Projection = s_RenderCommand.SceneCamera.GetPerspective(aspect),
+			.View = s_RenderCommand.SceneCamera.GetView(),
 			.CameraPosition = s_RenderCommand.SceneCamera.Position,
 		};
 		CameraUniformBuffer->Update(cameraUniformBufferData);
 
 		LightsUniformBuffer->Update(s_RenderCommand.LightsData);
 
-		VulkanContext::InstanceBuffer->Set(s_RenderCommand.ModelMatrices);
+		s_InstanceBuffer->Set(s_RenderCommand.ModelMatrices);
+
+		s_BillboardInstanceBuffer->Set(s_RenderCommand.Billboards);
 
 		VulkanContext::Begin();
 
 		VulkanContext::BeginSceneRenderpass();
 		// Draw Scene
-		s_DefaultShader->Bind();
-		VulkanContext::InstanceBuffer->Bind();
-		s_CubeMesh->Draw((uint32)s_RenderCommand.ModelMatrices.size());
+		{
+			// Cubes
+			s_DefaultShader->Bind();
+			s_InstanceBuffer->Bind();
+			s_CubeMesh->Draw((uint32)s_RenderCommand.ModelMatrices.size());
+			s_RenderCommand.ModelMatrices.resize(0);
+			
+			// Billboards
+			s_BillboardShader->Bind();
+			s_BillboardInstanceBuffer->Bind();
+			VulkanContext::CommandBuffer.draw(6 /*quad*/, s_RenderCommand.Billboards.size(), 0, 0);
+			s_RenderCommand.Billboards.resize(0);
+		}
 		VulkanContext::EndSceneRenderpass();
 
 		VulkanContext::BeginLastRenderpass();

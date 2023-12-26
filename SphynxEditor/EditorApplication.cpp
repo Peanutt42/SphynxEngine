@@ -78,6 +78,8 @@ namespace Sphynx::Editor {
 			OnRuntimeUpdate();
 
 		Rendering::Renderer::SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
+
+		Rendering::Renderer::SubmitBillboard({ 1.5f, 1.5f, 1.5f });
 	}
 
 	void EditorApplication::DrawUI() {

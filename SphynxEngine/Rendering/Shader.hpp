@@ -10,7 +10,7 @@ namespace Sphynx::Rendering {
 	//  VulkanShader more for engine internal shaders
 	class SE_API Shader {
 	public:
-		Shader(BufferView vertexCode, BufferView fragmentCode);
+		Shader(BufferView vertexCode, BufferView fragmentCode, size_t vertexBufferElementSize, size_t instanceBufferElementSize = 0);
 		~Shader();
 
 		void Bind();
@@ -27,6 +27,7 @@ namespace Sphynx::Rendering {
 
 	private:
 		VulkanShader* m_VulkanShader = nullptr;
+		size_t m_VertexBufferElementSize = 0, m_InstanceBufferElementSize = 0;
 		std::vector<uint32> m_VertexSpirv, m_FragmentSpirv;
 	};
 }

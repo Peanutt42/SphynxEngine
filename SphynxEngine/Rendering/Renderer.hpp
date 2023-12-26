@@ -5,7 +5,6 @@
 #include "Mesh.hpp"
 #include "Shader.hpp"
 #include "Camera.hpp"
-#include "InstanceData.hpp"
 #include "Scene/Scene.hpp"
 
 #include <queue>
@@ -17,6 +16,7 @@ namespace Sphynx::Rendering {
 		static void Shutdown();
 
 		static void SubmitScene(Scene& scene, const Camera& camera);
+		static void SubmitBillboard(const glm::vec3& position);
 
 		static void Begin();
 		static void End();

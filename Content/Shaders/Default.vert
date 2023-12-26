@@ -20,13 +20,14 @@ layout(location = 0) out VS_OUT {
 } vs_out;
 
 layout(binding = 0) uniform CameraUniformBuffer {
-    mat4 ProjView; // proj * view
+    mat4 Projection;
+    mat4 View;
     vec3 CameraPosition;
 } CameraData;
 
 void main() {
     vec4 frag_pos = in_InstanceModel * vec4(in_Position, 1.0);
-    gl_Position = CameraData.ProjView * frag_pos;
+    gl_Position = CameraData.Projection * CameraData.View * frag_pos;
 
     vs_out.FragPos = frag_pos.xyz;
     vs_out.CameraPosition = CameraData.CameraPosition;
