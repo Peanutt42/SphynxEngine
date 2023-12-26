@@ -1,12 +1,15 @@
 #pragma once
 
-#include "Core/CoreInclude.hpp"
+#include "pch.hpp"
 
 namespace Sphynx::Rendering {
-	struct InstanceData {
+	struct MeshComponent {
 		glm::vec3 Albedo;
 		float Metalic;
 		float Roughness;
-		glm::mat4 Model;
+	};
+
+	struct LightComponent {
+		glm::vec3 Color;
 	};
 }

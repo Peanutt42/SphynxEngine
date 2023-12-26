@@ -3,7 +3,12 @@
 layout(location = 0) in vec3 in_Position;
 layout(location = 1) in vec3 in_Normal;
 layout(location = 2) in vec2 in_UV;
-layout(location = 3) in mat4 in_InstanceModel;
+
+// per instance
+layout(location = 3) in vec3 in_InstanceAlbedo;
+layout(location = 4) in float in_InstanceMetalic;
+layout(location = 5) in float in_InstanceRoughness;
+layout(location = 6) in mat4 in_InstanceModel;
 
 layout(location = 0) out VS_OUT {
     vec3 FragPos;
@@ -26,7 +31,7 @@ void main() {
     vs_out.FragPos = frag_pos.xyz;
     vs_out.CameraPosition = CameraData.CameraPosition;
     vs_out.Normal = in_Normal;
-    vs_out.Albedo = vec3(1.0, 1.0, 1.0);
-    vs_out.Metalic = 0.8;
-    vs_out.Roughness = 0.2;
+    vs_out.Albedo = in_InstanceAlbedo;
+    vs_out.Metalic = in_InstanceMetalic;
+    vs_out.Roughness = in_InstanceRoughness;
 }

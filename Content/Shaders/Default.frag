@@ -13,21 +13,14 @@ layout(location = 0) out vec4 out_Color;
 
 const float PI = 3.14159265359;
 
-// TODO: Make them into uniform buffer
-const vec3 lightPositions[4] = vec3[](
-    vec3(0.8, -2.2, 1.8),
-    vec3(-2.8, -2.2, 1.8),
-    vec3(-1.1, -2.2, 3),
-    vec3(-0.8, -1.7, -0.3)
-);
+struct Light {
+    vec3 Position;
+    vec3 Color;
+};
 
-const vec3 lightColors[4] = vec3[](
-    vec3(0.633, 0, 1),
-    vec3(0.1, 0.2, 0.9),
-    vec3(0.5, 1, 0),
-    vec3(1, 0.4, 0)
-);
-
+layout(binding = 1) uniform LightsUniformBuffer {
+    Light Lights[4];
+} LightData;
 
 float DistributionGGX(vec3 N, vec3 H, float roughness);
 float GeometrySchlickGGX(float NdotV, float roughness);
@@ -48,11 +41,11 @@ void main() {
     for(int i = 0; i < 4; ++i) 
     {
         // calculate per-light radiance
-        vec3 L = normalize(lightPositions[i] - fs_in.FragPos);
+        vec3 L = normalize(LightData.Lights[i].Position - fs_in.FragPos);
         vec3 H = normalize(V + L);
-        float distance = length(lightPositions[i] - fs_in.FragPos);
+        float distance = length(LightData.Lights[i].Position - fs_in.FragPos);
         float attenuation = 1.0 / (distance * distance);
-        vec3 radiance = lightColors[i] * attenuation;
+        vec3 radiance = LightData.Lights[i].Color * attenuation;
 
         // Cook-Torrance BRDF
         float NDF = DistributionGGX(N, H, fs_in.Roughness);   

@@ -70,8 +70,6 @@ namespace Sphynx::Rendering {
 
 		DefaultSampler = VulkanTexture::CreateSampler();
 
-		CameraUniformBuffer = new VulkanUniformBuffer(sizeof(CameraUniformBufferData));
-
 		// TODO: Change tutorial sizes to more acurate ones
 		// NOTE: you can change these values at runtime
 		std::array<vk::DescriptorPoolSize, 11> poolSizes = {
@@ -105,8 +103,6 @@ namespace Sphynx::Rendering {
 		delete InstanceBuffer;
 
 		LogicalDevice.destroySampler(DefaultSampler);
-
-        delete CameraUniformBuffer;
 
 		_DestroySyncObjects();
 

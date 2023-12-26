@@ -38,6 +38,19 @@ namespace Sphynx {
 				out << YAML::EndMap;
 			}
 
+			if (auto* mesh = scene.GetComponent<Rendering::MeshComponent>(entity)) {
+				out << YAML::Key << "Mesh" << YAML::BeginMap;
+				out << YAML::Key << "Albedo" << YAML::Value << mesh->Albedo;
+				out << YAML::Key << "Metalic" << YAML::Value << mesh->Metalic;
+				out << YAML::Key << "Roughness" << YAML::Value << mesh->Roughness;
+				out << YAML::EndMap;
+			}
+			if (auto* light = scene.GetComponent<Rendering::LightComponent>(entity)) {
+				out << YAML::Key << "Light" << YAML::BeginMap;
+				out << YAML::Key << "Color" << YAML::Value << light->Color;
+				out << YAML::EndMap;
+			}
+
 			out << YAML::EndMap;
 		}
 
@@ -88,6 +101,19 @@ namespace Sphynx {
 				sphere.Radius = sphereNode["Radius"].as<float>();
 
 				scene.AddComponent<Physics::SphereCollider>(entity, sphere);
+			}
+
+			if (YAML::Node meshNode = entityNode["Mesh"]) {
+				Rendering::MeshComponent mesh;
+				mesh.Albedo = meshNode["Albedo"].as<glm::vec3>();
+				mesh.Metalic = meshNode["Metalic"].as<float>();
+				mesh.Roughness = meshNode["Roughness"].as<float>();
+				scene.AddComponent(entity, mesh);
+			}
+			if (YAML::Node lightNode = entityNode["Light"]) {
+				Rendering::LightComponent light;
+				light.Color = lightNode["Color"].as<glm::vec3>();
+				scene.AddComponent(entity, light);
 			}
 		}
 

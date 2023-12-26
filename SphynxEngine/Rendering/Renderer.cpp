@@ -1,6 +1,6 @@
 #include "pch.hpp"
 #include "Renderer.hpp"
-#include "Scene/DefaultComponents.hpp"
+#include "Scene/AllComponents.hpp"
 #include "Profiling/Profiling.hpp"
 
 #include "Vulkan/VulkanContext.hpp"
@@ -30,12 +30,28 @@ namespace Sphynx::Rendering {
 
 	std::queue<std::function<void()>> s_BeforeNextRenderCallbacks;
 
+	struct CameraUniformBufferData {
+		glm::mat4 ProjView; // proj * view
+		glm::vec3 CameraPosition;
+	};
+	inline static VulkanUniformBuffer* CameraUniformBuffer = nullptr;
+	struct LightsUniformBufferData {
+		struct Light {
+			alignas(16) glm::vec3 Position{ 0 };
+			alignas(16) glm::vec3 Color{ 0 };
+		};
+
+		std::array<Light, 4> Lights;
+	};
+	inline static VulkanUniformBuffer* LightsUniformBuffer = nullptr;
+
 	bool s_DrawSceneTexture = false;
 	bool s_GeneratedSceneTextureDescriptorSets = false;
 
 	struct RenderCommand {
 		std::vector<InstanceData> ModelMatrices;
 		Camera SceneCamera;
+		LightsUniformBufferData LightsData;
 	};
 	RenderCommand s_RenderCommand;
 
@@ -56,13 +72,17 @@ namespace Sphynx::Rendering {
 
 		VulkanContext::Init(window);
 
+		CameraUniformBuffer = new VulkanUniformBuffer(sizeof(CameraUniformBufferData));
+		LightsUniformBuffer = new VulkanUniformBuffer(sizeof(LightsUniformBufferData));
+
 		MeshData data;
 		data.LoadMesh("Content/Meshes/cube.semesh");
 		s_CubeMesh = new Mesh(data);
 
 		s_DefaultShader = new Shader(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment));
 		s_DefaultShader->UploadToGPU();
-		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("CameraData", *VulkanContext::CameraUniformBuffer);
+		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("CameraData", *CameraUniformBuffer);
+		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("LightData", *LightsUniformBuffer);
 
 		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment));
 		s_ScreenQuadShader->UploadToGPU();
@@ -81,6 +101,9 @@ namespace Sphynx::Rendering {
 		delete s_ScreenQuadShader;
 		delete s_DefaultShader;
 		delete s_CubeMesh;
+		delete LightsUniformBuffer;
+		delete CameraUniformBuffer;
+
 		VulkanContext::Shutdown();
 
 		s_Initialized = false;
@@ -95,9 +118,17 @@ namespace Sphynx::Rendering {
 		s_RenderCommand.ModelMatrices.clear();
 		s_RenderCommand.SceneCamera = camera;
 
-		// TODO: actual impl.
-		for (auto[entity, transform] : scene.View<ECS::TransformComponent>().each()) {
-			s_RenderCommand.ModelMatrices.push_back(InstanceData{ transform.GetModelMatrix() });
+		for (auto[entity, transform, mesh] : scene.View<ECS::TransformComponent, MeshComponent>().each()) {
+			s_RenderCommand.ModelMatrices.push_back(InstanceData{ mesh.Albedo, mesh.Metalic, mesh.Roughness, transform.GetModelMatrix()});
+		}
+
+		int i = 0;
+		for (auto [entity, transform, light] : scene.View<ECS::TransformComponent, LightComponent>().each()) {
+			s_RenderCommand.LightsData.Lights[i] = {
+				transform.Position,
+				light.Color
+			};
+			i++;
 		}
 	}
 
@@ -121,7 +152,9 @@ namespace Sphynx::Rendering {
 			.ProjView = s_RenderCommand.SceneCamera.GetPerspective(aspect) * s_RenderCommand.SceneCamera.GetView(),
 			.CameraPosition = s_RenderCommand.SceneCamera.Position,
 		};
-		VulkanContext::CameraUniformBuffer->Update(cameraUniformBufferData);
+		CameraUniformBuffer->Update(cameraUniformBufferData);
+
+		LightsUniformBuffer->Update(s_RenderCommand.LightsData);
 
 		VulkanContext::InstanceBuffer->Set(s_RenderCommand.ModelMatrices);
 

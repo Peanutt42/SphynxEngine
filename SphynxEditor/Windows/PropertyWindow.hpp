@@ -3,6 +3,8 @@
 #include "EditorWindow.hpp"
 #include "HierarchyWindow.hpp"
 
+#include <glm/gtc/type_ptr.hpp>
+
 #include "Physics/PhysicsComponents.hpp"
 
 namespace Sphynx::Editor {
@@ -50,6 +52,19 @@ namespace Sphynx::Editor {
 				EndComponent();
 			}
 
+			if (BeginComponent<Rendering::MeshComponent>("Mesh", scene, entity)) {
+				auto* mesh = scene.GetComponent<Rendering::MeshComponent>(entity);
+				ImGui::ColorEdit3("Albedo", glm::value_ptr(mesh->Albedo));
+				ImGui::SliderFloat("Metalic", &mesh->Metalic, 0.f, 1.f);
+				ImGui::SliderFloat("Roughness", &mesh->Roughness, 0.f, 1.f);
+				EndComponent();
+			}
+			if (BeginComponent<Rendering::LightComponent>("Light", scene, entity)) {
+				auto* light = scene.GetComponent<Rendering::LightComponent>(entity);
+				ImGui::ColorEdit3("Color", glm::value_ptr(light->Color));
+				EndComponent();
+			}
+
 
 			ImGui::Spacing();
 			ImGui::Spacing();
@@ -65,6 +80,13 @@ namespace Sphynx::Editor {
 					DisplayAddComponentEntry<Physics::RigidbodyComponent>("Rigidbody");
 					DisplayAddComponentEntry<Physics::BoxCollider>("BoxCollider");
 					DisplayAddComponentEntry<Physics::SphereCollider>("SphereCollider");
+
+					ImGui::EndMenu();
+				}
+
+				if (ImGui::BeginMenu("Rendering")) {
+					DisplayAddComponentEntry<Rendering::MeshComponent>("Mesh");
+					DisplayAddComponentEntry<Rendering::LightComponent>("Light");
 
 					ImGui::EndMenu();
 				}
