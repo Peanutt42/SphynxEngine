@@ -19,8 +19,10 @@ const vec2 UVS[6] = vec2[](
 );
 
 layout (location = 0) in vec3 in_InstancePosition;
+layout (location = 1) in vec3 in_InstanceColor;
 
 layout (location = 0) out vec2 out_uv;
+layout (location = 1) out vec3 out_color;
 
 layout(binding = 0) uniform CameraUniformBuffer {
     mat4 Projection;
@@ -42,4 +44,5 @@ void main() {
     gl_Position = CameraData.Projection * CameraData.View * vec4(positionWorld, 1.0);
 
     out_uv = UVS[gl_VertexIndex];
+    out_color  = in_InstanceColor;
 }

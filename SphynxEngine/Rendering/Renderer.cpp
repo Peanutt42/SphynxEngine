@@ -47,6 +47,7 @@ namespace Sphynx::Rendering {
 	Shader* s_BillboardShader = nullptr;
 	struct BillboardInstanceData {
 		glm::vec3 Position;
+		glm::vec3 Color;
 	};
 	VulkanInstanceBuffer* s_BillboardInstanceBuffer = nullptr;
 	Image* s_LightImage = nullptr;
@@ -170,8 +171,8 @@ namespace Sphynx::Rendering {
 		}
 	}
 
-	void Renderer::SubmitBillboard(const glm::vec3& position) {
-		s_RenderCommand.Billboards.emplace_back(position);
+	void Renderer::SubmitBillboard(const glm::vec3& position, const glm::vec3& color) {
+		s_RenderCommand.Billboards.emplace_back(position, color);
 	}
 
 	void Renderer::Begin() {

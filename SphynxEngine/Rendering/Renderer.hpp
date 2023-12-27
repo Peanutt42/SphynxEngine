@@ -16,7 +16,7 @@ namespace Sphynx::Rendering {
 		static void Shutdown();
 
 		static void SubmitScene(Scene& scene, const Camera& camera);
-		static void SubmitBillboard(const glm::vec3& position);
+		static void SubmitBillboard(const glm::vec3& position, const glm::vec3& color);
 
 		static void Begin();
 		static void End();
