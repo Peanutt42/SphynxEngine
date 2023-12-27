@@ -64,6 +64,14 @@ namespace Sphynx::Editor {
 				ImGui::ColorEdit3("Color", glm::value_ptr(light->Color));
 				EndComponent();
 			}
+			if (BeginComponent<Rendering::CameraComponent>("Camera", scene, entity)) {
+				auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity);
+				ImGui::Checkbox("Active", &camera->Active);
+				ImGui::SliderFloat("FOV", &camera->FOV, 0.f, 180.f);
+				ImGui::DragFloat("NearPlane", &camera->NearPlane);
+				ImGui::DragFloat("FarPlane", &camera->FarPlane);
+				EndComponent();
+			}
 
 
 			ImGui::Spacing();
@@ -87,6 +95,7 @@ namespace Sphynx::Editor {
 				if (ImGui::BeginMenu("Rendering")) {
 					DisplayAddComponentEntry<Rendering::MeshComponent>("Mesh");
 					DisplayAddComponentEntry<Rendering::LightComponent>("Light");
+					DisplayAddComponentEntry<Rendering::CameraComponent>("Camera");
 
 					ImGui::EndMenu();
 				}

@@ -248,9 +248,11 @@ namespace Sphynx::Rendering {
 			s_RenderCommand.ModelMatrices.resize(0);
 			
 			// Billboards
-			s_BillboardShader->Bind();
-			s_BillboardInstanceBuffer->Bind();
-			VulkanContext::CommandBuffer.draw(6, s_RenderCommand.Billboards.size(), 0, 0);
+			if (!s_RenderCommand.Billboards.empty()) {
+				s_BillboardShader->Bind();
+				s_BillboardInstanceBuffer->Bind();
+				VulkanContext::CommandBuffer.draw(6, s_RenderCommand.Billboards.size(), 0, 0);
+			}
 			s_RenderCommand.Billboards.resize(0);
 			s_RenderCommand.BillboardTextures.resize(0);
 		}

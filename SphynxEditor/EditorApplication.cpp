@@ -82,11 +82,25 @@ namespace Sphynx::Editor {
 		if (m_State == EditorState::Playing)
 			OnRuntimeUpdate();
 
-		Rendering::Renderer::SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
+		Rendering::Camera camera;
+		if (m_State == EditorState::Editing)
+			camera = m_EditingCamera;
+		else {
+			entt::entity cameraEntity = m_GameScene->GetActiveCameraEntity();
+			if (cameraEntity == entt::null)
+				SE_WARN(Logging::Rendering, "No active camera present in scene!");
+			else
+				camera = m_GameScene->GetComponent<Rendering::CameraComponent>(cameraEntity)->ToCamera(*m_GameScene->GetComponent<ECS::TransformComponent>(cameraEntity));
+		}
+		Rendering::Renderer::SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, camera);
 
-		Rendering::Renderer::SubmitBillboard({ 1.5f, 1.5f, 1.5f }, {1.f, 0.f, 0.f}, *Guizmos::s_LightBulbImage);
-
-		Rendering::Renderer::SubmitBillboard({ 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f}, *Guizmos::s_CameraImage);
+		if (m_State == EditorState::Editing) {
+			for (auto [entity, transform, light] : m_EditingScene->View<ECS::TransformComponent, Rendering::LightComponent>().each())
+				Rendering::Renderer::SubmitBillboard(transform.Position, light.Color, *Guizmos::s_LightBulbImage);
+			
+			for (auto [entity, transform, camera] : m_EditingScene->View<ECS::TransformComponent, Rendering::CameraComponent>().each())
+				Rendering::Renderer::SubmitBillboard(transform.Position, {1.f, 1.f, 1.f}, *Guizmos::s_CameraImage);
+		}
 	}
 
 	void EditorApplication::DrawUI() {

@@ -50,6 +50,14 @@ namespace Sphynx {
 				out << YAML::Key << "Color" << YAML::Value << light->Color;
 				out << YAML::EndMap;
 			}
+			if (auto* camera = scene.GetComponent<Rendering::CameraComponent>(entity)) {
+				out << YAML::Key << "Camera" << YAML::BeginMap;
+				out << YAML::Key << "Active" << YAML::Value << camera->Active;
+				out << YAML::Key << "FOV" << YAML::Value << camera->FOV;
+				out << YAML::Key << "NearPlane" << YAML::Value << camera->NearPlane;
+				out << YAML::Key << "FarPlane" << YAML::Value << camera->FarPlane;
+				out << YAML::EndMap;
+			}
 
 			out << YAML::EndMap;
 		}
@@ -114,6 +122,14 @@ namespace Sphynx {
 				Rendering::LightComponent light;
 				light.Color = lightNode["Color"].as<glm::vec3>();
 				scene.AddComponent(entity, light);
+			}
+			if (YAML::Node cameraNode = entityNode["Camera"]) {
+				Rendering::CameraComponent camera;
+				camera.Active = cameraNode["Active"].as<bool>();
+				camera.FOV = cameraNode["FOV"].as<float>();
+				camera.NearPlane = cameraNode["NearPlane"].as<float>();
+				camera.FarPlane = cameraNode["FarPlane"].as<float>();
+				scene.AddComponent(entity, camera);
 			}
 		}
 

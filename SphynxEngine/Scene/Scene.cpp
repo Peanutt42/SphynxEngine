@@ -75,4 +75,13 @@ namespace Sphynx {
 			return false;
 		return findSystem->second;
 	}
+
+
+	entt::entity Scene::GetActiveCameraEntity() {
+		for (auto [entity, camera] : m_Registry.view<Rendering::CameraComponent>().each()) {
+			if (camera.Active)
+				return entity;
+		}
+		return entt::null;
+	}
 }

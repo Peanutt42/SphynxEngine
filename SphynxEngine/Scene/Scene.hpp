@@ -48,6 +48,8 @@ namespace Sphynx {
 			}
 		}
 
+		entt::entity GetActiveCameraEntity();
+
 		void ActivateSystem(std::string_view name);
 		void DeactivateSystem(std::string_view name);
 		bool IsSystemActive(std::string_view name);

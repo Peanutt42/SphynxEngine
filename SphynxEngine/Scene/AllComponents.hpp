@@ -16,6 +16,7 @@ namespace Sphynx::ECS {
         Physics::BoxCollider,
         Physics::SphereCollider,
         Rendering::MeshComponent,
-        Rendering::LightComponent
+        Rendering::LightComponent,
+        Rendering::CameraComponent
     >;
 }
