@@ -16,6 +16,9 @@ namespace Sphynx {
 
 			SceneSerializer::Deserialize(Engine::GetProject().StartSceneFilepath, *m_Scene)
 				.expect("Failed to open start scene");
+
+			if (Rendering::Renderer::IsInitialized())
+				Rendering::Renderer::SetDrawSceneTextureEnabled(true);
 		}
 
 		virtual void OnDestroy() override {
@@ -25,10 +28,8 @@ namespace Sphynx {
 		virtual void Update() override {
 			Physics::PhysicEngine::Update(*m_Scene);
 
-            if (Rendering::Renderer::IsInitialized()) {
+            if (Rendering::Renderer::IsInitialized())
 				Rendering::Renderer::SubmitScene(*m_Scene, Rendering::Camera{});
-                // TODO: Draw Quad with the scene tex
-            }
 		}
 
 		virtual void DrawUI() override {
