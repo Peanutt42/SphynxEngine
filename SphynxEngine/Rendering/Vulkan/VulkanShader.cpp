@@ -279,7 +279,7 @@ namespace Sphynx::Rendering {
                 !ShaderCreateInfo::SharedUniformBuffers.contains(descriptor.Name))
             {
                 m_UniformBuffers[binding] = std::make_unique<VulkanUniformBuffer>(descriptor.UniformSize);
-                SetUniformBuffer(descriptor.Name, *m_UniformBuffers.at(binding));
+                SetupUniformBuffer(descriptor.Name, *m_UniformBuffers.at(binding));
             }
         }
     }
@@ -295,7 +295,7 @@ namespace Sphynx::Rendering {
         m_PipelineLayout = VK_NULL_HANDLE;
     }
 
-    void VulkanShader::SetUniformBuffer(const std::string& name, const VulkanUniformBuffer& uniformBuffer) {
+    void VulkanShader::SetupUniformBuffer(std::string_view name, const VulkanUniformBuffer& uniformBuffer) {
         std::optional<uint32> binding = _GetBinding(name);
         if (!binding) {
             SE_ERR(Logging::Rendering, "Failed to set uniform buffer, '{}' doesn't exist", name);
@@ -318,7 +318,7 @@ namespace Sphynx::Rendering {
         }
     }
 
-    void VulkanShader::SetImageSampler(const std::string& name, vk::Sampler sampler, const std::vector<vk::ImageView>& imageViews) {
+    void VulkanShader::SetupImageSampler(std::string_view name, vk::Sampler sampler, const std::vector<vk::ImageView>& imageViews) {
         std::optional<uint32> binding = _GetBinding(name);
         if (!binding) {
             SE_ERR(Logging::Rendering, "Failed to set image sampler, '{}' doesn't exist", name);
@@ -339,12 +339,54 @@ namespace Sphynx::Rendering {
         }
     }
 
+    void VulkanShader::UpdateUniformBuffer(std::string_view name, const VulkanUniformBuffer& uniformBuffer) {
+        std::optional<uint32> binding = _GetBinding(name);
+        if (!binding) {
+            SE_ERR(Logging::Rendering, "Failed to set uniform buffer, '{}' doesn't exist", name);
+            return;
+        }
+
+        vk::WriteDescriptorSet descriptorWrite{};
+        descriptorWrite.dstSet = m_DescriptorSets[VulkanContext::CurrentImage];
+        descriptorWrite.dstBinding = *binding;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.descriptorType = vk::DescriptorType::eUniformBuffer;
+        vk::DescriptorBufferInfo bufferInfo{ uniformBuffer.GetBuffer(VulkanContext::CurrentImage), 0, (uint32)uniformBuffer.Size };
+        descriptorWrite.pBufferInfo = &bufferInfo;
+
+        VulkanContext::LogicalDevice.updateDescriptorSets(1, &descriptorWrite, 0, nullptr);
+    }
+
+    void VulkanShader::UpdateImageSampler(std::string_view name, vk::Sampler sampler, const std::vector<vk::ImageView>& imageViews) {
+        std::optional<uint32> binding = _GetBinding(name);
+        if (!binding) {
+            SE_ERR(Logging::Rendering, "Failed to set image sampler, '{}' doesn't exist", name);
+            return;
+        }
+
+        vk::WriteDescriptorSet descriptorWrite{};
+        descriptorWrite.dstSet = m_DescriptorSets[VulkanContext::CurrentImage];
+        descriptorWrite.dstBinding = *binding;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.descriptorType = vk::DescriptorType::eCombinedImageSampler;
+
+        vk::DescriptorImageInfo imageInfo{ sampler, imageViews[VulkanContext::CurrentImage], vk::ImageLayout::eShaderReadOnlyOptimal };
+        descriptorWrite.pImageInfo = &imageInfo;
+        VulkanContext::LogicalDevice.updateDescriptorSets(1, &descriptorWrite, 0, nullptr);
+    }
+
     void VulkanShader::Bind(vk::CommandBuffer commandBuffer) {
         commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_PipelineLayout, 0, 1, &m_DescriptorSets[VulkanContext::CurrentFrame], 0, nullptr);
         commandBuffer.bindPipeline(vk::PipelineBindPoint::eGraphics, m_Pipeline);
     }
 
-    std::optional<uint32> VulkanShader::_GetBinding(const std::string& name) {
+    void VulkanShader::Bind(vk::CommandBuffer commandBuffer, vk::DescriptorSet descriptorSet) {
+        commandBuffer.bindDescriptorSets(vk::PipelineBindPoint::eGraphics, m_PipelineLayout, 0, 1, &descriptorSet, 0, nullptr);
+    }
+
+    std::optional<uint32> VulkanShader::_GetBinding(std::string_view name) {
         auto find = m_DescriptorNameToBindingMap.find(name);
         if (find == m_DescriptorNameToBindingMap.end())
             return std::nullopt;

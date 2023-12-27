@@ -1,6 +1,7 @@
 #include "pch.hpp"
 #include "EditorApplication.hpp"
 #include "EditorAssetManager.hpp"
+#include "Guizmos.hpp"
 #include "Physics/PhysicEngine.hpp"
 #include "Profiling/Profiling.hpp"
 
@@ -31,6 +32,8 @@ namespace Sphynx::Editor {
 		m_Windows.push_back(std::make_unique<ProfilingWindow>());
 		m_Windows.push_back(std::make_unique<ViewportWindow>());
 
+		Guizmos::Init();
+
 		EditorAssetManager::LoadAssets();
 
 		m_EditingScene = std::make_unique<Scene>("Empty");
@@ -41,6 +44,8 @@ namespace Sphynx::Editor {
 
 	void EditorApplication::OnDestroy() {
 		SE_PROFILE_FUNCTION();
+
+		Guizmos::Shutdown();
 
 		m_Windows.clear();
 		m_EditingScene.reset();
@@ -79,7 +84,9 @@ namespace Sphynx::Editor {
 
 		Rendering::Renderer::SubmitScene(m_State == EditorState::Editing ? *m_EditingScene : *m_GameScene, m_State == EditorState::Editing ? m_EditingCamera : Rendering::Camera{}); // TODO: find active camera in game scene
 
-		Rendering::Renderer::SubmitBillboard({ 1.5f, 1.5f, 1.5f }, {1.f, 0.f, 0.f});
+		Rendering::Renderer::SubmitBillboard({ 1.5f, 1.5f, 1.5f }, {1.f, 0.f, 0.f}, *Guizmos::s_LightBulbImage);
+
+		Rendering::Renderer::SubmitBillboard({ 0.f, 0.f, 0.f }, {1.f, 1.f, 1.f}, *Guizmos::s_CameraImage);
 	}
 
 	void EditorApplication::DrawUI() {

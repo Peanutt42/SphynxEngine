@@ -137,7 +137,9 @@ namespace Sphynx::Rendering {
 		// only reset if we are submitting work
 		result = LogicalDevice.resetFences(1, &InFlightFences[CurrentFrame]);
 		SE_ASSERT(result == vk::Result::eSuccess, Logging::Rendering, "Failed to reset inFlightFence");
+	}
 
+	void VulkanContext::StartRecording() {
 		CommandBuffer = CommandPool->BeginRecording(CurrentFrame);
 	}
 
@@ -181,7 +183,9 @@ namespace Sphynx::Rendering {
 		SE_PROFILE_FUNCTION();
 
 		Renderpass->End(CommandBuffer);
+	}
 
+	void VulkanContext::StopRecording() {
 		CommandPool->EndRecording(CurrentFrame);
 	}
 

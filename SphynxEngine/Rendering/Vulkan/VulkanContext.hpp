@@ -18,10 +18,12 @@ namespace Sphynx::Rendering {
 		static void Shutdown();
 
 		static void Begin();
+		static void StartRecording();
 		static void BeginSceneRenderpass();
 		static void EndSceneRenderpass();
 		static void BeginLastRenderpass();
 		static void EndLastRenderpass();
+		static void StopRecording();
 		static void Finish();
 
 		static void WaitBeforeClose();

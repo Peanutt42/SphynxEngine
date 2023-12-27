@@ -19,6 +19,7 @@ namespace Sphynx::Rendering {
 		int width, height, channels;
 		stbi_set_flip_vertically_on_load(true);
 		uint8* data = stbi_load(filepathStr.c_str(), &width, &height, &channels, STBI_rgb_alpha);
+		SE_ASSERT(data, Logging::Rendering, "Failed to load image {}", filepathStr);
 		
 		TextureSpecification spec{
 			.Width = (uint32)width,

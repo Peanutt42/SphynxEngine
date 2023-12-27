@@ -48,9 +48,9 @@ namespace Sphynx::Rendering {
 	struct BillboardInstanceData {
 		glm::vec3 Position;
 		glm::vec3 Color;
+		float TexIndex = 0.f;
 	};
 	VulkanInstanceBuffer* s_BillboardInstanceBuffer = nullptr;
-	Image* s_LightImage = nullptr;
 
 	std::queue<std::function<void()>> s_BeforeNextRenderCallbacks;
 
@@ -76,10 +76,13 @@ namespace Sphynx::Rendering {
 	struct RenderCommand {
 		std::vector<InstanceData> ModelMatrices;
 		std::vector<BillboardInstanceData> Billboards;
+		std::vector<VulkanTexture*> BillboardTextures;
 		Camera SceneCamera;
 		LightsUniformBufferData LightsData;
 	};
 	RenderCommand s_RenderCommand;
+
+	Image* s_ErrorImage = nullptr;
 
 	bool Renderer::Init(Window& window, const std::function<void()>& resizeCallback) {
 		SE_PROFILE_FUNCTION();
@@ -98,6 +101,8 @@ namespace Sphynx::Rendering {
 
 		VulkanContext::Init(window);
 
+		s_ErrorImage = new Image((std::filesystem::path)"Content/Textures/Error.png");
+
 		CameraUniformBuffer = new VulkanUniformBuffer(sizeof(CameraUniformBufferData));
 		LightsUniformBuffer = new VulkanUniformBuffer(sizeof(LightsUniformBufferData));
 
@@ -107,21 +112,21 @@ namespace Sphynx::Rendering {
 
 		s_DefaultShader = new Shader(BufferView(g_DefaultVertex), BufferView(g_DefaultFragment), sizeof(Vertex), sizeof(InstanceData));
 		s_DefaultShader->UploadToGPU();
-		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("CameraData", *CameraUniformBuffer);
-		s_DefaultShader->GetVulkanShader()->SetUniformBuffer("LightData", *LightsUniformBuffer);
+		s_DefaultShader->GetVulkanShader()->SetupUniformBuffer("CameraData", *CameraUniformBuffer);
+		s_DefaultShader->GetVulkanShader()->SetupUniformBuffer("LightData", *LightsUniformBuffer);
 		s_InstanceBuffer = new VulkanInstanceBuffer(sizeof(InstanceData));
 
 		s_BillboardShader = new Shader(g_BillboardVertex, g_BillboardFragment, 0, sizeof(BillboardInstanceData));
 		s_BillboardShader->UploadToGPU();
-		s_BillboardShader->GetVulkanShader()->SetUniformBuffer("CameraData", *CameraUniformBuffer);
-		s_LightImage = new Image((std::filesystem::path)"Content/Guizmos/light_bulb.png");
-		s_BillboardShader->GetVulkanShader()->SetImageSampler("image", VulkanContext::DefaultSampler, s_LightImage->GetVulkanTexture()->GetImageViews());
+		s_BillboardShader->GetVulkanShader()->SetupUniformBuffer("CameraData", *CameraUniformBuffer);
+		for (int i = 0; i < 32; i++)
+			s_BillboardShader->GetVulkanShader()->SetupImageSampler("image" + std::to_string(i), VulkanContext::DefaultSampler, s_ErrorImage->GetVulkanTexture()->GetImageViews());
 		
 		s_BillboardInstanceBuffer = new VulkanInstanceBuffer(sizeof(BillboardInstanceData));
 
 		s_ScreenQuadShader = new Shader(BufferView(g_ScreenQuadVertex), BufferView(g_ScreenQuadFragment), sizeof(Vertex));
 		s_ScreenQuadShader->UploadToGPU();
-		s_ScreenQuadShader->GetVulkanShader()->SetImageSampler("screen", VulkanContext::DefaultSampler, VulkanContext::SceneRenderpass->GetImageViews(0/*color*/));
+		s_ScreenQuadShader->GetVulkanShader()->SetupImageSampler("screen", VulkanContext::DefaultSampler, VulkanContext::SceneRenderpass->GetImageViews(0/*color*/));
 
 		s_Initialized = true;
 		return true;
@@ -136,13 +141,14 @@ namespace Sphynx::Rendering {
 		delete s_InstanceBuffer;
 		delete s_BillboardInstanceBuffer;
 
-		delete s_LightImage;
 		delete s_ScreenQuadShader;
 		delete s_BillboardShader;
 		delete s_DefaultShader;
 		delete s_CubeMesh;
 		delete LightsUniformBuffer;
 		delete CameraUniformBuffer;
+		
+		delete s_ErrorImage;
 
 		VulkanContext::Shutdown();
 
@@ -171,8 +177,22 @@ namespace Sphynx::Rendering {
 		}
 	}
 
-	void Renderer::SubmitBillboard(const glm::vec3& position, const glm::vec3& color) {
-		s_RenderCommand.Billboards.emplace_back(position, color);
+	void Renderer::SubmitBillboard(const glm::vec3& position, const glm::vec3& color, Image& image) {
+		VulkanTexture* texture = image.GetVulkanTexture();
+		int textureIndex = 0;
+		bool foundTexture = false;
+		for (int i = 0; i < s_RenderCommand.BillboardTextures.size(); i++) {
+			if (s_RenderCommand.BillboardTextures[i] == texture) {
+				textureIndex = i;
+				foundTexture = true;
+				break;
+			}
+		}
+		if (!foundTexture) {
+			s_RenderCommand.BillboardTextures.push_back(texture);
+			textureIndex = s_RenderCommand.BillboardTextures.size() - 1;
+		}
+		s_RenderCommand.Billboards.emplace_back(position, color, (float)textureIndex);
 	}
 
 	void Renderer::Begin() {
@@ -206,8 +226,17 @@ namespace Sphynx::Rendering {
 		s_InstanceBuffer->Set(s_RenderCommand.ModelMatrices);
 
 		s_BillboardInstanceBuffer->Set(s_RenderCommand.Billboards);
-
+		
 		VulkanContext::Begin();
+
+		// Billboards
+		if (s_RenderCommand.BillboardTextures.size() > 32)
+			SE_WARN(Logging::Rendering, "Too many different billboard textures (>32). Modify the code and the shader!");
+		for (size_t i = 0; i < s_RenderCommand.BillboardTextures.size(); i++) {
+			s_BillboardShader->GetVulkanShader()->UpdateImageSampler("image" + std::to_string(i), VulkanContext::DefaultSampler, s_RenderCommand.BillboardTextures[i]->GetImageViews());
+		}
+
+		VulkanContext::StartRecording();
 
 		VulkanContext::BeginSceneRenderpass();
 		// Draw Scene
@@ -221,8 +250,9 @@ namespace Sphynx::Rendering {
 			// Billboards
 			s_BillboardShader->Bind();
 			s_BillboardInstanceBuffer->Bind();
-			VulkanContext::CommandBuffer.draw(6 /*quad*/, s_RenderCommand.Billboards.size(), 0, 0);
+			VulkanContext::CommandBuffer.draw(6, s_RenderCommand.Billboards.size(), 0, 0);
 			s_RenderCommand.Billboards.resize(0);
+			s_RenderCommand.BillboardTextures.resize(0);
 		}
 		VulkanContext::EndSceneRenderpass();
 
@@ -241,6 +271,8 @@ namespace Sphynx::Rendering {
 		}
 
 		VulkanContext::EndLastRenderpass();
+
+		VulkanContext::StopRecording();
 
 		VulkanContext::Finish();
 	}
