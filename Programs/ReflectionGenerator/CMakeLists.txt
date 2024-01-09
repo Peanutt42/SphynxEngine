@@ -14,7 +14,7 @@ target_compile_features(ReflectionGenerator PRIVATE cxx_std_20)
 # install
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-    "${CMAKE_SOURCE_DIR}/cmake/ReflectionGeneratorConfig.cmake.in"
+    "${CMAKE_SOURCE_DIR}/CMake/ReflectionGeneratorConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/ReflectionGeneratorConfig.cmake"
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/ReflectionGenerator"
 )

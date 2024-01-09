@@ -19,30 +19,6 @@ namespace Sphynx {
 			WriteData((char*)&type, sizeof(type));
 		}
 
-		template<>
-		void Write<std::string>(const std::string& type) {
-			Write(type.size());
-			WriteData((const char*)type.data(), type.size());
-		}
-
-		template<>
-		void Write<std::string_view>(const std::string_view& type) {
-			Write(type.size());
-			WriteData((const char*)type.data(), type.size());
-		}
-
-		template<>
-		void Write<std::wstring>(const std::wstring& type) {
-			Write(type.size());
-			WriteData((const char*)type.data(), type.size() * sizeof(wchar_t));
-		}
-
-		template<>
-		void Write<std::wstring_view>(const std::wstring_view& type) {
-			Write(type.size());
-			WriteData((const char*)type.data(), type.size() * sizeof(wchar_t));
-		}
-
 		template<typename Key, typename Value>
 		void WriteMap(const std::map<Key, Value>& map) {
 			Write<size_t>(map.size());
@@ -71,4 +47,28 @@ namespace Sphynx {
 				Write<T>(element);
 		}
 	};
+
+	template<>
+	void StreamWriter::Write<std::string>(const std::string& type) {
+		Write(type.size());
+		WriteData((const char*)type.data(), type.size());
+	}
+
+	template<>
+	void StreamWriter::Write<std::string_view>(const std::string_view& type) {
+		Write(type.size());
+		WriteData((const char*)type.data(), type.size());
+	}
+
+	template<>
+	void StreamWriter::Write<std::wstring>(const std::wstring& type) {
+		Write(type.size());
+		WriteData((const char*)type.data(), type.size() * sizeof(wchar_t));
+	}
+
+	template<>
+	void StreamWriter::Write<std::wstring_view>(const std::wstring_view& type) {
+		Write(type.size());
+		WriteData((const char*)type.data(), type.size() * sizeof(wchar_t));
+	}
 }

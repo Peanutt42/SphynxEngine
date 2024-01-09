@@ -117,6 +117,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "Clang")
 endif ()
 
 # filewatch
+set(BuildTests OFF CACHE BOOL "" FORCE)
 CloneRepository(filewatch https://github.com/ThomasMonkman/filewatch.git a59891b)
 set(FILEWATCH_INCLUDE_DIR ${filewatch_SOURCE_DIR})
 

@@ -18,27 +18,6 @@ namespace Sphynx {
 		bool Read(T& type) {
 			return ReadData((char*)&type, sizeof(T));
 		}
-
-		template<>
-		bool Read<std::string>(std::string& type) {
-			size_t size = 0;
-			if (!Read(size))
-				return false;
-
-			type.resize(size);
-			return ReadData((char*)type.data(), size);
-		}
-
-		template<>
-		bool Read<std::wstring>(std::wstring& type) {
-			size_t size = 0;
-			if (!Read(size))
-				return false;
-
-			type.resize(size);
-			return ReadData((char*)type.data(), size * sizeof(wchar_t));
-		}
-
 		
 		template<typename Key, typename Value>
 		void ReadMap(std::map<Key, Value>& map) {
@@ -75,4 +54,24 @@ namespace Sphynx {
 				Read<T>(array[i]);
 		}
 	};
+
+	template<>
+	bool StreamReader::Read<std::string>(std::string& type) {
+		size_t size = 0;
+		if (!Read(size))
+			return false;
+
+		type.resize(size);
+		return ReadData((char*)type.data(), size);
+	}
+
+	template<>
+	bool StreamReader::Read<std::wstring>(std::wstring& type) {
+		size_t size = 0;
+		if (!Read(size))
+			return false;
+
+		type.resize(size);
+		return ReadData((char*)type.data(), size * sizeof(wchar_t));
+	}
 }

@@ -22,6 +22,7 @@ CMakeInstall/**
 *.app
 /bin
 **/build
+**/Build
 Programs/ReflectionGenerator/bin
 Programs/CrashReporter/bin
 
@@ -34,6 +35,9 @@ Programs/CrashReporter/bin
 
 # CLion/Rider
 **/.idea
+
+# VS Code
+.vscode/
 
 # Logging
 *.log

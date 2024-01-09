@@ -76,7 +76,7 @@ add_custom_command(TARGET SphynxEngine
 # Install
 include(CMakePackageConfigHelpers)
 configure_package_config_file(
-    "${CMAKE_SOURCE_DIR}/cmake/SphynxEngineConfig.cmake.in"
+    "${CMAKE_SOURCE_DIR}/CMake/SphynxEngineConfig.cmake.in"
     "${CMAKE_CURRENT_BINARY_DIR}/SphynxEngineConfig.cmake"
     INSTALL_DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/SphynxEngine"
 )
@@ -99,7 +99,7 @@ install(
 install(
 	FILES
 		"${CMAKE_CURRENT_BINARY_DIR}/SphynxEngineConfig.cmake"
-		"${CMAKE_SOURCE_DIR}/cmake/SphynxMacros.cmake"
+		"${CMAKE_SOURCE_DIR}/CMake/SphynxMacros.cmake"
 	DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/SphynxEngine"
 )
 
