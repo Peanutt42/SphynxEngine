@@ -8,3 +8,5 @@ winit = "0.29.15"
 wgpu = "0.19.3"
 pollster = "0.3.0"
 anyhow = "1.0.81"
+cgmath = "0.18"
+bytemuck = { version = "1.15", features = ["derive"] }

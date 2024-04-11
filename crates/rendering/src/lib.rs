@@ -1,6 +1,107 @@
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
+use wgpu::util::DeviceExt;
+use cgmath::{Vector3, Matrix4};
 use std::borrow::Cow;
+
+pub struct Transform {
+	position: Vector3<f32>,
+}
+
+impl Transform {
+	pub fn new(position: Vector3<f32>) -> Self {
+		Self {
+			position,
+		}
+	}
+
+	pub fn model_matrix(&self) -> Matrix4<f32> {
+		Matrix4::from_translation(self.position)
+	}
+}
+
+#[repr(C)]
+#[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable)]
+struct Vertex {
+	position: [f32; 3],
+	color: [f32; 3],
+}
+impl Vertex {
+	fn desc() -> wgpu::VertexBufferLayout<'static> {
+        wgpu::VertexBufferLayout {
+            array_stride: std::mem::size_of::<Vertex>() as wgpu::BufferAddress,
+            step_mode: wgpu::VertexStepMode::Vertex,
+            attributes: &[
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    shader_location: 0,
+                    format: wgpu::VertexFormat::Float32x3,
+                },
+                wgpu::VertexAttribute {
+                    offset: std::mem::size_of::<[f32; 3]>() as wgpu::BufferAddress,
+                    shader_location: 1,
+                    format: wgpu::VertexFormat::Float32x3,
+                }
+            ]
+        }
+    }
+}
+const TRIANGLE_VERTICES: &[Vertex] = &[
+    Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+    Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+    Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+];
+
+#[repr(C)]
+#[derive(Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
+pub struct RawInstanceData {
+    model: [[f32; 4]; 4],
+}
+
+impl RawInstanceData {
+	pub fn new(model: Matrix4<f32>) -> Self {
+		Self {
+			model: (model).into(),
+		}
+	}
+
+	fn desc() -> wgpu::VertexBufferLayout<'static> {
+        use std::mem;
+        wgpu::VertexBufferLayout {
+            array_stride: mem::size_of::<RawInstanceData>() as wgpu::BufferAddress,
+            // We need to switch from using a step mode of Vertex to Instance
+            // This means that our shaders will only change to use the next
+            // instance when the shader starts processing a new instance
+            step_mode: wgpu::VertexStepMode::Instance,
+            attributes: &[
+                // A mat4 takes up 4 vertex slots as it is technically 4 vec4s. We need to define a slot
+                // for each vec4. We'll have to reassemble the mat4 in the shader.
+                wgpu::VertexAttribute {
+                    offset: 0,
+                    // While our vertex shader only uses locations 0, and 1 now, in later tutorials, we'll
+                    // be using 2, 3, and 4, for Vertex. We'll start at slot 5, not conflict with them later
+                    shader_location: 5,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 4]>() as wgpu::BufferAddress,
+                    shader_location: 6,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 8]>() as wgpu::BufferAddress,
+                    shader_location: 7,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+                wgpu::VertexAttribute {
+                    offset: mem::size_of::<[f32; 12]>() as wgpu::BufferAddress,
+                    shader_location: 8,
+                    format: wgpu::VertexFormat::Float32x4,
+                },
+            ],
+        }
+    }
+}
 
 pub struct Renderer<'a> {
 	surface: wgpu::Surface<'a>,
@@ -8,6 +109,10 @@ pub struct Renderer<'a> {
 	queue: wgpu::Queue,
 	swapchain_config: wgpu::SurfaceConfiguration,
 	render_pipeline: wgpu::RenderPipeline,
+	triangle_vertex_buffer: wgpu::Buffer,
+	instance_buffer: wgpu::Buffer,
+
+	instances: Vec<Transform>,
 }
 
 impl<'a> Renderer<'a> {
@@ -43,6 +148,24 @@ impl<'a> Renderer<'a> {
 			)
 			.await?;
 
+		let triangle_vertex_buffer = device.create_buffer_init(
+			&wgpu::util::BufferInitDescriptor {
+				label: Some("Vertex Buffer"),
+				contents: bytemuck::cast_slice(TRIANGLE_VERTICES),
+				usage: wgpu::BufferUsages::VERTEX,
+			}
+		);
+
+		let instances: Vec<Transform> = (0..10).map(|i| Transform::new(Vector3::new(i as f32 * 0.1, 0.0, 0.0))).collect::<_>();
+		let raw_instance_data = instances.iter().map(|instance| RawInstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
+		let instance_buffer = device.create_buffer_init(
+			&wgpu::util::BufferInitDescriptor {
+				label: Some("Instance Buffer"),
+				contents: bytemuck::cast_slice(&raw_instance_data),
+				usage: wgpu::BufferUsages::VERTEX,
+			}
+		);
+
 		// Load the shaders from disk
 		let triangle_shader = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 			label: None,
@@ -64,7 +187,7 @@ impl<'a> Renderer<'a> {
 			vertex: wgpu::VertexState {
 				module: &triangle_shader,
 				entry_point: "vs_main",
-				buffers: &[],
+				buffers: &[Vertex::desc(), RawInstanceData::desc()],
 			},
 			fragment: Some(wgpu::FragmentState {
 				module: &triangle_shader,
@@ -88,6 +211,9 @@ impl<'a> Renderer<'a> {
 			queue,
 			swapchain_config,
 			render_pipeline,
+			triangle_vertex_buffer,
+			instance_buffer,
+			instances,
 		})
 	}
 
@@ -131,7 +257,9 @@ impl<'a> Renderer<'a> {
 					occlusion_query_set: None,
 				});
 			rpass.set_pipeline(&self.render_pipeline);
-			rpass.draw(0..3, 0..1);
+			rpass.set_vertex_buffer(0, self.triangle_vertex_buffer.slice(..));
+			rpass.set_vertex_buffer(1, self.instance_buffer.slice(..));
+			rpass.draw(0..TRIANGLE_VERTICES.len() as u32, 0..self.instances.len() as u32);
 		}
 
 		self.queue.submit(Some(encoder.finish()));
