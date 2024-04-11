@@ -5,8 +5,14 @@ edition = "2021"
 
 [workspace]
 members = [
-	"crates/logging"
+	"crates/logging",
+	"crates/rendering",
 ]
 
 [dependencies]
 sphynx_logging = { path = "crates/logging" }
+sphynx_rendering = { path = "crates/rendering" }
+
+anyhow = "1.0.81"
+winit = "0.29.15"
+pollster = "0.3.0"
