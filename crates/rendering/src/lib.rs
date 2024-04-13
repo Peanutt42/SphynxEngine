@@ -1,6 +1,7 @@
 mod vertex;
 mod transfrom;
-mod instance;
+mod instance_data;
+mod instance_buffer;
 mod shader;
 mod mesh;
 mod texture;

@@ -4,7 +4,8 @@ use cgmath::Vector3;
 use std::sync::Arc;
 use crate::{
 	include_shader,
-	instance::{InstanceBuffer, InstanceData, Model_InstanceData},
+	instance_data::{InstanceData, Model_InstanceData},
+	instance_buffer::InstanceBuffer,
 	shader::{INSTANCE_BUFFER_BIND_SLOT, VERTEX_BUFFER_BIND_SLOT},
 	vertex::PC_Vertex,
 	Mesh,

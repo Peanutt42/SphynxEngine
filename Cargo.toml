@@ -8,6 +8,7 @@ members = [
 	"crates/core",
 	"crates/logging",
 	"crates/rendering",
+	"crates/derive_vertex_attrib",
 ]
 
 [dependencies]

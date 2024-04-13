@@ -2,7 +2,7 @@ use std::borrow::Cow;
 use wgpu::DepthStencilState;
 
 use crate::vertex::Vertex;
-use crate::instance::InstanceData;
+use crate::instance_data::InstanceData;
 use crate::Texture;
 
 pub const VERTEX_BUFFER_BIND_SLOT: u32 = 0;
@@ -11,7 +11,7 @@ pub const INSTANCE_BUFFER_BIND_SLOT: u32 = 1;
 #[macro_export]
 macro_rules! include_shader {
 	($filepath:expr, $device:expr, $swapchain_format:expr) => {{
-		Shader::from_str_instanced::<$crate::vertex::PC_Vertex, $crate::instance::Model_InstanceData>(include_str!($filepath), Some($filepath), $device, $swapchain_format)
+		Shader::from_str_instanced::<$crate::vertex::PC_Vertex, $crate::instance_data::Model_InstanceData>(include_str!($filepath), Some($filepath), $device, $swapchain_format)
 	}};
 }
 
@@ -30,7 +30,7 @@ impl Shader {
 	pub fn from_str_instanced<V: Vertex, I: InstanceData>(shader_code: &str, label: Option<&str>, device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
 		Self::from_str::<V>(shader_code, Some(I::desc()), label, device, swapchain_format)
 	}
-	
+
 	pub fn from_str<V: Vertex>(shader_code: &str, instance_layout: Option<wgpu::VertexBufferLayout<'static>>, label: Option<&str>, device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
 		Self::new(wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader_code)), V::desc(), instance_layout, label, device, swapchain_format)
 	}
