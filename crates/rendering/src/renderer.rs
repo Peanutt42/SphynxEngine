@@ -14,9 +14,9 @@ use crate::{
 };
 
 const TRIANGLE_VERTICES: &[PC_Vertex] = &[
-    PC_Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
-    PC_Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
-    PC_Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+	PC_Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
+	PC_Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
+	PC_Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
 ];
 
 pub struct Renderer {
@@ -61,9 +61,9 @@ impl Renderer {
 				None,
 			)
 			.await?;
-		
+
 		let triangle_mesh = Mesh::with_vertices(TRIANGLE_VERTICES, &device);
-		
+
 		let instances: Vec<Transform> = (0..10)
 		.map(|i|
 			Transform::new(Vector3::new(i as f32 * 0.1, 0.0, 0.0))
@@ -71,7 +71,7 @@ impl Renderer {
 		.collect::<_>();
 		let raw_instance_data = instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
 		let triangle_instance_buffer = InstanceBuffer::new(raw_instance_data, &device);
-	
+
 		let swapchain_capabilities = surface.get_capabilities(&adapter);
 		let swapchain_format = swapchain_capabilities.formats[0];
 		let swapchain_config = surface
@@ -119,7 +119,7 @@ impl Renderer {
 
 		self.triangle_instance_buffer.instances = self.instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
 		self.triangle_instance_buffer.update(&self.queue);
-		
+
 		let mut encoder = self.device.create_command_encoder(
 			&wgpu::CommandEncoderDescriptor {
 				label: None,
