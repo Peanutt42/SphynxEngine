@@ -1,16 +1,17 @@
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
-use wgpu::util::DeviceExt;
 use cgmath::Vector3;
 use std::time::Instant;
 use std::sync::Arc;
 use crate::{
+	include_shader,
+	instance::{InstanceBuffer, InstanceData, Model_InstanceData},
+	shader::{INSTANCE_BUFFER_BIND_SLOT, VERTEX_BUFFER_BIND_SLOT},
 	vertex::PC_Vertex,
-	instance::Model_InstanceData,
-	shader::{VERTEX_BUFFER_BIND_SLOT, INSTANCE_BUFFER_BIND_SLOT},
-	Transform,
 	Mesh,
-	Shader
+	Shader,
+	Texture,
+	Transform
 };
 
 const TRIANGLE_VERTICES: &[PC_Vertex] = &[
@@ -24,9 +25,10 @@ pub struct Renderer {
 	device: wgpu::Device,
 	queue: wgpu::Queue,
 	swapchain_config: wgpu::SurfaceConfiguration,
+	depth_texture: Texture,
 	triangle_shader: Shader,
 	triangle_mesh: Mesh,
-	triangle_instance_buffer: wgpu::Buffer,
+	triangle_instance_buffer: InstanceBuffer<Model_InstanceData>,
 
 	instances: Vec<Transform>,
 	start_time: Instant,
@@ -61,23 +63,17 @@ impl Renderer {
 				None,
 			)
 			.await?;
-
+		
 		let triangle_mesh = Mesh::with_vertices(TRIANGLE_VERTICES, &device);
-
+		
 		let instances: Vec<Transform> = (0..10)
-			.map(|i|
-				Transform::new(Vector3::new(i as f32 * 0.1, 0.0, 0.0))
-			)
-			.collect::<_>();
+		.map(|i|
+			Transform::new(Vector3::new(i as f32 * 0.1, 0.0, 0.0))
+		)
+		.collect::<_>();
 		let raw_instance_data = instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
-		let triangle_instance_buffer = device.create_buffer_init(
-			&wgpu::util::BufferInitDescriptor {
-				label: Some("Instance Buffer"),
-				contents: bytemuck::cast_slice(&raw_instance_data),
-				usage: wgpu::BufferUsages::VERTEX | wgpu::BufferUsages::COPY_DST,
-			}
-		);
-
+		let triangle_instance_buffer = InstanceBuffer::new(raw_instance_data, &device);
+	
 		let swapchain_capabilities = surface.get_capabilities(&adapter);
 		let swapchain_format = swapchain_capabilities.formats[0];
 		let swapchain_config = surface
@@ -85,13 +81,16 @@ impl Renderer {
 			.ok_or(anyhow::anyhow!("Failed to get surface config"))?;
 		surface.configure(&device, &swapchain_config);
 
-		let triangle_shader = Shader::from_str_instanced::<PC_Vertex, Model_InstanceData>(include_str!("../../../assets/shaders/triangle.wgsl"), Some("Triangle Shader"), &device, swapchain_format);
+		let depth_texture = Texture::create_depth_texture(&device, &swapchain_config);
+
+		let triangle_shader = include_shader!("../../../assets/shaders/triangle.wgsl", &device, swapchain_format);
 
 		Ok(Self {
 			surface,
 			device,
 			queue,
 			swapchain_config,
+			depth_texture,
 			triangle_shader,
 			triangle_mesh,
 			triangle_instance_buffer,
@@ -104,6 +103,8 @@ impl Renderer {
 		self.swapchain_config.width = new_size.width.max(1);
 		self.swapchain_config.height = new_size.height.max(1);
 		self.surface.configure(&self.device, &self.swapchain_config);
+
+		self.depth_texture = Texture::create_depth_texture(&self.device, &self.swapchain_config);
 
 		// only on macos you need to explicitly redraw the window
 		#[cfg(target_os = "macos")]
@@ -122,12 +123,11 @@ impl Renderer {
 		let time = (Instant::now() - self.start_time).as_secs_f32();
 		self.instances = (0..10)
 			.map(|i|
-				Transform::new(Vector3::new(i as f32 * 0.1, 0.5 * f32::sin(time + 0.2 * i as f32), 0.0))
+				Transform::new(Vector3::new(i as f32 * 0.1, 0.5 * f32::sin(time + 0.2 * i as f32), 0.25 + 0.25 * f32::cos(time + 0.2 * i as f32)))
 			)
 			.collect::<_>();
-		let raw_instance_data = self.instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
-		
-		self.queue.write_buffer(&self.triangle_instance_buffer, 0, bytemuck::cast_slice(&raw_instance_data));
+		self.triangle_instance_buffer.instances = self.instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
+		self.triangle_instance_buffer.update(&self.queue);
 		
 		let mut encoder = self.device.create_command_encoder(
 			&wgpu::CommandEncoderDescriptor {
@@ -146,18 +146,34 @@ impl Renderer {
 							store: wgpu::StoreOp::Store,
 						},
 					})],
-					depth_stencil_attachment: None,
+					depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
+						view: &self.depth_texture.view,
+						depth_ops: Some(wgpu::Operations {
+							load: wgpu::LoadOp::Clear(1.0),
+							store: wgpu::StoreOp::Store,
+						}),
+						stencil_ops: None,
+					}),
 					timestamp_writes: None,
 					occlusion_query_set: None,
 				});
-			rpass.set_pipeline(self.triangle_shader.get_pipeline());
-			rpass.set_vertex_buffer(VERTEX_BUFFER_BIND_SLOT, self.triangle_mesh.get_vertex_buffer_slice());
-			rpass.set_vertex_buffer(INSTANCE_BUFFER_BIND_SLOT, self.triangle_instance_buffer.slice(..));
-			rpass.draw(0..TRIANGLE_VERTICES.len() as u32, 0..self.instances.len() as u32);
+			self.draw(&mut rpass, &self.triangle_shader, &self.triangle_mesh, Some(&self.triangle_instance_buffer));
 		}
 
 		self.queue.submit(Some(encoder.finish()));
 
 		frame.present();
+	}
+
+	fn draw<'a, I: InstanceData>(&self, renderpass: &mut wgpu::RenderPass<'a>, shader: &'a Shader, mesh: &'a Mesh, instance_buffer: Option<&'a InstanceBuffer<I>>) {
+		renderpass.set_pipeline(&shader.pipeline);
+		renderpass.set_vertex_buffer(VERTEX_BUFFER_BIND_SLOT, mesh.vertex_buffer.slice(..));
+		if let Some(instance_buffer) = instance_buffer {
+			renderpass.set_vertex_buffer(INSTANCE_BUFFER_BIND_SLOT, instance_buffer.buffer.slice(..));
+		}
+		let instance_count = instance_buffer
+			.map(|instance_buffer| instance_buffer.instances.len())
+			.unwrap_or(1);
+		renderpass.draw(0..self.triangle_mesh.vertex_count as u32, 0..instance_count as u32);
 	}
 }
