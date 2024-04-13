@@ -1,7 +1,6 @@
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
 use cgmath::Vector3;
-use std::time::Instant;
 use std::sync::Arc;
 use crate::{
 	include_shader,
@@ -30,8 +29,7 @@ pub struct Renderer {
 	triangle_mesh: Mesh,
 	triangle_instance_buffer: InstanceBuffer<Model_InstanceData>,
 
-	instances: Vec<Transform>,
-	start_time: Instant,
+	pub instances: Vec<Transform>,
 }
 
 impl Renderer {
@@ -95,7 +93,6 @@ impl Renderer {
 			triangle_mesh,
 			triangle_instance_buffer,
 			instances,
-			start_time: Instant::now(),
 		})
 	}
 
@@ -120,12 +117,6 @@ impl Renderer {
 			.texture
 			.create_view(&wgpu::TextureViewDescriptor::default());
 
-		let time = (Instant::now() - self.start_time).as_secs_f32();
-		self.instances = (0..10)
-			.map(|i|
-				Transform::new(Vector3::new(i as f32 * 0.1, 0.5 * f32::sin(time + 0.2 * i as f32), 0.25 + 0.25 * f32::cos(time + 0.2 * i as f32)))
-			)
-			.collect::<_>();
 		self.triangle_instance_buffer.instances = self.instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
 		self.triangle_instance_buffer.update(&self.queue);
 		

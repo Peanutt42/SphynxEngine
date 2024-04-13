@@ -5,14 +5,11 @@ edition = "2021"
 
 [workspace]
 members = [
+	"crates/core",
 	"crates/logging",
 	"crates/rendering",
 ]
 
 [dependencies]
-sphynx_logging = { path = "crates/logging" }
-sphynx_rendering = { path = "crates/rendering" }
-
+sphynx_core = { path = "crates/core" }
 anyhow = "1.0.81"
-winit = "0.29.15"
-pollster = "0.3.0"

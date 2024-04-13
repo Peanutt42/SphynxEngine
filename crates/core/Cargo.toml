@@ -1,0 +1,12 @@
+[package]
+name = "sphynx_core"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+sphynx_logging = { path = "../logging" }
+sphynx_rendering = { path = "../rendering" }
+anyhow = "1.0.81"
+winit = "0.29.15"
+pollster = "0.3.0"
+cgmath = "0.18"
