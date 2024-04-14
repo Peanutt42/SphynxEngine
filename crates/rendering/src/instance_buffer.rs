@@ -1,9 +1,10 @@
 use wgpu::util::DeviceExt;
 use crate::instance_data::InstanceData;
+use crate::shader::INSTANCE_BUFFER_BIND_SLOT;
 
 pub struct InstanceBuffer<I: InstanceData> {
 	pub instances: Vec<I>,
-	pub buffer: wgpu::Buffer,
+	buffer: wgpu::Buffer,
 }
 
 impl<I: InstanceData> InstanceBuffer<I> {
@@ -24,5 +25,9 @@ impl<I: InstanceData> InstanceBuffer<I> {
 
 	pub fn update(&self, queue: &wgpu::Queue) {
 		queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.instances));
+	}
+
+	pub fn bind<'a, 'b>(&'a self, renderpass: &'b mut wgpu::RenderPass<'a>) {
+		renderpass.set_vertex_buffer(INSTANCE_BUFFER_BIND_SLOT, self.buffer.slice(..));
 	}
 }

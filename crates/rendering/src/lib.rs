@@ -4,11 +4,13 @@ mod instance_data;
 mod instance_buffer;
 mod shader;
 mod mesh;
-mod texture;
+mod depth_texture;
+mod camera;
+mod camera_uniform;
 mod renderer;
 
 pub use transfrom::Transform;
 pub use shader::Shader;
 pub use mesh::Mesh;
-pub use texture::Texture;
+pub use camera::Camera;
 pub use renderer::Renderer;

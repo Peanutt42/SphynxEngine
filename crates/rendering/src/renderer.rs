@@ -3,15 +3,13 @@ use winit::window::Window;
 use cgmath::Vector3;
 use std::sync::Arc;
 use crate::{
+	Camera, Mesh, Shader, Transform,
 	include_shader,
-	instance_data::{InstanceData, Model_InstanceData},
-	instance_buffer::InstanceBuffer,
-	shader::{INSTANCE_BUFFER_BIND_SLOT, VERTEX_BUFFER_BIND_SLOT},
 	vertex::PC_Vertex,
-	Mesh,
-	Shader,
-	Texture,
-	Transform
+	depth_texture::DepthTexture,
+	instance_buffer::InstanceBuffer,
+	camera_uniform::{CameraUniform, CameraUniformBuffer},
+	instance_data::Model_InstanceData,
 };
 
 const TRIANGLE_VERTICES: &[PC_Vertex] = &[
@@ -25,12 +23,14 @@ pub struct Renderer {
 	device: wgpu::Device,
 	queue: wgpu::Queue,
 	swapchain_config: wgpu::SurfaceConfiguration,
-	depth_texture: Texture,
+	depth_texture: DepthTexture,
 	triangle_shader: Shader,
 	triangle_mesh: Mesh,
 	triangle_instance_buffer: InstanceBuffer<Model_InstanceData>,
 
 	pub instances: Vec<Transform>,
+	pub camera: Camera,
+	camera_uniform_buffer: CameraUniformBuffer,
 }
 
 impl Renderer {
@@ -80,9 +80,18 @@ impl Renderer {
 			.ok_or(anyhow::anyhow!("Failed to get surface config"))?;
 		surface.configure(&device, &swapchain_config);
 
-		let depth_texture = Texture::create_depth_texture(&device, &swapchain_config);
+		let depth_texture = DepthTexture::new(&device, &swapchain_config);
 
-		let triangle_shader = include_shader!("../../../assets/shaders/triangle.wgsl", &device, swapchain_format);
+		let camera = Camera::default();
+		let camera_uniform = CameraUniform::new(camera.get_projection_view_matrix(Camera::get_aspect(swapchain_config.width as f32, swapchain_config.height as f32)));
+		let camera_uniform_buffer = CameraUniformBuffer::new(camera_uniform, &device);
+
+		let triangle_shader = include_shader!(
+			"../../../assets/shaders/triangle.wgsl",
+			&[camera_uniform_buffer.get_binding()],
+			&device,
+			swapchain_format
+		);
 
 		Ok(Self {
 			surface,
@@ -93,6 +102,8 @@ impl Renderer {
 			triangle_shader,
 			triangle_mesh,
 			triangle_instance_buffer,
+			camera,
+			camera_uniform_buffer,
 			instances,
 		})
 	}
@@ -102,7 +113,7 @@ impl Renderer {
 		self.swapchain_config.height = new_size.height.max(1);
 		self.surface.configure(&self.device, &self.swapchain_config);
 
-		self.depth_texture = Texture::create_depth_texture(&self.device, &self.swapchain_config);
+		self.depth_texture = DepthTexture::new(&self.device, &self.swapchain_config);
 
 		// only on macos you need to explicitly redraw the window
 		#[cfg(target_os = "macos")]
@@ -121,6 +132,9 @@ impl Renderer {
 		self.triangle_instance_buffer.instances = self.instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
 		self.triangle_instance_buffer.update(&self.queue);
 
+		let camera_projection_view = self.camera.get_projection_view_matrix(Camera::get_aspect_from_swapchain(&self.swapchain_config));
+		self.camera_uniform_buffer.update(CameraUniform::new(camera_projection_view), &self.queue);
+
 		let mut encoder = self.device.create_command_encoder(
 			&wgpu::CommandEncoderDescriptor {
 				label: None,
@@ -138,34 +152,18 @@ impl Renderer {
 							store: wgpu::StoreOp::Store,
 						},
 					})],
-					depth_stencil_attachment: Some(wgpu::RenderPassDepthStencilAttachment {
-						view: &self.depth_texture.view,
-						depth_ops: Some(wgpu::Operations {
-							load: wgpu::LoadOp::Clear(1.0),
-							store: wgpu::StoreOp::Store,
-						}),
-						stencil_ops: None,
-					}),
+					depth_stencil_attachment: Some(self.depth_texture.get_attachment()),
 					timestamp_writes: None,
 					occlusion_query_set: None,
 				});
-			self.draw(&mut rpass, &self.triangle_shader, &self.triangle_mesh, Some(&self.triangle_instance_buffer));
+
+			self.camera_uniform_buffer.bind(&mut rpass);
+			self.triangle_shader.bind(&mut rpass);
+			self.triangle_mesh.draw_instanced(&self.triangle_instance_buffer, &mut rpass);
 		}
 
 		self.queue.submit(Some(encoder.finish()));
 
 		frame.present();
-	}
-
-	fn draw<'a, I: InstanceData>(&self, renderpass: &mut wgpu::RenderPass<'a>, shader: &'a Shader, mesh: &'a Mesh, instance_buffer: Option<&'a InstanceBuffer<I>>) {
-		renderpass.set_pipeline(&shader.pipeline);
-		renderpass.set_vertex_buffer(VERTEX_BUFFER_BIND_SLOT, mesh.vertex_buffer.slice(..));
-		if let Some(instance_buffer) = instance_buffer {
-			renderpass.set_vertex_buffer(INSTANCE_BUFFER_BIND_SLOT, instance_buffer.buffer.slice(..));
-		}
-		let instance_count = instance_buffer
-			.map(|instance_buffer| instance_buffer.instances.len())
-			.unwrap_or(1);
-		renderpass.draw(0..self.triangle_mesh.vertex_count as u32, 0..instance_count as u32);
 	}
 }

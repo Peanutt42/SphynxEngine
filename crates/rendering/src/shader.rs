@@ -1,41 +1,41 @@
 use std::borrow::Cow;
 use wgpu::DepthStencilState;
-
 use crate::vertex::Vertex;
 use crate::instance_data::InstanceData;
-use crate::Texture;
+use crate::depth_texture::DepthTexture;
 
 pub const VERTEX_BUFFER_BIND_SLOT: u32 = 0;
 pub const INSTANCE_BUFFER_BIND_SLOT: u32 = 1;
+pub const CAMERA_UNIFORM_BINDING: u32 = 0;
 
 #[macro_export]
 macro_rules! include_shader {
-	($filepath:expr, $device:expr, $swapchain_format:expr) => {{
-		Shader::from_str_instanced::<$crate::vertex::PC_Vertex, $crate::instance_data::Model_InstanceData>(include_str!($filepath), Some($filepath), $device, $swapchain_format)
+	($filepath:expr, $bindings:expr, $device:expr, $swapchain_format:expr) => {{
+		Shader::from_str_instanced::<$crate::vertex::PC_Vertex, $crate::instance_data::Model_InstanceData>(include_str!($filepath), Some($filepath), $bindings, $device, $swapchain_format)
 	}};
 }
 
 #[macro_export]
 macro_rules! include_custom_shader {
-	($vertex:expr, $instance:expr, $filepath:expr, $device:expr, $swapchain_format:expr) => {{
-		Shader::from_str_instanced::<$vertex, $instance>(include_str!($filepath), Some($filepath), $device, $swapchain_format)
+	($vertex:expr, $instance:expr, $filepath:expr, $bindings:expr, $device:expr, $swapchain_format:expr) => {{
+		Shader::from_str_instanced::<$vertex, $instance>(include_str!($filepath), Some($filepath), $bindings, $device, $swapchain_format)
 	}};
 }
 
 pub struct Shader {
-	pub pipeline: wgpu::RenderPipeline,
+	pipeline: wgpu::RenderPipeline,
 }
 
 impl Shader {
-	pub fn from_str_instanced<V: Vertex, I: InstanceData>(shader_code: &str, label: Option<&str>, device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
-		Self::from_str::<V>(shader_code, Some(I::desc()), label, device, swapchain_format)
+	pub fn from_str_instanced<V: Vertex, I: InstanceData>(shader_code: &str, label: Option<&str>, bindings: &[&wgpu::BindGroupLayout], device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
+		Self::from_str::<V>(shader_code, Some(I::desc()), label, bindings, device, swapchain_format)
 	}
 
-	pub fn from_str<V: Vertex>(shader_code: &str, instance_layout: Option<wgpu::VertexBufferLayout<'static>>, label: Option<&str>, device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
-		Self::new(wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader_code)), V::desc(), instance_layout, label, device, swapchain_format)
+	pub fn from_str<V: Vertex>(shader_code: &str, instance_layout: Option<wgpu::VertexBufferLayout<'static>>, label: Option<&str>, bindings: &[&wgpu::BindGroupLayout], device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
+		Self::new(wgpu::ShaderSource::Wgsl(Cow::Borrowed(shader_code)), V::desc(), instance_layout, label, bindings, device, swapchain_format)
 	}
 
-	pub fn new(source: wgpu::ShaderSource, vertex_layout: wgpu::VertexBufferLayout<'static>, instance_layout: Option<wgpu::VertexBufferLayout<'static>>, label: Option<&str>, device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
+	pub fn new(source: wgpu::ShaderSource, vertex_layout: wgpu::VertexBufferLayout<'static>, instance_layout: Option<wgpu::VertexBufferLayout<'static>>, label: Option<&str>, bindings: &[&wgpu::BindGroupLayout], device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
 		let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
 			label: None,
 			source,
@@ -43,7 +43,7 @@ impl Shader {
 
 		let pipeline_layout = device.create_pipeline_layout(&wgpu::PipelineLayoutDescriptor {
 			label: None,
-			bind_group_layouts: &[],
+			bind_group_layouts: bindings,
 			push_constant_ranges: &[],
 		});
 
@@ -67,7 +67,7 @@ impl Shader {
 			}),
 			primitive: wgpu::PrimitiveState::default(),
 			depth_stencil: Some(DepthStencilState {
-				format: Texture::DEPTH_FORMAT,
+				format: DepthTexture::FORMAT,
 				depth_write_enabled: true,
 				depth_compare: wgpu::CompareFunction::Less,
 				stencil: wgpu::StencilState::default(),
@@ -80,5 +80,9 @@ impl Shader {
 		Self {
 			pipeline,
 		}
+	}
+
+	pub fn bind<'a, 'b>(&'a self, renderpass: &'b mut wgpu::RenderPass<'a>) {
+		renderpass.set_pipeline(&self.pipeline);
 	}
 }

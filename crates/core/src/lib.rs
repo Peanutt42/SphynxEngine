@@ -41,7 +41,11 @@ struct Engine {
 
 impl Engine {
 	fn new(event_loop: &EventLoop<()>) -> anyhow::Result<Self> {
-		let window = Arc::new(WindowBuilder::new().build(event_loop)?);
+		let window = Arc::new(
+			WindowBuilder::new()
+				.with_title("SphynxEngine")
+				.build(event_loop)?
+		);
 		let renderer = pollster::block_on(Renderer::new(window.clone()))?;
 
 		Ok(Self {
@@ -55,11 +59,11 @@ impl Engine {
 		sphynx_logging::init();
 
 		info!(General, "=== INITIALIZING ===");
-	
+
 		{
 			event_loop.run(move |event, target| {
 				self.window.request_redraw();
-	
+
 				if let Event::WindowEvent { event, .. } = event {
 					match event {
 						WindowEvent::Resized(new_size) => self.renderer.resize(new_size),
@@ -70,7 +74,7 @@ impl Engine {
 				}
 			})?;
 		}
-	
+
 		info!(General, "=== SHUTDOWN ===");
 
 		Ok(())
