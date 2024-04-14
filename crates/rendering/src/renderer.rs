@@ -2,6 +2,7 @@ use winit::dpi::PhysicalSize;
 use winit::window::Window;
 use cgmath::Vector3;
 use std::sync::Arc;
+use sphynx_logging::info;
 use crate::{
 	Camera, Mesh, Shader, Transform,
 	include_shader,
@@ -34,7 +35,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-	pub async fn new(window: Arc<Window>) -> anyhow::Result<Self> {
+	pub async fn new(window: Arc<Window>, vsync: bool) -> anyhow::Result<Self> {
 		let mut size = window.inner_size();
 		size.width = size.width.max(1);
 		size.height = size.height.max(1);
@@ -50,6 +51,9 @@ impl Renderer {
 			})
 			.await
 			.ok_or(anyhow::anyhow!("Failed to find an appropriate adapter"))?;
+
+		let adapter_info = adapter.get_info();
+		info!(Rendering, "{:?}: {}", adapter_info.backend, adapter_info.name);
 
 		let (device, queue) = adapter
 			.request_device(
@@ -75,9 +79,10 @@ impl Renderer {
 
 		let swapchain_capabilities = surface.get_capabilities(&adapter);
 		let swapchain_format = swapchain_capabilities.formats[0];
-		let swapchain_config = surface
+		let mut swapchain_config = surface
 			.get_default_config(&adapter, size.width, size.height)
 			.ok_or(anyhow::anyhow!("Failed to get surface config"))?;
+		swapchain_config.present_mode = if vsync { wgpu::PresentMode::AutoVsync } else { wgpu::PresentMode::AutoNoVsync };
 		surface.configure(&device, &swapchain_config);
 
 		let depth_texture = DepthTexture::new(&device, &swapchain_config);

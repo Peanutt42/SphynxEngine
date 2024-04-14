@@ -10,26 +10,26 @@ use std::time::Instant;
 use std::sync::Arc;
 
 pub struct EngineConfig {
-
+	pub vsync: bool,
 }
 
 impl EngineConfig {
-	pub fn new() -> Self {
+	pub fn new(vsync: bool) -> Self {
 		Self {
-
+			vsync,
 		}
 	}
 
 	pub fn run(self) -> anyhow::Result<()> {
 		let event_loop = EventLoop::new()?;
-		let engine = Engine::new(&event_loop)?;
+		let engine = Engine::new(self, &event_loop)?;
 		engine.run(event_loop)
 	}
 }
 
 impl Default for EngineConfig {
 	fn default() -> Self {
-		Self::new()
+		Self::new(false)
 	}
 }
 
@@ -40,13 +40,15 @@ struct Engine {
 }
 
 impl Engine {
-	fn new(event_loop: &EventLoop<()>) -> anyhow::Result<Self> {
+	fn new(config: EngineConfig, event_loop: &EventLoop<()>) -> anyhow::Result<Self> {
+		info!(General, "=== INITIALIZING ===");
+
 		let window = Arc::new(
 			WindowBuilder::new()
 				.with_title("SphynxEngine")
 				.build(event_loop)?
 		);
-		let renderer = pollster::block_on(Renderer::new(window.clone()))?;
+		let renderer = pollster::block_on(Renderer::new(window.clone(), config.vsync))?;
 
 		Ok(Self {
 			window,
@@ -58,22 +60,18 @@ impl Engine {
 	pub fn run(mut self, event_loop: EventLoop<()>) -> anyhow::Result<()> {
 		sphynx_logging::init();
 
-		info!(General, "=== INITIALIZING ===");
+		event_loop.run(move |event, target| {
+			self.window.request_redraw();
 
-		{
-			event_loop.run(move |event, target| {
-				self.window.request_redraw();
-
-				if let Event::WindowEvent { event, .. } = event {
-					match event {
-						WindowEvent::Resized(new_size) => self.renderer.resize(new_size),
-						WindowEvent::RedrawRequested => self.update(),
-						WindowEvent::CloseRequested => target.exit(),
-						_ => {}
-					}
+			if let Event::WindowEvent { event, .. } = event {
+				match event {
+					WindowEvent::Resized(new_size) => self.renderer.resize(new_size),
+					WindowEvent::RedrawRequested => self.update(),
+					WindowEvent::CloseRequested => target.exit(),
+					_ => {}
 				}
-			})?;
-		}
+			}
+		})?;
 
 		info!(General, "=== SHUTDOWN ===");
 
