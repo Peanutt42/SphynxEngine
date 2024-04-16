@@ -2,6 +2,7 @@ use winit::event::*;
 use winit::keyboard::KeyCode;
 use cgmath::{InnerSpace, Vector3, Rad};
 use sphynx_rendering::Camera;
+use sphynx_input::Input;
 
 use std::f32::consts::FRAC_PI_2;
 const SAFE_FRAC_PI_2: f32 = FRAC_PI_2 - 0.0001;
@@ -35,29 +36,25 @@ impl CameraController {
 		}
 	}
 
-	pub fn process_keyboard(&mut self, key: KeyCode, state: ElementState) {
-		let amount = if state == ElementState::Pressed {
-			1.0
-		} else {
-			0.0
-		};
-		match key {
-			KeyCode::KeyW | KeyCode::ArrowUp => self.amount_forward = amount,
-			KeyCode::KeyS | KeyCode::ArrowDown => self.amount_backward = amount,
-			KeyCode::KeyA | KeyCode::ArrowLeft => self.amount_left = amount,
-			KeyCode::KeyD | KeyCode::ArrowRight => self.amount_right = amount,
-			KeyCode::KeyE => self.amount_up = amount,
-			KeyCode::KeyQ => self.amount_down = amount,
-			_ => {},
+	pub fn process_input(&mut self, input: &Input) {
+		let enabled = input.is_mouse_pressed(MouseButton::Right);
+
+		if enabled {
+			self.rotate_horizontal = input.mouse_delta.x;
+			self.rotate_vertical = input.mouse_delta.y;
 		}
+
+		self.amount_forward = if enabled && input.is_key_pressed(KeyCode::KeyW) { 1.0 } else { 0.0 };
+		self.amount_backward = if enabled && input.is_key_pressed(KeyCode::KeyS) { 1.0 } else { 0.0 };
+		self.amount_left = if enabled && input.is_key_pressed(KeyCode::KeyA) { 1.0 } else { 0.0 };
+		self.amount_right = if enabled && input.is_key_pressed(KeyCode::KeyD) { 1.0 } else { 0.0 };
+		self.amount_up =if enabled && input.is_key_pressed(KeyCode::KeyE) { 1.0 } else { 0.0 };
+		self.amount_down = if enabled && input.is_key_pressed(KeyCode::KeyQ) { 1.0 } else { 0.0 };
 	}
 
-	pub fn process_mouse(&mut self, mouse_dx: f64, mouse_dy: f64) {
-		self.rotate_horizontal = mouse_dx as f32;
-		self.rotate_vertical = mouse_dy as f32;
-	}
+	pub fn update(&mut self, input: &Input, camera: &mut Camera, dt: f32) {
+		self.process_input(input);
 
-	pub fn update_camera(&mut self, camera: &mut Camera, dt: f32) {
 		let (yaw_sin, yaw_cos) = camera.yaw.0.sin_cos();
 		let forward = Vector3::new(yaw_cos, 0.0, yaw_sin).normalize();
 		let right = Vector3::new(-yaw_sin, 0.0, yaw_cos).normalize();

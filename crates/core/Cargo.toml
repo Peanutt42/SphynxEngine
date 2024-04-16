@@ -5,6 +5,7 @@ edition = "2021"
 
 [dependencies]
 sphynx_logging = { path = "../logging" }
+sphynx_input = { path = "../input" }
 sphynx_rendering = { path = "../rendering" }
 anyhow = "1.0.81"
 winit = "0.29.15"

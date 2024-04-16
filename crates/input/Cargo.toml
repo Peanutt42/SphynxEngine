@@ -1,0 +1,8 @@
+[package]
+name = "sphynx_input"
+version = "0.0.1"
+edition = "2021"
+
+[dependencies]
+winit = "0.29.15"
+cgmath = "0.18"

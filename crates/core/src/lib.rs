@@ -1,5 +1,6 @@
 use camera_controller::CameraController;
 use sphynx_logging::*;
+use sphynx_input::Input;
 use sphynx_rendering::{Renderer, Transform};
 use winit::{
 	dpi::PhysicalSize, event::{Event, KeyEvent, WindowEvent}, event_loop::EventLoop, keyboard::PhysicalKey, event::MouseButton, window::{Window, WindowBuilder}
@@ -37,10 +38,10 @@ impl Default for EngineConfig {
 struct Engine {
 	window: Arc<Window>,
 	renderer: Renderer,
+	input: Input,
 	start_time: Instant,
 	last_update_time: Instant,
 	camera_controller: CameraController,
-	right_mouse_pressed: bool,
 }
 
 #[cfg(debug_assertions)]
@@ -64,10 +65,10 @@ impl Engine {
 		Ok(Self {
 			window,
 			renderer,
+			input: Input::new(),
 			start_time: Instant::now(),
 			last_update_time: Instant::now(),
 			camera_controller: CameraController::new(4.0, 4.0),
-			right_mouse_pressed: false,
 		})
 	}
 
@@ -85,26 +86,14 @@ impl Engine {
 						WindowEvent::CloseRequested => target.exit(),
 
 						// INPUT
-						WindowEvent::KeyboardInput {
-							event:
-								KeyEvent {
-									physical_key: PhysicalKey::Code(key_code),
-									state,
-									..
-								},
-							..
-					 	} => self.camera_controller.process_keyboard(key_code, state),
-						WindowEvent::MouseInput { button: MouseButton::Right, state, .. } => self.right_mouse_pressed = state.is_pressed(),
+						WindowEvent::KeyboardInput { event, .. } => self.input.handle_keyboard(event),
+						WindowEvent::MouseInput { button, state, .. } => self.input.handle_mouse(button, state),
 						_ => {}
 					}
 				},
 				Event::DeviceEvent { event, .. } => {
 					match event {
-						winit::event::DeviceEvent::MouseMotion { delta, .. } => {
-							if self.right_mouse_pressed {
-								self.camera_controller.process_mouse(delta.0, delta.1);
-							}
-						},
+						winit::event::DeviceEvent::MouseMotion { delta, .. } => self.input.handle_mouse_movement(delta),
 						_ => {},
 					}
 				},
@@ -133,8 +122,10 @@ impl Engine {
 			);
 		}
 
-		self.camera_controller.update_camera(&mut self.renderer.camera, delta_time);
+		self.camera_controller.update(&self.input, &mut self.renderer.camera, delta_time);
 
 		self.renderer.update();
+
+		self.input.clear_frame();
 	}
 }
