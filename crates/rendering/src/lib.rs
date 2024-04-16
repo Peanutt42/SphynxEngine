@@ -7,6 +7,8 @@ mod mesh;
 mod depth_texture;
 mod camera;
 mod camera_uniform;
+mod lighting;
+mod uniform_buffer;
 mod renderer;
 
 pub use transfrom::Transform;

@@ -1,23 +1,19 @@
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
-use cgmath::Vector3;
+use cgmath::{Quaternion, Rotation3, Vector3};
 use std::sync::Arc;
 use sphynx_logging::info;
 use crate::{
-	Camera, Mesh, Shader, Transform,
-	include_shader,
-	vertex::PC_Vertex,
-	depth_texture::DepthTexture,
-	instance_buffer::InstanceBuffer,
-	camera_uniform::{CameraUniform, CameraUniformBuffer},
-	instance_data::Model_InstanceData,
+	camera_uniform::CameraUniform, depth_texture::DepthTexture, include_shader, instance_buffer::InstanceBuffer, instance_data::Model_InstanceData, lighting::LightUniform, shader::{CAMERA_UNIFORM_BIND_GROUP, LIGHT_UNIFORM_BIND_GROUP}, uniform_buffer::UniformBuffer, vertex::PC_Vertex, Camera, Mesh, Shader, Transform
 };
 
 const TRIANGLE_VERTICES: &[PC_Vertex] = &[
-	PC_Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0] },
-	PC_Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0] },
-	PC_Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0] },
+	PC_Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0], normal: [0.0, 0.0, 1.0] },
+	PC_Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0], normal: [0.0, 0.0, 1.0] },
+	PC_Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0], normal: [0.0, 0.0, 1.0] },
 ];
+
+const MAX_INSTANCES: usize = 1000;
 
 pub struct Renderer {
 	surface: wgpu::Surface<'static>,
@@ -30,8 +26,11 @@ pub struct Renderer {
 	triangle_instance_buffer: InstanceBuffer<Model_InstanceData>,
 
 	pub instances: Vec<Transform>,
+
+	light_uniform_buffer: UniformBuffer<LightUniform>,
+
 	pub camera: Camera,
-	camera_uniform_buffer: CameraUniformBuffer,
+	camera_uniform_buffer: UniformBuffer<CameraUniform>,
 }
 
 impl Renderer {
@@ -67,33 +66,41 @@ impl Renderer {
 			)
 			.await?;
 
-		let triangle_mesh = Mesh::with_vertices(TRIANGLE_VERTICES, &device);
-
-		let instances: Vec<Transform> = (0..10)
-		.map(|i|
-			Transform::new(Vector3::new(i as f32 * 0.1, 0.0, 0.0))
-		)
-		.collect::<_>();
-		let raw_instance_data = instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
-		let triangle_instance_buffer = InstanceBuffer::new(raw_instance_data, &device);
-
 		let swapchain_capabilities = surface.get_capabilities(&adapter);
 		let swapchain_format = swapchain_capabilities.formats[0];
 		let mut swapchain_config = surface
 			.get_default_config(&adapter, size.width, size.height)
 			.ok_or(anyhow::anyhow!("Failed to get surface config"))?;
-		swapchain_config.present_mode = if vsync { wgpu::PresentMode::AutoVsync } else { wgpu::PresentMode::AutoNoVsync };
+		swapchain_config.present_mode =
+			if vsync {
+				wgpu::PresentMode::AutoVsync
+			}
+			else {
+				wgpu::PresentMode::AutoNoVsync
+			};
 		surface.configure(&device, &swapchain_config);
 
 		let depth_texture = DepthTexture::new(&device, &swapchain_config);
 
+		let triangle_mesh = Mesh::with_vertices(TRIANGLE_VERTICES, &device);
+
+		let mut instances: Vec<Transform> = (0..MAX_INSTANCES)
+			.map(|_| Transform::default())
+			.collect::<_>();
+		let raw_instance_data = instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
+		let triangle_instance_buffer = InstanceBuffer::new(raw_instance_data, &device);
+		instances.truncate(0);
+
 		let camera = Camera::default();
-		let camera_uniform = CameraUniform::new(camera.get_projection_view_matrix(Camera::get_aspect(swapchain_config.width as f32, swapchain_config.height as f32)));
-		let camera_uniform_buffer = CameraUniformBuffer::new(camera_uniform, &device);
+		let camera_uniform = CameraUniform::from_camera(&camera, Camera::get_aspect_from_swapchain(&swapchain_config));
+		let camera_uniform_buffer = UniformBuffer::for_vertex(camera_uniform, Some("CameraUniformBuffer"), &device);
+
+		let light_uniform = LightUniform::new([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
+		let light_uniform_buffer = UniformBuffer::for_fragment(light_uniform, Some("LightUniformBuffer"), &device);
 
 		let triangle_shader = include_shader!(
 			"../../../assets/shaders/triangle.wgsl",
-			&[camera_uniform_buffer.get_binding()],
+			&[camera_uniform_buffer.get_binding(), light_uniform_buffer.get_binding()],
 			&device,
 			swapchain_format
 		);
@@ -109,6 +116,7 @@ impl Renderer {
 			triangle_instance_buffer,
 			camera,
 			camera_uniform_buffer,
+			light_uniform_buffer,
 			instances,
 		})
 	}
@@ -134,11 +142,16 @@ impl Renderer {
 			.texture
 			.create_view(&wgpu::TextureViewDescriptor::default());
 
-		self.triangle_instance_buffer.instances = self.instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
+		self.triangle_instance_buffer.instances = self.instances
+			.iter()
+			.map(|instance| Model_InstanceData::new(instance.model_matrix()))
+			.collect::<Vec<_>>();
 		self.triangle_instance_buffer.update(&self.queue);
 
-		let camera_projection_view = self.camera.get_projection_view_matrix(Camera::get_aspect_from_swapchain(&self.swapchain_config));
-		self.camera_uniform_buffer.update(CameraUniform::new(camera_projection_view), &self.queue);
+		self.camera_uniform_buffer.update(
+			CameraUniform::from_camera(&self.camera, Camera::get_aspect_from_swapchain(&self.swapchain_config)),
+			&self.queue
+		);
 
 		let mut encoder = self.device.create_command_encoder(
 			&wgpu::CommandEncoderDescriptor {
@@ -162,7 +175,8 @@ impl Renderer {
 					occlusion_query_set: None,
 				});
 
-			self.camera_uniform_buffer.bind(&mut rpass);
+			self.camera_uniform_buffer.bind(CAMERA_UNIFORM_BIND_GROUP, &mut rpass);
+			self.light_uniform_buffer.bind(LIGHT_UNIFORM_BIND_GROUP, &mut rpass);
 			self.triangle_shader.bind(&mut rpass);
 			self.triangle_mesh.draw_instanced(&self.triangle_instance_buffer, &mut rpass);
 		}

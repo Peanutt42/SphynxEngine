@@ -1,13 +1,14 @@
+use camera_controller::CameraController;
 use sphynx_logging::*;
 use sphynx_rendering::{Renderer, Transform};
 use winit::{
-	event_loop::EventLoop,
-	window::{WindowBuilder, Window},
-	event::{Event, WindowEvent}
+	dpi::PhysicalSize, event::{Event, KeyEvent, WindowEvent}, event_loop::EventLoop, keyboard::PhysicalKey, event::MouseButton, window::{Window, WindowBuilder}
 };
-use cgmath::Vector3;
+use cgmath::{Quaternion, Rotation3, Vector3};
 use std::time::Instant;
 use std::sync::Arc;
+
+mod camera_controller;
 
 pub struct EngineConfig {
 	pub vsync: bool,
@@ -37,7 +38,16 @@ struct Engine {
 	window: Arc<Window>,
 	renderer: Renderer,
 	start_time: Instant,
+	last_update_time: Instant,
+	camera_controller: CameraController,
+	right_mouse_pressed: bool,
 }
+
+#[cfg(debug_assertions)]
+const BUILD_CONFIG: &str = "Debug";
+
+#[cfg(not(debug_assertions))]
+const BUILD_CONFIG: &str = "Release";
 
 impl Engine {
 	fn new(config: EngineConfig, event_loop: &EventLoop<()>) -> anyhow::Result<Self> {
@@ -45,7 +55,8 @@ impl Engine {
 
 		let window = Arc::new(
 			WindowBuilder::new()
-				.with_title("SphynxEngine")
+				.with_title(format!("SphynxEngine [{}]", BUILD_CONFIG).as_str())
+				.with_inner_size(PhysicalSize::new(1920.0, 1080.0))
 				.build(event_loop)?
 		);
 		let renderer = pollster::block_on(Renderer::new(window.clone(), config.vsync))?;
@@ -54,6 +65,9 @@ impl Engine {
 			window,
 			renderer,
 			start_time: Instant::now(),
+			last_update_time: Instant::now(),
+			camera_controller: CameraController::new(4.0, 4.0),
+			right_mouse_pressed: false,
 		})
 	}
 
@@ -63,13 +77,47 @@ impl Engine {
 		event_loop.run(move |event, target| {
 			self.window.request_redraw();
 
-			if let Event::WindowEvent { event, .. } = event {
-				match event {
-					WindowEvent::Resized(new_size) => self.renderer.resize(new_size),
-					WindowEvent::RedrawRequested => self.update(),
-					WindowEvent::CloseRequested => target.exit(),
-					_ => {}
-				}
+			match event {
+				Event::WindowEvent { event, .. } => {
+					match event {
+						WindowEvent::Resized(new_size) => self.renderer.resize(new_size),
+						WindowEvent::RedrawRequested => self.update(),
+						WindowEvent::CloseRequested => target.exit(),
+
+						// INPUT
+						WindowEvent::KeyboardInput {
+							event:
+								KeyEvent {
+									physical_key,
+									state,
+									..
+								},
+							..
+					 	} => {
+							if let PhysicalKey::Code(key_code) = physical_key {
+								self.camera_controller.process_keyboard(key_code, state);
+							}
+						},
+						WindowEvent::MouseInput { button: MouseButton::Right, state, .. } => {
+							self.right_mouse_pressed = state.is_pressed();
+						},
+						WindowEvent::MouseWheel { delta, .. } => {
+							self.camera_controller.process_scroll(&delta);
+						},
+						_ => {}
+					}
+				},
+				Event::DeviceEvent { event, .. } => {
+					match event {
+						winit::event::DeviceEvent::MouseMotion { delta, .. } => {
+							if self.right_mouse_pressed {
+								self.camera_controller.process_mouse(delta.0, delta.1);
+							}
+						},
+						_ => {},
+					}
+				},
+				_ => {},
 			}
 		})?;
 
@@ -79,10 +127,21 @@ impl Engine {
 	}
 
 	fn update(&mut self) {
-		let time = (Instant::now() - self.start_time).as_secs_f32();
+		let now = Instant::now();
+		let delta_time = (now - self.last_update_time).as_secs_f32();
+		self.last_update_time = now;
+
+		let time = (now - self.start_time).as_secs_f32();
+
+		self.renderer.instances.resize(15, Transform::default());
 		for (i, instance) in self.renderer.instances.iter_mut().enumerate() {
-			*instance = Transform::new(Vector3::new(i as f32 * 0.1, 0.5 * f32::sin(time + 0.2 * i as f32), 0.5 + 0.5 * f32::cos(time + 0.2 * i as f32)));
+			*instance = Transform::new(
+				Vector3::new(i as f32 * 0.4, f32::sin(time + 0.2 * i as f32), f32::cos(time + 0.2 * i as f32)),
+				Quaternion::from_axis_angle(Vector3::new(0.0, 1.0, 0.0), cgmath::Deg(i as f32 * 30.0))
+			);
 		}
+
+		self.camera_controller.update_camera(&mut self.renderer.camera, delta_time);
 
 		self.renderer.update();
 	}

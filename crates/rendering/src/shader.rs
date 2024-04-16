@@ -6,7 +6,8 @@ use crate::depth_texture::DepthTexture;
 
 pub const VERTEX_BUFFER_BIND_SLOT: u32 = 0;
 pub const INSTANCE_BUFFER_BIND_SLOT: u32 = 1;
-pub const CAMERA_UNIFORM_BINDING: u32 = 0;
+pub const CAMERA_UNIFORM_BIND_GROUP: u32 = 0;
+pub const LIGHT_UNIFORM_BIND_GROUP: u32 = 1;
 
 #[macro_export]
 macro_rules! include_shader {
