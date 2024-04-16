@@ -1,6 +1,5 @@
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
-use cgmath::{Quaternion, Rotation3, Vector3};
 use std::sync::Arc;
 use sphynx_logging::info;
 use crate::{
@@ -87,7 +86,7 @@ impl Renderer {
 		let mut instances: Vec<Transform> = (0..MAX_INSTANCES)
 			.map(|_| Transform::default())
 			.collect::<_>();
-		let raw_instance_data = instances.iter().map(|instance| Model_InstanceData::new(instance.model_matrix())).collect::<Vec<_>>();
+		let raw_instance_data = instances.iter().map(|instance| instance.to_model_instance_data()).collect::<Vec<_>>();
 		let triangle_instance_buffer = InstanceBuffer::new(raw_instance_data, &device);
 		instances.truncate(0);
 
@@ -144,7 +143,7 @@ impl Renderer {
 
 		self.triangle_instance_buffer.instances = self.instances
 			.iter()
-			.map(|instance| Model_InstanceData::new(instance.model_matrix()))
+			.map(|instance| instance.to_model_instance_data())
 			.collect::<Vec<_>>();
 		self.triangle_instance_buffer.update(&self.queue);
 

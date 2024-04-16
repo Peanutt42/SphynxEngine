@@ -88,22 +88,13 @@ impl Engine {
 						WindowEvent::KeyboardInput {
 							event:
 								KeyEvent {
-									physical_key,
+									physical_key: PhysicalKey::Code(key_code),
 									state,
 									..
 								},
 							..
-					 	} => {
-							if let PhysicalKey::Code(key_code) = physical_key {
-								self.camera_controller.process_keyboard(key_code, state);
-							}
-						},
-						WindowEvent::MouseInput { button: MouseButton::Right, state, .. } => {
-							self.right_mouse_pressed = state.is_pressed();
-						},
-						WindowEvent::MouseWheel { delta, .. } => {
-							self.camera_controller.process_scroll(&delta);
-						},
+					 	} => self.camera_controller.process_keyboard(key_code, state),
+						WindowEvent::MouseInput { button: MouseButton::Right, state, .. } => self.right_mouse_pressed = state.is_pressed(),
 						_ => {}
 					}
 				},
@@ -133,11 +124,12 @@ impl Engine {
 
 		let time = (now - self.start_time).as_secs_f32();
 
-		self.renderer.instances.resize(15, Transform::default());
+		self.renderer.instances.resize(45, Transform::default());
 		for (i, instance) in self.renderer.instances.iter_mut().enumerate() {
 			*instance = Transform::new(
-				Vector3::new(i as f32 * 0.4, f32::sin(time + 0.2 * i as f32), f32::cos(time + 0.2 * i as f32)),
-				Quaternion::from_axis_angle(Vector3::new(0.0, 1.0, 0.0), cgmath::Deg(i as f32 * 30.0))
+				Vector3::new(i as f32 * 0.4, f32::sin(time + 0.4 * i as f32), f32::cos(time + 0.4 * i as f32)),
+				Quaternion::from_axis_angle(Vector3::new(0.0, 1.0, 0.0), cgmath::Deg(i as f32 * 10.0)),
+				Vector3::new(1.0, 1.5 + 0.5 * f32::sin(time + 0.4 * i as f32), 1.0)
 			);
 		}
 

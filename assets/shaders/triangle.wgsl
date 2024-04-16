@@ -16,6 +16,10 @@ struct InstanceInput {
     @location(6) model_matrix_1: vec4<f32>,
     @location(7) model_matrix_2: vec4<f32>,
     @location(8) model_matrix_3: vec4<f32>,
+
+    @location(9) rotation_matrix_0: vec3<f32>,
+    @location(10) rotation_matrix_1: vec3<f32>,
+    @location(11) rotation_matrix_2: vec3<f32>,
 };
 
 struct Camera {
@@ -35,21 +39,25 @@ var<uniform> light: Light;
 @vertex
 fn vs_main(vertex: VertexInput, instance: InstanceInput) -> VertexOutput {
 	let model_matrix = mat4x4<f32>(
-        instance.model_matrix_0,
-        instance.model_matrix_1,
-        instance.model_matrix_2,
-        instance.model_matrix_3,
-    );
+		instance.model_matrix_0,
+		instance.model_matrix_1,
+		instance.model_matrix_2,
+		instance.model_matrix_3
+	);
+
+	let rotation_matrix = mat3x3<f32>(
+		instance.rotation_matrix_0,
+		instance.rotation_matrix_1,
+		instance.rotation_matrix_2
+	);
 
 	let world_position = model_matrix * vec4<f32>(vertex.position, 1.0);
-	//let model_rotation_matrix = mat3x3<f32>(model_matrix[0].xyz, model_matrix[1].xyz, model_matrix[2].xyz);
-	//let world_normal = model_rotation_matrix * vertex.normal;
 
 	var output = VertexOutput();
 	output.position = camera.proj_view * world_position;
 	output.color = vertex.color;
 	output.world_position = world_position.xyz;
-	output.world_normal = vertex.normal;//world_normal;
+	output.world_normal = rotation_matrix * vertex.normal;
 	return output;
 }
 

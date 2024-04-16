@@ -6,6 +6,7 @@ pub trait Vertex : bytemuck::Pod + bytemuck::Zeroable {
 
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable, Vertex)]
+#[allow(non_camel_case_types)]
 pub struct PC_Vertex {
 	pub position: [f32; 3],
 	pub color: [f32; 3],
