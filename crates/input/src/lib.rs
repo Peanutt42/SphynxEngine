@@ -51,3 +51,9 @@ impl Input {
 		self.mouse_delta.y = delta.1 as f32;
 	}
 }
+
+impl Default for Input {
+	fn default() -> Self {
+		Self::new()
+	}
+}

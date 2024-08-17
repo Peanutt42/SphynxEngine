@@ -29,18 +29,18 @@ impl Mesh {
 		}
 	}
 
-	pub fn draw<'a, 'b>(&'a self, renderpass: &'b mut wgpu::RenderPass<'a>) {
+	pub fn draw<'a>(&'a self, renderpass: &'_ mut wgpu::RenderPass<'a>) {
 		self.bind(renderpass);
 		renderpass.draw(0..self.vertex_count, 0..1);
 	}
 
-	pub fn draw_instanced<'a, 'b, I: InstanceData>(&'a self, instance_buffer: &'a InstanceBuffer<I>, renderpass: &'b mut wgpu::RenderPass<'a>) {
+	pub fn draw_instanced<'a, I: InstanceData>(&'a self, instance_buffer: &'a InstanceBuffer<I>, renderpass: &'_ mut wgpu::RenderPass<'a>) {
 		self.bind(renderpass);
 		instance_buffer.bind(renderpass);
 		renderpass.draw(0..self.vertex_count, 0..instance_buffer.instances.len() as u32);
 	}
 
-	fn bind<'a, 'b>(&'a self, renderpass: &'b mut wgpu::RenderPass<'a>) {
+	fn bind<'a>(&'a self, renderpass: &'_ mut wgpu::RenderPass<'a>) {
 		renderpass.set_vertex_buffer(VERTEX_BUFFER_BIND_SLOT, self.vertex_buffer.slice(..));
 	}
 }

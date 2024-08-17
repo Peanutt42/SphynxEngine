@@ -27,7 +27,7 @@ impl<I: InstanceData> InstanceBuffer<I> {
 		queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&self.instances));
 	}
 
-	pub fn bind<'a, 'b>(&'a self, renderpass: &'b mut wgpu::RenderPass<'a>) {
+	pub fn bind<'a>(&'a self, renderpass: &'_ mut wgpu::RenderPass<'a>) {
 		renderpass.set_vertex_buffer(INSTANCE_BUFFER_BIND_SLOT, self.buffer.slice(..));
 	}
 }

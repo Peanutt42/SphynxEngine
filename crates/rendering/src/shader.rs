@@ -83,7 +83,7 @@ impl Shader {
 		}
 	}
 
-	pub fn bind<'a, 'b>(&'a self, renderpass: &'b mut wgpu::RenderPass<'a>) {
+	pub fn bind<'a>(&'a self, renderpass: &'_ mut wgpu::RenderPass<'a>) {
 		renderpass.set_pipeline(&self.pipeline);
 	}
 }

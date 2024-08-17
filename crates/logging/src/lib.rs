@@ -56,45 +56,45 @@ impl LogVerbosity {
 
 pub static LOG_FILE: Lazy<Arc<Mutex<Option<File>>>> = Lazy::new(|| Arc::new(Mutex::new(None)));
 
-pub fn init() {
+pub fn log(verbosity: LogVerbosity, topic: LogTopic, formatted: String) {
+	let msg = format!("{} {}", topic.to_string(), formatted);
+	println!("{}", verbosity.colorize(msg.clone()));
+
+	let log_file_msg = format!("{} {}\n", verbosity.to_string(), msg);
+
+	// log file already created, just write to it
+	if let Some(log_file) = &mut *LOG_FILE.lock().unwrap() {
+		let _ = log_file.write(log_file_msg.as_bytes());
+		return;
+	}
+
+	// create new log file, then write to it
 	match File::create("Engine.log") {
-		Ok(log_file) => *LOG_FILE.lock().unwrap() = Some(log_file),
+		Ok(mut log_file) => {
+			let _ = log_file.write_all(log_file_msg.as_bytes());
+			*LOG_FILE.lock().unwrap() = Some(log_file)
+		},
 		Err(e) => eprintln!("failed to create engine log (Engine.log): {e}"),
 	}
-}
-
-pub fn write_to_log_file(msg: String) {
-	if let Some(log_file) = &mut *LOG_FILE.lock().unwrap() {
-		let _ = log_file.write_all(msg.as_bytes());
-	}
-}
-
-#[macro_export]
-macro_rules! log {
-	($verbosity:expr, $topic:ident, $($arg:tt)*) => {{
-		let formatted = format!("{} {}", $crate::LogTopic::$topic.to_string(), format!($($arg)*));
-		println!("{}", $verbosity.colorize(formatted.clone()));
-		$crate::write_to_log_file(format!("{} {}\n", $verbosity.to_string(), formatted));
-	}};
 }
 
 #[macro_export]
 macro_rules! info {
 	($topic:ident, $($arg:tt)*) => {{
-		$crate::log!($crate::LogVerbosity::Info, $topic, $($arg)*);
+		$crate::log($crate::LogVerbosity::Info, $crate::LogTopic::$topic, format!($($arg)*));
 	}};
 }
 
 #[macro_export]
 macro_rules! warning {
 	($topic:ident, $($arg:tt)*) => {{
-		$crate::log!($crate::logging::LogVerbosity::Warning, $topic, $($arg)*);
+		$crate::log($crate::LogVerbosity::Warning, $crate::LogTopic::$topic, format!($($arg)*));
 	}};
 }
 
 #[macro_export]
 macro_rules! error {
 	($topic:ident, $($arg:tt)*) => {{
-		$crate::log!($crate::logging::LogVerbosity::Error, $topic, $($arg)*);
+		$crate::log($crate::LogVerbosity::Error, $crate::LogTopic::$topic, format!($($arg)*));
 	}};
 }

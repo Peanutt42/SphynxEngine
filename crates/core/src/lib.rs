@@ -3,7 +3,7 @@ use sphynx_logging::*;
 use sphynx_input::Input;
 use sphynx_rendering::{Renderer, Transform};
 use winit::{
-	dpi::PhysicalSize, event::{Event, KeyEvent, WindowEvent}, event_loop::EventLoop, keyboard::PhysicalKey, event::MouseButton, window::{Window, WindowBuilder}
+	dpi::PhysicalSize, event::{Event, WindowEvent}, event_loop::EventLoop, window::{Window, WindowBuilder}
 };
 use cgmath::{Quaternion, Rotation3, Vector3};
 use std::time::Instant;
@@ -73,8 +73,6 @@ impl Engine {
 	}
 
 	pub fn run(mut self, event_loop: EventLoop<()>) -> anyhow::Result<()> {
-		sphynx_logging::init();
-
 		event_loop.run(move |event, target| {
 			self.window.request_redraw();
 
@@ -91,11 +89,8 @@ impl Engine {
 						_ => {}
 					}
 				},
-				Event::DeviceEvent { event, .. } => {
-					match event {
-						winit::event::DeviceEvent::MouseMotion { delta, .. } => self.input.handle_mouse_movement(delta),
-						_ => {},
-					}
+				Event::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion { delta, .. }, .. } => {
+					self.input.handle_mouse_movement(delta);
 				},
 				_ => {},
 			}
@@ -113,7 +108,7 @@ impl Engine {
 
 		let time = (now - self.start_time).as_secs_f32();
 
-		self.renderer.instances.resize(45, Transform::default());
+		self.renderer.instances.resize(500, Transform::default());
 		for (i, instance) in self.renderer.instances.iter_mut().enumerate() {
 			*instance = Transform::new(
 				Vector3::new(i as f32 * 0.4, f32::sin(time + 0.4 * i as f32), f32::cos(time + 0.4 * i as f32)),

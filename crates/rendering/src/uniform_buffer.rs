@@ -81,7 +81,7 @@ impl<T> UniformBuffer<T> where T: bytemuck::Pod + bytemuck::Zeroable {
 		queue.write_buffer(&self.buffer, 0, bytemuck::cast_slice(&[data]));
 	}
 
-	pub fn bind<'a, 'b>(&'a self, bind_group: u32, renderpass: &'b mut wgpu::RenderPass<'a>) {
+	pub fn bind<'a>(&'a self, bind_group: u32, renderpass: &'_ mut wgpu::RenderPass<'a>) {
 		renderpass.set_bind_group(bind_group, &self.bind_group, &[]);
 	}
 }
