@@ -10,13 +10,13 @@ pub struct UniformBuffer<T: bytemuck::Pod + bytemuck::Zeroable> {
 }
 
 impl<T> UniformBuffer<T> where T: bytemuck::Pod + bytemuck::Zeroable {
+	#[allow(dead_code)]
 	pub fn for_vertex(data: T, label: Option<&str>, device: &wgpu::Device) -> Self {
 		Self::new(data, true, false, label, device)
 	}
 	pub fn for_fragment(data: T, label: Option<&str>, device: &wgpu::Device) -> Self {
 		Self::new(data, false, true, label, device)
 	}
-	#[allow(dead_code)]
 	pub fn for_vertex_and_fragment(data: T, label: Option<&str>, device: &wgpu::Device) -> Self {
 		Self::new(data, true, true, label, device)
 	}
