@@ -150,7 +150,7 @@ impl Renderer {
 		let camera_uniform = CameraUniform::from_camera(&camera, Camera::get_aspect_from_swapchain(&swapchain_config));
 		let camera_uniform_buffer = UniformBuffer::for_vertex(camera_uniform, Some("CameraUniformBuffer"), &device);
 
-		let light_uniform = LightUniform::new([0.0, 0.0, 0.0], [1.0, 0.0, 0.0]);
+		let light_uniform = LightUniform::new([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
 		let light_uniform_buffer = UniformBuffer::for_fragment(light_uniform, Some("LightUniformBuffer"), &device);
 
 		let default_shader = include_shader!(

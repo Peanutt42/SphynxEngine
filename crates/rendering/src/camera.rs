@@ -1,4 +1,4 @@
-use cgmath::{InnerSpace, Matrix4, Point3, Rad, Vector3};
+use cgmath::{Angle, Matrix4, Point3, Rad, Vector3};
 
 pub struct Camera {
 	pub position: Point3<f32>,
@@ -22,19 +22,9 @@ impl Camera {
 	}
 
 	pub fn get_projection_view_matrix(&self, aspect: f32) -> cgmath::Matrix4<f32> {
-		let (sin_pitch, cos_pitch) = self.pitch.0.sin_cos();
-        let (sin_yaw, cos_yaw) = self.yaw.0.sin_cos();
+        let proj = cgmath::perspective(cgmath::Deg(self.fov), aspect, self.z_near, self.z_far);
 
-        let view = Matrix4::look_to_rh(self.position, Vector3::new(cos_pitch * cos_yaw, sin_pitch, cos_pitch * sin_yaw).normalize(), Vector3::unit_y());
-
-        const OPENGL_TO_WGPU_MATRIX: Matrix4<f32> = Matrix4::new(
-            1.0, 0.0, 0.0, 0.0,
-            0.0, 1.0, 0.0, 0.0,
-            0.0, 0.0, 0.5, 0.5,
-            0.0, 0.0, 0.0, 1.0,
-        );
-
-        let proj = OPENGL_TO_WGPU_MATRIX * cgmath::perspective(cgmath::Deg(self.fov), aspect, self.z_near, self.z_far);
+        let view = Matrix4::look_to_rh(self.position, self.get_forward_direction(), self.get_up_direction());
 
 		proj * view
 	}
@@ -52,6 +42,29 @@ impl Camera {
 
 	pub fn get_aspect_from_swapchain(swapchain_config: &wgpu::SurfaceConfiguration) -> f32 {
 		Self::get_aspect(swapchain_config.width as f32, swapchain_config.height as f32)
+	}
+
+	pub fn get_forward_direction(&self) -> Vector3<f32> {
+		let (yaw_sin, yaw_cos) = self.yaw.sin_cos();
+		let (pitch_sin, pitch_cos) = self.pitch.sin_cos();
+
+		Vector3::new(
+			yaw_cos * pitch_cos,
+			pitch_sin,
+			yaw_sin * pitch_cos
+		)
+	}
+
+	pub fn get_right_direction(&self) -> Vector3<f32> {
+		Vector3::new(
+			self.yaw.sin(),
+			0.0,
+			-self.yaw.cos()
+		)
+	}
+
+	pub fn get_up_direction(&self) -> Vector3<f32> {
+		self.get_right_direction().cross(self.get_forward_direction())
 	}
 }
 
