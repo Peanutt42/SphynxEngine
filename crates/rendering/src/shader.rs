@@ -1,5 +1,5 @@
 use std::borrow::Cow;
-use wgpu::DepthStencilState;
+use wgpu::{DepthStencilState, Face};
 use crate::vertex::Vertex;
 use crate::instance_data::InstanceData;
 use crate::depth_texture::DepthTexture;
@@ -12,7 +12,7 @@ pub const LIGHT_UNIFORM_BIND_GROUP: u32 = 1;
 #[macro_export]
 macro_rules! include_shader {
 	($filepath:expr, $bindings:expr, $device:expr, $swapchain_format:expr) => {{
-		Shader::from_str_instanced::<$crate::vertex::PC_Vertex, $crate::instance_data::Model_InstanceData>(include_str!($filepath), Some($filepath), $bindings, $device, $swapchain_format)
+		Shader::from_str_instanced::<$crate::vertex::PCN_Vertex, $crate::instance_data::Model_InstanceData>(include_str!($filepath), Some($filepath), $bindings, $device, $swapchain_format)
 	}};
 }
 
@@ -38,7 +38,7 @@ impl Shader {
 
 	pub fn new(source: wgpu::ShaderSource, vertex_layout: wgpu::VertexBufferLayout<'static>, instance_layout: Option<wgpu::VertexBufferLayout<'static>>, label: Option<&str>, bindings: &[&wgpu::BindGroupLayout], device: &wgpu::Device, swapchain_format: wgpu::TextureFormat) -> Self {
 		let shader_module = device.create_shader_module(wgpu::ShaderModuleDescriptor {
-			label: None,
+			label,
 			source,
 		});
 
@@ -66,7 +66,10 @@ impl Shader {
 				entry_point: "fs_main",
 				targets: &[Some(swapchain_format.into())],
 			}),
-			primitive: wgpu::PrimitiveState::default(),
+			primitive: wgpu::PrimitiveState {
+				cull_mode: Some(Face::Back),
+				..Default::default()
+			},
 			depth_stencil: Some(DepthStencilState {
 				format: DepthTexture::FORMAT,
 				depth_write_enabled: true,

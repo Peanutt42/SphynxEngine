@@ -5,7 +5,7 @@ use sphynx_rendering::{Renderer, Transform};
 use winit::{
 	dpi::PhysicalSize, event::{Event, WindowEvent}, event_loop::EventLoop, window::{Window, WindowBuilder}
 };
-use cgmath::{Quaternion, Rotation3, Vector3};
+use cgmath::{Quaternion, Vector3, Zero};
 use std::time::Instant;
 use std::sync::Arc;
 
@@ -68,7 +68,7 @@ impl Engine {
 			input: Input::new(),
 			start_time: Instant::now(),
 			last_update_time: Instant::now(),
-			camera_controller: CameraController::new(4.0, 4.0),
+			camera_controller: CameraController::new(4.0, 3.0),
 		})
 	}
 
@@ -89,9 +89,7 @@ impl Engine {
 						_ => {}
 					}
 				},
-				Event::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion { delta, .. }, .. } => {
-					self.input.handle_mouse_movement(delta);
-				},
+				Event::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion { delta, .. }, .. } => self.input.handle_mouse_movement(delta),
 				_ => {},
 			}
 		})?;
@@ -108,12 +106,17 @@ impl Engine {
 
 		let time = (now - self.start_time).as_secs_f32();
 
-		self.renderer.instances.resize(500, Transform::default());
+		self.renderer.instances.resize(Renderer::MAX_INSTANCES, Transform::default());
 		for (i, instance) in self.renderer.instances.iter_mut().enumerate() {
+			let length = (Renderer::MAX_INSTANCES as f32).sqrt();
 			*instance = Transform::new(
-				Vector3::new(i as f32 * 0.4, f32::sin(time + 0.4 * i as f32), f32::cos(time + 0.4 * i as f32)),
-				Quaternion::from_axis_angle(Vector3::new(0.0, 1.0, 0.0), cgmath::Deg(i as f32 * 10.0)),
-				Vector3::new(1.0, 1.5 + 0.5 * f32::sin(time + 0.4 * i as f32), 1.0)
+				Vector3::new(
+					2.0 * ((i as f32) % length),
+					f32::sin(1.5 * time + 0.25 * (i as f32 % length) + 0.5 * f32::cos(0.5 * time + 0.35 * (i as f32 / length))),
+					2.0 * (i as f32 / length)
+				),
+				Quaternion::zero(),//Quaternion::from_axis_angle(Vector3::new(0.0, 1.0, 0.0), cgmath::Deg(i as f32 * 10.0)),
+				Vector3::new(1.0, 1.0, 1.0)//Vector3::new(1.0, 1.5 + 0.5 * f32::sin(time + 0.4 * i as f32), 1.0)
 			);
 		}
 

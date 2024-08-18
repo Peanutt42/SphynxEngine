@@ -7,13 +7,13 @@ pub trait Vertex : bytemuck::Pod + bytemuck::Zeroable {
 #[repr(C)]
 #[derive(Copy, Clone, Debug, bytemuck::Pod, bytemuck::Zeroable, Vertex)]
 #[allow(non_camel_case_types)]
-pub struct PC_Vertex {
+pub struct PCN_Vertex {
 	pub position: [f32; 3],
 	pub color: [f32; 3],
 	pub normal: [f32; 3],
 }
 
-impl PC_Vertex {
+impl PCN_Vertex {
 	const ATTRIBS: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
 		0 => Float32x3,
 		1 => Float32x3,

@@ -3,16 +3,70 @@ use winit::window::Window;
 use std::sync::Arc;
 use sphynx_logging::info;
 use crate::{
-	camera_uniform::CameraUniform, depth_texture::DepthTexture, include_shader, instance_buffer::InstanceBuffer, instance_data::Model_InstanceData, lighting::LightUniform, shader::{CAMERA_UNIFORM_BIND_GROUP, LIGHT_UNIFORM_BIND_GROUP}, uniform_buffer::UniformBuffer, vertex::PC_Vertex, Camera, Mesh, Shader, Transform
+	camera_uniform::CameraUniform, depth_texture::DepthTexture, include_shader, instance_buffer::InstanceBuffer, instance_data::Model_InstanceData, lighting::LightUniform, shader::{CAMERA_UNIFORM_BIND_GROUP, LIGHT_UNIFORM_BIND_GROUP}, uniform_buffer::UniformBuffer, vertex::PCN_Vertex, Camera, Mesh, Shader, Transform
 };
 
-const TRIANGLE_VERTICES: &[PC_Vertex] = &[
-	PC_Vertex { position: [0.0, 0.5, 0.0], color: [1.0, 0.0, 0.0], normal: [0.0, 0.0, 1.0] },
-	PC_Vertex { position: [-0.5, -0.5, 0.0], color: [0.0, 1.0, 0.0], normal: [0.0, 0.0, 1.0] },
-	PC_Vertex { position: [0.5, -0.5, 0.0], color: [0.0, 0.0, 1.0], normal: [0.0, 0.0, 1.0] },
-];
+const CUBE_VERTICES: &[PCN_Vertex] = &[
+	// Front face
+	// Triangle 1
+	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 0.0, 0.0], normal: [0.0, 0.0,  1.0] },
+	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [0.0, 1.0, 0.0], normal: [0.0, 0.0,  1.0] },
+	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [0.0, 0.0, 1.0], normal: [0.0, 0.0,  1.0] },
+	// Triangle 2
+	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [0.0, 0.0, 1.0], normal: [0.0, 0.0,  1.0] },
+	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 0.0], normal: [0.0, 0.0,  1.0] },
+	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 0.0, 0.0], normal: [0.0, 0.0,  1.0] },
 
-const MAX_INSTANCES: usize = 1000;
+	// Back face
+	// Triangle 1
+	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 0.0, 1.0], normal: [0.0, 0.0, -1.0] },
+	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
+	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [0.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
+	// Triangle 2
+	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
+	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 0.0, 1.0], normal: [0.0, 0.0, -1.0] },
+	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
+
+	// Top face
+	// Triangle 1
+	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [1.0, 0.0, 0.0], normal: [0.0, 1.0, 0.0] },
+	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [0.0, 0.0, 1.0], normal: [0.0, 1.0, 0.0] },
+	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [0.0, 1.0, 0.0], normal: [0.0, 1.0, 0.0] },
+	// Triangle 2
+	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [0.0, 0.0, 1.0], normal: [0.0, 1.0, 0.0] },
+	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [1.0, 0.0, 0.0], normal: [0.0, 1.0, 0.0] },
+	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 0.0], normal: [0.0, 1.0, 0.0] },
+
+	// Bottom face
+	// Triangle 1
+	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 0.0, 1.0], normal: [0.0, -1.0, 0.0] },
+	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [0.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
+	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
+	// Triangle 2
+	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
+	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
+	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 0.0, 1.0], normal: [0.0, -1.0, 0.0] },
+
+	// Left face
+	// Triangle 1
+	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 0.0, 1.0], normal: [-1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [0.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
+	// Triangle 2
+	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 0.0, 1.0], normal: [-1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
+
+	// Right face
+	// Triangle 1
+	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [1.0, 0.0, 0.0], normal: [1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [0.0, 1.0, 0.0], normal: [1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [0.0, 0.0, 1.0], normal: [1.0, 0.0, 0.0] },
+	// Triangle 2
+	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [0.0, 0.0, 1.0], normal: [1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [1.0, 1.0, 0.0], normal: [1.0, 0.0, 0.0] },
+	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [1.0, 0.0, 0.0], normal: [1.0, 0.0, 0.0] },
+];
 
 pub struct Renderer {
 	surface: wgpu::Surface<'static>,
@@ -20,9 +74,9 @@ pub struct Renderer {
 	queue: wgpu::Queue,
 	swapchain_config: wgpu::SurfaceConfiguration,
 	depth_texture: DepthTexture,
-	triangle_shader: Shader,
-	triangle_mesh: Mesh,
-	triangle_instance_buffer: InstanceBuffer<Model_InstanceData>,
+	default_shader: Shader,
+	cube_mesh: Mesh,
+	cube_instance_buffer: InstanceBuffer<Model_InstanceData>,
 
 	pub instances: Vec<Transform>,
 
@@ -33,6 +87,8 @@ pub struct Renderer {
 }
 
 impl Renderer {
+	pub const MAX_INSTANCES: usize = 1000;
+
 	pub async fn new(window: Arc<Window>, vsync: bool) -> anyhow::Result<Self> {
 		let mut size = window.inner_size();
 		size.width = size.width.max(1);
@@ -81,24 +137,24 @@ impl Renderer {
 
 		let depth_texture = DepthTexture::new(&device, &swapchain_config);
 
-		let triangle_mesh = Mesh::with_vertices(TRIANGLE_VERTICES, &device);
+		let cube_mesh = Mesh::with_vertices(CUBE_VERTICES, &device);
 
-		let mut instances: Vec<Transform> = (0..MAX_INSTANCES)
+		let mut instances: Vec<Transform> = (0..Self::MAX_INSTANCES)
 			.map(|_| Transform::default())
 			.collect::<_>();
 		let raw_instance_data = instances.iter().map(|instance| instance.to_model_instance_data()).collect::<Vec<_>>();
-		let triangle_instance_buffer = InstanceBuffer::new(raw_instance_data, &device);
+		let cube_instance_buffer = InstanceBuffer::new(raw_instance_data, &device);
 		instances.truncate(0);
 
 		let camera = Camera::default();
 		let camera_uniform = CameraUniform::from_camera(&camera, Camera::get_aspect_from_swapchain(&swapchain_config));
 		let camera_uniform_buffer = UniformBuffer::for_vertex(camera_uniform, Some("CameraUniformBuffer"), &device);
 
-		let light_uniform = LightUniform::new([0.0, 0.0, 0.0], [1.0, 1.0, 1.0]);
+		let light_uniform = LightUniform::new([0.0, 0.0, 0.0], [1.0, 0.0, 0.0]);
 		let light_uniform_buffer = UniformBuffer::for_fragment(light_uniform, Some("LightUniformBuffer"), &device);
 
-		let triangle_shader = include_shader!(
-			"../../../assets/shaders/triangle.wgsl",
+		let default_shader = include_shader!(
+			"../../../assets/shaders/default.wgsl",
 			&[camera_uniform_buffer.get_binding(), light_uniform_buffer.get_binding()],
 			&device,
 			swapchain_format
@@ -110,9 +166,9 @@ impl Renderer {
 			queue,
 			swapchain_config,
 			depth_texture,
-			triangle_shader,
-			triangle_mesh,
-			triangle_instance_buffer,
+			default_shader,
+			cube_mesh,
+			cube_instance_buffer,
 			camera,
 			camera_uniform_buffer,
 			light_uniform_buffer,
@@ -141,11 +197,11 @@ impl Renderer {
 			.texture
 			.create_view(&wgpu::TextureViewDescriptor::default());
 
-		self.triangle_instance_buffer.instances = self.instances
+		self.cube_instance_buffer.instances = self.instances
 			.iter()
 			.map(|instance| instance.to_model_instance_data())
 			.collect::<Vec<_>>();
-		self.triangle_instance_buffer.update(&self.queue);
+		self.cube_instance_buffer.update(&self.queue);
 
 		self.camera_uniform_buffer.update(
 			CameraUniform::from_camera(&self.camera, Camera::get_aspect_from_swapchain(&self.swapchain_config)),
@@ -176,8 +232,8 @@ impl Renderer {
 
 			self.camera_uniform_buffer.bind(CAMERA_UNIFORM_BIND_GROUP, &mut rpass);
 			self.light_uniform_buffer.bind(LIGHT_UNIFORM_BIND_GROUP, &mut rpass);
-			self.triangle_shader.bind(&mut rpass);
-			self.triangle_mesh.draw_instanced(&self.triangle_instance_buffer, &mut rpass);
+			self.default_shader.bind(&mut rpass);
+			self.cube_mesh.draw_instanced(&self.cube_instance_buffer, &mut rpass);
 		}
 
 		self.queue.submit(Some(encoder.finish()));
