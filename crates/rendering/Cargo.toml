@@ -6,9 +6,9 @@ edition = "2021"
 [dependencies]
 sphynx_logging = { path = "../logging" }
 sphynx_derive_vertex_attrib = { path = "../derive_vertex_attrib" }
-winit = "0.29.15"
-wgpu = "0.19.3"
-pollster = "0.3.0"
-anyhow = "1.0.81"
-cgmath = "0.18"
-bytemuck = { version = "1.15", features = ["derive"] }
+winit = { workspace = true }
+wgpu = { workspace = true }
+tokio = { workspace = true }
+anyhow = { workspace = true }
+cgmath = { workspace = true }
+bytemuck = { workspace = true }

@@ -22,9 +22,9 @@ impl EngineConfig {
 		}
 	}
 
-	pub fn run(self) -> anyhow::Result<()> {
+	pub async fn run(self) -> anyhow::Result<()> {
 		let event_loop = EventLoop::new()?;
-		let engine = Engine::new(self, &event_loop)?;
+		let engine = Engine::new(self, &event_loop).await?;
 		engine.run(event_loop)
 	}
 }
@@ -51,7 +51,7 @@ const BUILD_CONFIG: &str = "Debug";
 const BUILD_CONFIG: &str = "Release";
 
 impl Engine {
-	fn new(config: EngineConfig, event_loop: &EventLoop<()>) -> anyhow::Result<Self> {
+	async fn new(config: EngineConfig, event_loop: &EventLoop<()>) -> anyhow::Result<Self> {
 		info!(General, "=== INITIALIZING ===");
 
 		let window = Arc::new(
@@ -60,7 +60,7 @@ impl Engine {
 				.with_inner_size(PhysicalSize::new(1920.0, 1080.0))
 				.build(event_loop)?
 		);
-		let renderer = pollster::block_on(Renderer::new(window.clone(), config.vsync))?;
+		let renderer = Renderer::new(window.clone(), config.vsync).await?;
 
 		Ok(Self {
 			window,

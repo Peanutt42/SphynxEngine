@@ -7,7 +7,6 @@ edition = "2021"
 sphynx_logging = { path = "../logging" }
 sphynx_input = { path = "../input" }
 sphynx_rendering = { path = "../rendering" }
-anyhow = "1.0.81"
-winit = "0.29.15"
-pollster = "0.3.0"
-cgmath = "0.18"
+anyhow = { workspace = true }
+winit = { workspace = true }
+cgmath = { workspace = true }
