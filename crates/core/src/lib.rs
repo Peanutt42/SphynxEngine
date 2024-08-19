@@ -3,7 +3,7 @@ use sphynx_logging::*;
 use sphynx_input::Input;
 use sphynx_rendering::{Renderer, Transform};
 use winit::{
-	dpi::PhysicalSize, event::{Event, WindowEvent}, event_loop::EventLoop, window::{Fullscreen, Window, WindowBuilder}
+	dpi::{PhysicalPosition, PhysicalSize}, event::{Event, MouseButton, WindowEvent}, event_loop::EventLoop, keyboard::KeyCode, window::{Fullscreen, Window, WindowBuilder}
 };
 use cgmath::{Quaternion, Vector3, Zero};
 use std::time::Instant;
@@ -38,11 +38,13 @@ impl Default for EngineConfig {
 }
 
 struct Engine {
+	config: EngineConfig,
 	window: Arc<Window>,
 	renderer: Renderer,
 	input: Input,
 	last_update_time: Instant,
 	camera_controller: CameraController,
+	restore_cursor_position: PhysicalPosition<f64>, // where should the captures cursor be restore to
 }
 
 #[cfg(debug_assertions)]
@@ -70,11 +72,13 @@ impl Engine {
 		let renderer = Renderer::new(window.clone(), config.vsync).await?;
 
 		Ok(Self {
+			config,
 			window,
 			renderer,
 			input: Input::new(),
 			last_update_time: Instant::now(),
 			camera_controller: CameraController::new(4.0, 3.0),
+			restore_cursor_position: PhysicalPosition::new(0.0, 0.0),
 		})
 	}
 
@@ -92,10 +96,11 @@ impl Engine {
 						// INPUT
 						WindowEvent::KeyboardInput { event, .. } => self.input.handle_keyboard(event),
 						WindowEvent::MouseInput { button, state, .. } => self.input.handle_mouse(button, state),
+						WindowEvent::CursorMoved { position, .. } => self.input.handle_cursor_movement(position),
 						_ => {}
 					}
 				},
-				Event::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion { delta, .. }, .. } => self.input.handle_mouse_movement(delta),
+				Event::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion { delta }, .. } => self.input.handle_mouse_movement(delta),
 				_ => {},
 			}
 		})?;
@@ -110,11 +115,31 @@ impl Engine {
 		let delta_time = (now - self.last_update_time).as_secs_f32();
 		self.last_update_time = now;
 
-		self.renderer.instances.resize(2, Transform::default());
-		self.renderer.instances[0] = Transform::new(Vector3::new(0.0, -1.5, 0.0), Quaternion::zero(), Vector3::new(100.0, 1.0, 100.0));
-		self.renderer.instances[1] = Transform::new(Vector3::new(0.0, 1.0, 0.0), Quaternion::zero(), Vector3::new(1.0, 1.0, 1.0));
+		if self.input.was_key_pressed(KeyCode::F11) {
+			if self.config.fullscreen {
+				self.window.set_fullscreen(None);
+				self.config.fullscreen = false;
+			}
+			else {
+				self.window.set_fullscreen(Some(Fullscreen::Borderless(None)));
+				self.config.fullscreen = true;
+			}
+		}
+
+		// captured cursor
+		self.window.set_cursor_visible(!self.input.is_mouse_button_down(MouseButton::Right));
+		if self.input.was_mouse_button_pressed(MouseButton::Right) {
+			self.restore_cursor_position = self.input.cursor_position;
+		}
+		else if self.input.was_mouse_button_released(MouseButton::Right) {
+			let _ = self.window.set_cursor_position(self.restore_cursor_position);
+		}
 
 		self.camera_controller.update(&self.input, &mut self.renderer.camera, delta_time);
+
+		self.renderer.instances.resize(2, Transform::default());
+		self.renderer.instances[0] = Transform::new(Vector3::new(0.0, -1.0, 0.0), Quaternion::zero(), Vector3::new(100.0, 1.0, 100.0));
+		self.renderer.instances[1] = Transform::new(Vector3::new(0.0, 0.0, 0.0), Quaternion::zero(), Vector3::new(0.1, 0.1, 0.1));
 
 		self.renderer.update();
 
