@@ -22,8 +22,8 @@ impl CameraController {
 
 	pub fn update(&mut self, input: &Input, camera: &mut Camera, dt: f32) {
 		if input.is_mouse_pressed(MouseButton::Right) {
-			camera.yaw -= Rad(input.mouse_delta.x) * self.sensitivity * dt;
-			camera.pitch += Rad(input.mouse_delta.y) * self.sensitivity * dt;
+			camera.yaw += Rad(input.mouse_delta.x) * self.sensitivity * dt;
+			camera.pitch -= Rad(input.mouse_delta.y) * self.sensitivity * dt;
 
 			let mut speed = self.speed;
 			if input.is_key_pressed(KeyCode::ShiftLeft) {

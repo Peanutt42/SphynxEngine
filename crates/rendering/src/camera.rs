@@ -1,4 +1,4 @@
-use cgmath::{Angle, Matrix4, Point3, Rad, Vector3};
+use cgmath::{Angle, InnerSpace, Matrix4, Point3, Rad, Vector3};
 
 pub struct Camera {
 	pub position: Point3<f32>,
@@ -10,6 +10,8 @@ pub struct Camera {
 }
 
 impl Camera {
+	const WORLD_UP: Vector3<f32> = Vector3{ x: 0.0, y: 1.0, z: 0.0 };
+
 	pub fn new(position: Point3<f32>, yaw: Rad<f32>, pitch: Rad<f32>, fov: f32, z_near: f32, z_far: f32) -> Self {
 		Self {
 			position,
@@ -53,18 +55,19 @@ impl Camera {
 			pitch_sin,
 			yaw_sin * pitch_cos
 		)
+		.normalize()
 	}
 
 	pub fn get_right_direction(&self) -> Vector3<f32> {
-		Vector3::new(
-			self.yaw.sin(),
-			0.0,
-			-self.yaw.cos()
-		)
+		self.get_forward_direction()
+			.cross(Self::WORLD_UP)
+			.normalize()
 	}
 
 	pub fn get_up_direction(&self) -> Vector3<f32> {
-		self.get_right_direction().cross(self.get_forward_direction())
+		self.get_right_direction()
+			.cross(self.get_forward_direction())
+			.normalize()
 	}
 }
 
@@ -72,7 +75,7 @@ impl Default for Camera {
 	fn default() -> Self {
 		Self::new(
 			Point3::<f32>::new(0.0, 0.0, 0.0),
-			cgmath::Rad(0.0),
+			cgmath::Deg(-90.0).into(),
 			cgmath::Rad(0.0),
 			90.0,
 			0.1,

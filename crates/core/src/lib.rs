@@ -3,7 +3,7 @@ use sphynx_logging::*;
 use sphynx_input::Input;
 use sphynx_rendering::{Renderer, Transform};
 use winit::{
-	dpi::PhysicalSize, event::{Event, WindowEvent}, event_loop::EventLoop, window::{Window, WindowBuilder}
+	dpi::PhysicalSize, event::{Event, WindowEvent}, event_loop::EventLoop, window::{Fullscreen, Window, WindowBuilder}
 };
 use cgmath::{Quaternion, Vector3, Zero};
 use std::time::Instant;
@@ -12,12 +12,14 @@ use std::sync::Arc;
 mod camera_controller;
 
 pub struct EngineConfig {
+	pub fullscreen: bool,
 	pub vsync: bool,
 }
 
 impl EngineConfig {
-	pub fn new(vsync: bool) -> Self {
+	pub fn new(fullscreen: bool, vsync: bool) -> Self {
 		Self {
+			fullscreen,
 			vsync,
 		}
 	}
@@ -31,7 +33,7 @@ impl EngineConfig {
 
 impl Default for EngineConfig {
 	fn default() -> Self {
-		Self::new(false)
+		Self::new(false, false)
 	}
 }
 
@@ -39,7 +41,6 @@ struct Engine {
 	window: Arc<Window>,
 	renderer: Renderer,
 	input: Input,
-	start_time: Instant,
 	last_update_time: Instant,
 	camera_controller: CameraController,
 }
@@ -58,6 +59,12 @@ impl Engine {
 			WindowBuilder::new()
 				.with_title(format!("SphynxEngine [{}]", BUILD_CONFIG).as_str())
 				.with_inner_size(PhysicalSize::new(1920.0, 1080.0))
+				.with_fullscreen(if config.fullscreen {
+					Some(Fullscreen::Borderless(None))
+				}
+				else {
+					None
+				})
 				.build(event_loop)?
 		);
 		let renderer = Renderer::new(window.clone(), config.vsync).await?;
@@ -66,7 +73,6 @@ impl Engine {
 			window,
 			renderer,
 			input: Input::new(),
-			start_time: Instant::now(),
 			last_update_time: Instant::now(),
 			camera_controller: CameraController::new(4.0, 3.0),
 		})
@@ -104,21 +110,9 @@ impl Engine {
 		let delta_time = (now - self.last_update_time).as_secs_f32();
 		self.last_update_time = now;
 
-		let time = (now - self.start_time).as_secs_f32();
-
-		self.renderer.instances.resize(Renderer::MAX_INSTANCES, Transform::default());
-		for (i, instance) in self.renderer.instances.iter_mut().enumerate() {
-			let length = (Renderer::MAX_INSTANCES as f32).sqrt();
-			*instance = Transform::new(
-				Vector3::new(
-					2.0 * ((i as f32) % length),
-					f32::sin(1.5 * time + 0.25 * (i as f32 % length) + 0.5 * f32::cos(0.5 * time + 0.35 * (i as f32 / length))),
-					2.0 * (i as f32 / length)
-				),
-				Quaternion::zero(),//Quaternion::from_axis_angle(Vector3::new(0.0, 1.0, 0.0), cgmath::Deg(i as f32 * 10.0)),
-				Vector3::new(1.0, 1.0, 1.0)//Vector3::new(1.0, 1.5 + 0.5 * f32::sin(time + 0.4 * i as f32), 1.0)
-			);
-		}
+		self.renderer.instances.resize(2, Transform::default());
+		self.renderer.instances[0] = Transform::new(Vector3::new(0.0, -1.5, 0.0), Quaternion::zero(), Vector3::new(100.0, 1.0, 100.0));
+		self.renderer.instances[1] = Transform::new(Vector3::new(0.0, 1.0, 0.0), Quaternion::zero(), Vector3::new(1.0, 1.0, 1.0));
 
 		self.camera_controller.update(&self.input, &mut self.renderer.camera, delta_time);
 
