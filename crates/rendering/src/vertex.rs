@@ -1,7 +1,8 @@
+use wgpu::{VertexAttribute, VertexBufferLayout, vertex_attr_array};
 use sphynx_derive_vertex_attrib::Vertex;
 
 pub trait Vertex : bytemuck::Pod + bytemuck::Zeroable {
-	fn desc() -> wgpu::VertexBufferLayout<'static>;
+	fn desc() -> VertexBufferLayout<'static>;
 }
 
 #[repr(C)]
@@ -14,7 +15,7 @@ pub struct PCN_Vertex {
 }
 
 impl PCN_Vertex {
-	const ATTRIBS: [wgpu::VertexAttribute; 3] = wgpu::vertex_attr_array![
+	const ATTRIBS: [VertexAttribute; 3] = vertex_attr_array![
 		0 => Float32x3,
 		1 => Float32x3,
 		2 => Float32x3

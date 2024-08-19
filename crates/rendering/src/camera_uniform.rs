@@ -1,3 +1,4 @@
+use cgmath::Matrix4;
 use crate::Camera;
 
 #[repr(C)]
@@ -9,7 +10,7 @@ pub struct CameraUniform {
 }
 
 impl CameraUniform {
-	pub fn new(position: [f32; 3], proj_view: cgmath::Matrix4<f32>) -> Self {
+	pub fn new(position: [f32; 3], proj_view: Matrix4<f32>) -> Self {
 		Self {
 			proj_view: proj_view.into(),
 			position,

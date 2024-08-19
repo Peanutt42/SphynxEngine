@@ -1,5 +1,4 @@
-use winit::event::*;
-use winit::keyboard::KeyCode;
+use winit::{event::MouseButton,keyboard::KeyCode};
 use cgmath::Rad;
 use sphynx_rendering::Camera;
 use sphynx_input::Input;

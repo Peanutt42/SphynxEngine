@@ -1,8 +1,9 @@
 use cgmath::{Matrix4, Matrix3};
+use wgpu::{VertexAttribute, VertexBufferLayout, vertex_attr_array};
 use sphynx_derive_vertex_attrib::InstanceData;
 
 pub trait InstanceData : bytemuck::Pod + bytemuck::Zeroable {
-	fn desc() -> wgpu::VertexBufferLayout<'static>;
+	fn desc() -> VertexBufferLayout<'static>;
 }
 
 #[repr(C)]
@@ -21,7 +22,7 @@ impl Model_InstanceData {
 		}
 	}
 
-	const ATTRIBS: [wgpu::VertexAttribute; 7] = wgpu::vertex_attr_array![
+	const ATTRIBS: [VertexAttribute; 7] = vertex_attr_array![
 		5  => Float32x4,
 		6  => Float32x4,
 		7  => Float32x4,

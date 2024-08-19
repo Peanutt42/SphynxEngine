@@ -1,5 +1,6 @@
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
+use wgpu::{Color, CommandEncoderDescriptor, Device, DeviceDescriptor, Features, Instance, Limits, LoadOp, Operations, PowerPreference, PresentMode, Queue, RenderPassColorAttachment, RenderPassDescriptor, RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration, TextureViewDescriptor};
 use std::sync::Arc;
 use sphynx_logging::info;
 use crate::{
@@ -7,10 +8,10 @@ use crate::{
 };
 
 pub struct Renderer {
-	surface: wgpu::Surface<'static>,
-	device: wgpu::Device,
-	queue: wgpu::Queue,
-	swapchain_config: wgpu::SurfaceConfiguration,
+	surface: Surface<'static>,
+	device: Device,
+	queue: Queue,
+	swapchain_config: SurfaceConfiguration,
 	depth_texture: DepthTexture,
 	default_shader: Shader,
 	cube_mesh: Mesh,
@@ -32,12 +33,12 @@ impl Renderer {
 		size.width = size.width.max(1);
 		size.height = size.height.max(1);
 
-		let instance = wgpu::Instance::default();
+		let instance = Instance::default();
 
 		let surface = instance.create_surface(window)?;
 		let adapter = instance
-			.request_adapter(&wgpu::RequestAdapterOptions {
-				power_preference: wgpu::PowerPreference::default(),
+			.request_adapter(&RequestAdapterOptions {
+				power_preference: PowerPreference::default(),
 				force_fallback_adapter: false,
 				compatible_surface: Some(&surface),
 			})
@@ -49,10 +50,10 @@ impl Renderer {
 
 		let (device, queue) = adapter
 			.request_device(
-				&wgpu::DeviceDescriptor {
+				&DeviceDescriptor {
 					label: None,
-					required_features: wgpu::Features::empty(),
-					required_limits: wgpu::Limits::downlevel_webgl2_defaults()
+					required_features: Features::empty(),
+					required_limits: Limits::downlevel_webgl2_defaults()
 						.using_resolution(adapter.limits()),
 				},
 				None,
@@ -66,10 +67,10 @@ impl Renderer {
 			.ok_or(anyhow::anyhow!("Failed to get surface config"))?;
 		swapchain_config.present_mode =
 			if vsync {
-				wgpu::PresentMode::AutoVsync
+				PresentMode::AutoVsync
 			}
 			else {
-				wgpu::PresentMode::AutoNoVsync
+				PresentMode::AutoNoVsync
 			};
 		surface.configure(&device, &swapchain_config);
 
@@ -133,7 +134,7 @@ impl Renderer {
 
 		let view = frame
 			.texture
-			.create_view(&wgpu::TextureViewDescriptor::default());
+			.create_view(&TextureViewDescriptor::default());
 
 		self.cube_instance_buffer.instances = self.instances
 			.iter()
@@ -147,20 +148,20 @@ impl Renderer {
 		);
 
 		let mut encoder = self.device.create_command_encoder(
-			&wgpu::CommandEncoderDescriptor {
+			&CommandEncoderDescriptor {
 				label: None,
 			});
 
 		{
 			let mut rpass =
-				encoder.begin_render_pass(&wgpu::RenderPassDescriptor {
+				encoder.begin_render_pass(&RenderPassDescriptor {
 					label: Some("Main Renderpass"),
-					color_attachments: &[Some(wgpu::RenderPassColorAttachment {
+					color_attachments: &[Some(RenderPassColorAttachment {
 						view: &view,
 						resolve_target: None,
-						ops: wgpu::Operations {
-							load: wgpu::LoadOp::Clear(wgpu::Color::BLACK),
-							store: wgpu::StoreOp::Store,
+						ops: Operations {
+							load: LoadOp::Clear(Color::BLACK),
+							store: StoreOp::Store,
 						},
 					})],
 					depth_stencil_attachment: Some(self.depth_texture.get_attachment()),

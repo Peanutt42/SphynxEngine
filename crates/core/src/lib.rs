@@ -3,7 +3,7 @@ use sphynx_logging::*;
 use sphynx_input::Input;
 use sphynx_rendering::{Renderer, Transform};
 use winit::{
-	dpi::{PhysicalPosition, PhysicalSize}, event::{Event, MouseButton, WindowEvent}, event_loop::EventLoop, keyboard::KeyCode, window::{Fullscreen, Window, WindowBuilder}
+	dpi::{PhysicalPosition, PhysicalSize}, event::{DeviceEvent, Event, MouseButton, WindowEvent}, event_loop::EventLoop, keyboard::KeyCode, window::{Fullscreen, Window, WindowBuilder}
 };
 use cgmath::{Quaternion, Vector3, Zero};
 use std::time::Instant;
@@ -100,7 +100,7 @@ impl Engine {
 						_ => {}
 					}
 				},
-				Event::DeviceEvent { event: winit::event::DeviceEvent::MouseMotion { delta }, .. } => self.input.handle_mouse_movement(delta),
+				Event::DeviceEvent { event: DeviceEvent::MouseMotion { delta }, .. } => self.input.handle_mouse_movement(delta),
 				_ => {},
 			}
 		})?;

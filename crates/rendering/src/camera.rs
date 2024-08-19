@@ -1,4 +1,5 @@
-use cgmath::{Angle, InnerSpace, Matrix4, Point3, Rad, Vector3};
+use cgmath::{Angle, InnerSpace, Matrix4, Point3, Rad, Deg, Vector3, perspective};
+use wgpu::SurfaceConfiguration;
 
 pub struct Camera {
 	pub position: Point3<f32>,
@@ -23,8 +24,8 @@ impl Camera {
 		}
 	}
 
-	pub fn get_projection_view_matrix(&self, aspect: f32) -> cgmath::Matrix4<f32> {
-        let proj = cgmath::perspective(cgmath::Deg(self.fov), aspect, self.z_near, self.z_far);
+	pub fn get_projection_view_matrix(&self, aspect: f32) -> Matrix4<f32> {
+        let proj = perspective(Deg(self.fov), aspect, self.z_near, self.z_far);
 
         let view = Matrix4::look_to_rh(self.position, self.get_forward_direction(), self.get_up_direction());
 
@@ -42,7 +43,7 @@ impl Camera {
 		}
 	}
 
-	pub fn get_aspect_from_swapchain(swapchain_config: &wgpu::SurfaceConfiguration) -> f32 {
+	pub fn get_aspect_from_swapchain(swapchain_config: &SurfaceConfiguration) -> f32 {
 		Self::get_aspect(swapchain_config.width as f32, swapchain_config.height as f32)
 	}
 
@@ -75,8 +76,8 @@ impl Default for Camera {
 	fn default() -> Self {
 		Self::new(
 			Point3::<f32>::new(0.0, 0.0, 0.0),
-			cgmath::Deg(-90.0).into(),
-			cgmath::Rad(0.0),
+			Deg(-90.0).into(),
+			Rad(0.0),
 			90.0,
 			0.1,
 			1000.0
