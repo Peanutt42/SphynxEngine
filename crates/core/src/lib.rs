@@ -3,7 +3,7 @@ use sphynx_logging::*;
 use sphynx_input::Input;
 use sphynx_rendering::{Renderer, Transform};
 use winit::{
-	dpi::{PhysicalPosition, PhysicalSize}, event::{DeviceEvent, Event, MouseButton, WindowEvent}, event_loop::EventLoop, keyboard::KeyCode, window::{Fullscreen, Window, WindowBuilder}
+	dpi::{PhysicalPosition, PhysicalSize}, event::{DeviceEvent, Event, MouseButton, WindowEvent}, event_loop::{EventLoop, EventLoopWindowTarget}, keyboard::KeyCode, window::{Fullscreen, Window, WindowBuilder}
 };
 use cgmath::{Quaternion, Vector3, Zero};
 use std::time::Instant;
@@ -90,7 +90,7 @@ impl Engine {
 				Event::WindowEvent { event, .. } => {
 					match event {
 						WindowEvent::Resized(new_size) => self.renderer.resize(new_size),
-						WindowEvent::RedrawRequested => self.update(),
+						WindowEvent::RedrawRequested => self.update(target),
 						WindowEvent::CloseRequested => target.exit(),
 
 						// INPUT
@@ -110,7 +110,7 @@ impl Engine {
 		Ok(())
 	}
 
-	fn update(&mut self) {
+	fn update(&mut self, target: &EventLoopWindowTarget<()>) {
 		let now = Instant::now();
 		let delta_time = (now - self.last_update_time).as_secs_f32();
 		self.last_update_time = now;
@@ -124,6 +124,10 @@ impl Engine {
 				self.window.set_fullscreen(Some(Fullscreen::Borderless(None)));
 				self.config.fullscreen = true;
 			}
+		}
+
+		if self.input.was_key_pressed(KeyCode::Escape) {
+			target.exit();
 		}
 
 		// captured cursor
