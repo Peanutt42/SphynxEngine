@@ -12,3 +12,4 @@ tokio = { workspace = true }
 anyhow = { workspace = true }
 cgmath = { workspace = true }
 bytemuck = { workspace = true }
+wavefront = { workspace = true }

@@ -4,7 +4,7 @@ use wgpu::{Color, CommandEncoderDescriptor, Device, DeviceDescriptor, Features, 
 use std::sync::Arc;
 use sphynx_logging::info;
 use crate::{
-	camera_uniform::CameraUniform, depth_texture::DepthTexture, include_shader, instance_buffer::InstanceBuffer, instance_data::Model_InstanceData, lighting::LightUniform, shader::{CAMERA_UNIFORM_BIND_GROUP, LIGHT_UNIFORM_BIND_GROUP}, uniform_buffer::UniformBuffer, vertex::PCN_Vertex, Camera, Mesh, Shader, Transform
+	camera_uniform::CameraUniform, depth_texture::DepthTexture, include_model, include_shader, instance_buffer::InstanceBuffer, instance_data::Model_InstanceData, lighting::LightUniform, load_obj_model, shader::{CAMERA_UNIFORM_BIND_GROUP, LIGHT_UNIFORM_BIND_GROUP}, uniform_buffer::UniformBuffer, Camera, Mesh, Shader, Transform
 };
 
 pub struct Renderer {
@@ -76,7 +76,7 @@ impl Renderer {
 
 		let depth_texture = DepthTexture::new(&device, &swapchain_config);
 
-		let cube_mesh = Mesh::with_vertices(CUBE_VERTICES, &device);
+		let cube_mesh = include_model!("../../../assets/models/cube.obj", &device)?;//Mesh::with_vertices(CUBE_VERTICES, Some(CUBE_INDICIES), &device);
 
 		let mut instances: Vec<Transform> = (0..Self::MAX_INSTANCES)
 			.map(|_| Transform::default())
@@ -180,65 +180,3 @@ impl Renderer {
 		frame.present();
 	}
 }
-
-const CUBE_VERTICES: &[PCN_Vertex] = &[
-	// Front face
-	// Triangle 1
-	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0,  1.0] },
-	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0,  1.0] },
-	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0,  1.0] },
-	// Triangle 2
-	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0,  1.0] },
-	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0,  1.0] },
-	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0,  1.0] },
-
-	// Back face
-	// Triangle 1
-	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
-	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
-	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
-	// Triangle 2
-	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
-	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
-	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 0.0, -1.0] },
-
-	// Top face
-	// Triangle 1
-	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-	// Triangle 2
-	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, 1.0, 0.0] },
-
-	// Bottom face
-	// Triangle 1
-	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
-	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
-	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
-	// Triangle 2
-	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
-	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
-	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [0.0, -1.0, 0.0] },
-
-	// Left face
-	// Triangle 1
-	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [-0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-	// Triangle 2
-	PCN_Vertex { position: [-0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [-0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [-0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [-1.0, 0.0, 0.0] },
-
-	// Right face
-	// Triangle 1
-	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [ 0.5,  0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [1.0, 0.0, 0.0] },
-	// Triangle 2
-	PCN_Vertex { position: [ 0.5,  0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [ 0.5, -0.5,  0.5], color: [1.0, 1.0, 1.0], normal: [1.0, 0.0, 0.0] },
-	PCN_Vertex { position: [ 0.5, -0.5, -0.5], color: [1.0, 1.0, 1.0], normal: [1.0, 0.0, 0.0] },
-];
