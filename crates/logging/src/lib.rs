@@ -58,7 +58,7 @@ pub static LOG_FILE: Lazy<Arc<Mutex<Option<File>>>> = Lazy::new(|| Arc::new(Mute
 
 pub fn log(verbosity: LogVerbosity, topic: LogTopic, formatted: String) {
 	let msg = format!("{} {}", topic.to_string(), formatted);
-	println!("{}", verbosity.colorize(msg.clone()));
+	println!("{} {}", topic.to_string().bright_black(), verbosity.colorize(formatted));
 
 	let log_file_msg = format!("{} {}\n", verbosity.to_string(), msg);
 
