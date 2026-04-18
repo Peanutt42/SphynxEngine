@@ -46,7 +46,7 @@ impl DepthTexture {
 		Self { _texture, view, _sampler }
 	}
 
-	pub fn get_attachment(&self) -> RenderPassDepthStencilAttachment {
+	pub fn get_attachment(&self) -> RenderPassDepthStencilAttachment<'_> {
 		RenderPassDepthStencilAttachment {
 			view: &self.view,
 			depth_ops: Some(Operations {
