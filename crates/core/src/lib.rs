@@ -1,13 +1,17 @@
 use camera_controller::CameraController;
-use sphynx_logging::*;
-use sphynx_input::Input;
-use sphynx_rendering::{Renderer, Transform};
-use winit::{
-	dpi::{PhysicalPosition, PhysicalSize}, event::{DeviceEvent, Event, MouseButton, WindowEvent}, event_loop::{EventLoop, EventLoopWindowTarget}, keyboard::KeyCode, window::{Fullscreen, Window, WindowBuilder}
-};
 use cgmath::{Quaternion, Vector3, Zero};
-use std::time::Instant;
+use sphynx_input::Input;
+use sphynx_logging::*;
+use sphynx_rendering::{Renderer, Transform};
 use std::sync::Arc;
+use std::time::Instant;
+use winit::{
+	dpi::{PhysicalPosition, PhysicalSize},
+	event::{DeviceEvent, Event, MouseButton, WindowEvent},
+	event_loop::{EventLoop, EventLoopWindowTarget},
+	keyboard::KeyCode,
+	window::{Fullscreen, Window, WindowBuilder},
+};
 
 mod camera_controller;
 
@@ -18,10 +22,7 @@ pub struct EngineConfig {
 
 impl EngineConfig {
 	pub fn new(fullscreen: bool, vsync: bool) -> Self {
-		Self {
-			fullscreen,
-			vsync,
-		}
+		Self { fullscreen, vsync }
 	}
 
 	pub async fn run(self) -> anyhow::Result<()> {
@@ -63,11 +64,10 @@ impl Engine {
 				.with_inner_size(PhysicalSize::new(1920.0, 1080.0))
 				.with_fullscreen(if config.fullscreen {
 					Some(Fullscreen::Borderless(None))
-				}
-				else {
+				} else {
 					None
 				})
-				.build(event_loop)?
+				.build(event_loop)?,
 		);
 		let renderer = Renderer::new(window.clone(), config.vsync).await?;
 
@@ -94,14 +94,23 @@ impl Engine {
 						WindowEvent::CloseRequested => target.exit(),
 
 						// INPUT
-						WindowEvent::KeyboardInput { event, .. } => self.input.handle_keyboard(event),
-						WindowEvent::MouseInput { button, state, .. } => self.input.handle_mouse(button, state),
-						WindowEvent::CursorMoved { position, .. } => self.input.handle_cursor_movement(position),
+						WindowEvent::KeyboardInput { event, .. } => {
+							self.input.handle_keyboard(event)
+						}
+						WindowEvent::MouseInput { button, state, .. } => {
+							self.input.handle_mouse(button, state)
+						}
+						WindowEvent::CursorMoved { position, .. } => {
+							self.input.handle_cursor_movement(position)
+						}
 						_ => {}
 					}
-				},
-				Event::DeviceEvent { event: DeviceEvent::MouseMotion { delta }, .. } => self.input.handle_mouse_movement(delta),
-				_ => {},
+				}
+				Event::DeviceEvent {
+					event: DeviceEvent::MouseMotion { delta },
+					..
+				} => self.input.handle_mouse_movement(delta),
+				_ => {}
 			}
 		})?;
 
@@ -119,9 +128,9 @@ impl Engine {
 			if self.config.fullscreen {
 				self.window.set_fullscreen(None);
 				self.config.fullscreen = false;
-			}
-			else {
-				self.window.set_fullscreen(Some(Fullscreen::Borderless(None)));
+			} else {
+				self.window
+					.set_fullscreen(Some(Fullscreen::Borderless(None)));
 				self.config.fullscreen = true;
 			}
 		}
@@ -131,19 +140,30 @@ impl Engine {
 		}
 
 		// captured cursor
-		self.window.set_cursor_visible(!self.input.is_mouse_button_down(MouseButton::Right));
+		self.window
+			.set_cursor_visible(!self.input.is_mouse_button_down(MouseButton::Right));
 		if self.input.was_mouse_button_pressed(MouseButton::Right) {
 			self.restore_cursor_position = self.input.cursor_position;
-		}
-		else if self.input.was_mouse_button_released(MouseButton::Right) {
-			let _ = self.window.set_cursor_position(self.restore_cursor_position);
+		} else if self.input.was_mouse_button_released(MouseButton::Right) {
+			let _ = self
+				.window
+				.set_cursor_position(self.restore_cursor_position);
 		}
 
-		self.camera_controller.update(&self.input, &mut self.renderer.camera, delta_time);
+		self.camera_controller
+			.update(&self.input, &mut self.renderer.camera, delta_time);
 
 		self.renderer.instances.resize(2, Transform::default());
-		self.renderer.instances[0] = Transform::new(Vector3::new(0.0, -1.0, 0.0), Quaternion::zero(), Vector3::new(100.0, 1.0, 100.0));
-		self.renderer.instances[1] = Transform::new(Vector3::new(0.0, 0.0, 0.0), Quaternion::zero(), Vector3::new(0.1, 0.1, 0.1));
+		self.renderer.instances[0] = Transform::new(
+			Vector3::new(0.0, -1.0, 0.0),
+			Quaternion::zero(),
+			Vector3::new(100.0, 1.0, 100.0),
+		);
+		self.renderer.instances[1] = Transform::new(
+			Vector3::new(0.0, 0.0, 0.0),
+			Quaternion::zero(),
+			Vector3::new(0.1, 0.1, 0.1),
+		);
 
 		self.renderer.update();
 

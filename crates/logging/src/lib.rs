@@ -1,8 +1,8 @@
+use colored::{ColoredString, Colorize};
+use once_cell::sync::Lazy;
 use std::fs::File;
 use std::io::Write;
 use std::sync::{Arc, Mutex};
-use once_cell::sync::Lazy;
-use colored::{ColoredString, Colorize};
 
 #[derive(Debug, Copy, Clone)]
 pub enum LogTopic {
@@ -18,13 +18,13 @@ pub enum LogTopic {
 impl LogTopic {
 	pub fn to_string(self) -> &'static str {
 		match self {
-			LogTopic::General =>    "[GENERAL]   ",
-			LogTopic::Rendering =>  "[RENDERING] ",
-			LogTopic::Audio =>      "[AUDIO]     ",
+			LogTopic::General => "[GENERAL]   ",
+			LogTopic::Rendering => "[RENDERING] ",
+			LogTopic::Audio => "[AUDIO]     ",
 			LogTopic::Networking => "[NETWORKING]",
-			LogTopic::Scripting =>  "[SCRIPTING] ",
-			LogTopic::Physics =>    "[PHYSICS]   ",
-			LogTopic::UI =>         "[UI]        ",
+			LogTopic::Scripting => "[SCRIPTING] ",
+			LogTopic::Physics => "[PHYSICS]   ",
+			LogTopic::UI => "[UI]        ",
 		}
 	}
 }
@@ -39,9 +39,9 @@ pub enum LogVerbosity {
 impl LogVerbosity {
 	pub fn to_string(self) -> &'static str {
 		match self {
-			LogVerbosity::Info =>	 "INFO",
+			LogVerbosity::Info => "INFO",
 			LogVerbosity::Warning => "WARN",
-			LogVerbosity::Error =>	 "ERR ",
+			LogVerbosity::Error => "ERR ",
 		}
 	}
 
@@ -58,7 +58,11 @@ pub static LOG_FILE: Lazy<Arc<Mutex<Option<File>>>> = Lazy::new(|| Arc::new(Mute
 
 pub fn log(verbosity: LogVerbosity, topic: LogTopic, formatted: String) {
 	let msg = format!("{} {}", topic.to_string(), formatted);
-	println!("{} {}", topic.to_string().bright_black(), verbosity.colorize(formatted));
+	println!(
+		"{} {}",
+		topic.to_string().bright_black(),
+		verbosity.colorize(formatted)
+	);
 
 	let log_file_msg = format!("{} {}\n", verbosity.to_string(), msg);
 
@@ -73,7 +77,7 @@ pub fn log(verbosity: LogVerbosity, topic: LogTopic, formatted: String) {
 		Ok(mut log_file) => {
 			let _ = log_file.write_all(log_file_msg.as_bytes());
 			*LOG_FILE.lock().unwrap() = Some(log_file)
-		},
+		}
 		Err(e) => eprintln!("failed to create engine log (Engine.log): {e}"),
 	}
 }

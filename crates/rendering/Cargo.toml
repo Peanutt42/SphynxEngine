@@ -8,7 +8,6 @@ sphynx_logging = { path = "../logging" }
 sphynx_derive_vertex_attrib = { path = "../derive_vertex_attrib" }
 winit = { workspace = true }
 wgpu = { workspace = true }
-tokio = { workspace = true }
 anyhow = { workspace = true }
 cgmath = { workspace = true }
 bytemuck = { workspace = true }

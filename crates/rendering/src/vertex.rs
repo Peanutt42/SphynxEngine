@@ -1,9 +1,9 @@
 use std::hash::{Hash, Hasher};
 
-use wgpu::{VertexAttribute, VertexBufferLayout, vertex_attr_array};
 use sphynx_derive_vertex_attrib::Vertex;
+use wgpu::{vertex_attr_array, VertexAttribute, VertexBufferLayout};
 
-pub trait Vertex : bytemuck::Pod + bytemuck::Zeroable {
+pub trait Vertex: bytemuck::Pod + bytemuck::Zeroable {
 	fn desc() -> VertexBufferLayout<'static>;
 }
 
@@ -25,25 +25,23 @@ impl PCN_Vertex {
 }
 
 impl PartialEq for PCN_Vertex {
-    fn eq(&self, other: &Self) -> bool {
-        self.position == other.position
-            && self.color == other.color
-            && self.normal == other.normal
-    }
+	fn eq(&self, other: &Self) -> bool {
+		self.position == other.position && self.color == other.color && self.normal == other.normal
+	}
 }
 
 impl Eq for PCN_Vertex {}
 
 impl Hash for PCN_Vertex {
-    fn hash<H: Hasher>(&self, state: &mut H) {
-        self.position[0].to_bits().hash(state);
-        self.position[1].to_bits().hash(state);
-        self.position[2].to_bits().hash(state);
-        self.color[0].to_bits().hash(state);
-        self.color[1].to_bits().hash(state);
-        self.color[2].to_bits().hash(state);
-        self.normal[0].to_bits().hash(state);
-        self.normal[1].to_bits().hash(state);
-        self.normal[2].to_bits().hash(state);
-    }
+	fn hash<H: Hasher>(&self, state: &mut H) {
+		self.position[0].to_bits().hash(state);
+		self.position[1].to_bits().hash(state);
+		self.position[2].to_bits().hash(state);
+		self.color[0].to_bits().hash(state);
+		self.color[1].to_bits().hash(state);
+		self.color[2].to_bits().hash(state);
+		self.normal[0].to_bits().hash(state);
+		self.normal[1].to_bits().hash(state);
+		self.normal[2].to_bits().hash(state);
+	}
 }

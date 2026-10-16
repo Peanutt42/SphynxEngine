@@ -1,7 +1,7 @@
 use proc_macro::TokenStream;
 
-mod vertex;
 mod instance;
+mod vertex;
 
 #[proc_macro_derive(Vertex)]
 pub fn vertex_derive(input: TokenStream) -> TokenStream {

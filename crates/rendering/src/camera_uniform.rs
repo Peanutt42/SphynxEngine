@@ -1,5 +1,5 @@
-use cgmath::Matrix4;
 use crate::Camera;
+use cgmath::Matrix4;
 
 #[repr(C)]
 #[derive(Debug, Copy, Clone, bytemuck::Pod, bytemuck::Zeroable)]
@@ -21,7 +21,7 @@ impl CameraUniform {
 	pub fn from_camera(camera: &Camera, aspect: f32) -> Self {
 		Self::new(
 			camera.position.into(),
-			camera.get_projection_view_matrix(aspect)
+			camera.get_projection_view_matrix(aspect),
 		)
 	}
 }

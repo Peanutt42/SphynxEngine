@@ -1,7 +1,7 @@
-use std::io::BufRead;
-use wgpu::Device;
-use wavefront::{Obj, Vertex};
 use crate::{vertex::PCN_Vertex, Mesh};
+use std::io::BufRead;
+use wavefront::{Obj, Vertex};
+use wgpu::Device;
 
 #[macro_export]
 macro_rules! include_model {
@@ -10,18 +10,19 @@ macro_rules! include_model {
 	}};
 }
 
-pub fn load_obj_model<B>(buf_reader: B, device: &Device) -> anyhow::Result<Mesh> where B: BufRead {
+pub fn load_obj_model<B>(buf_reader: B, device: &Device) -> anyhow::Result<Mesh>
+where
+	B: BufRead,
+{
 	let model = Obj::from_reader(buf_reader)?;
 
 	let mut vertices = Vec::new();
 	let mut indices = Vec::new();
 
-	let wavefront_vertex_to_pcn_vertex = |vertex: Vertex| {
-		PCN_Vertex {
-			position: vertex.position(),
-			color: [1.0, 1.0, 1.0],
-			normal: vertex.normal().unwrap_or([0.0, 0.0, 0.0])
-		}
+	let wavefront_vertex_to_pcn_vertex = |vertex: Vertex| PCN_Vertex {
+		position: vertex.position(),
+		color: [1.0, 1.0, 1.0],
+		normal: vertex.normal().unwrap_or([0.0, 0.0, 0.0]),
 	};
 
 	for [vertex_a, vertex_b, vertex_c] in model.triangles() {

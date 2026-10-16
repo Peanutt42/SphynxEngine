@@ -1,6 +1,9 @@
-use wgpu::{Buffer, BufferUsages, Device, Queue, RenderPass, util::{DeviceExt, BufferInitDescriptor}};
 use crate::instance_data::InstanceData;
 use crate::shader::INSTANCE_BUFFER_BIND_SLOT;
+use wgpu::{
+	util::{BufferInitDescriptor, DeviceExt},
+	Buffer, BufferUsages, Device, Queue, RenderPass,
+};
 
 pub struct InstanceBuffer<I: InstanceData> {
 	pub instances: Vec<I>,
@@ -9,18 +12,13 @@ pub struct InstanceBuffer<I: InstanceData> {
 
 impl<I: InstanceData> InstanceBuffer<I> {
 	pub fn new(instances: Vec<I>, device: &Device) -> Self {
-		let buffer = device.create_buffer_init(
-			&BufferInitDescriptor {
-				label: Some("Instance Buffer"),
-				contents: bytemuck::cast_slice(&instances),
-				usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
-			}
-		);
+		let buffer = device.create_buffer_init(&BufferInitDescriptor {
+			label: Some("Instance Buffer"),
+			contents: bytemuck::cast_slice(&instances),
+			usage: BufferUsages::VERTEX | BufferUsages::COPY_DST,
+		});
 
-		Self {
-			instances,
-			buffer,
-		}
+		Self { instances, buffer }
 	}
 
 	pub fn update(&self, queue: &Queue) {
