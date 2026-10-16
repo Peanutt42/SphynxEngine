@@ -20,3 +20,5 @@ Cargo.lock
 
 # log file
 Engine.log
+
+.direnv
