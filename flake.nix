@@ -80,7 +80,7 @@
               };
               cargoLock.lockFile = ./Cargo.lock;
               strictDeps = true;
-              postFixup = lib.optionalString (final.stdenv.hostPlatform.isLinux) ''
+              postFixup = lib.optionalString final.stdenv.hostPlatform.isLinux ''
                 patchelf --add-rpath ${lib.makeLibraryPath (runtimeLibsFor final)} $out/bin/${pname}
               '';
               meta = {
