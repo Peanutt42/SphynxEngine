@@ -1,8 +1,8 @@
 use wgpu::{
-	AddressMode, CompareFunction, Device, Extent3d, FilterMode, LoadOp, Operations,
-	RenderPassDepthStencilAttachment, Sampler, SamplerDescriptor, StoreOp, SurfaceConfiguration,
-	Texture, TextureDescriptor, TextureDimension, TextureFormat, TextureUsages, TextureView,
-	TextureViewDescriptor,
+	AddressMode, CompareFunction, Device, Extent3d, FilterMode, LoadOp, MipmapFilterMode,
+	Operations, RenderPassDepthStencilAttachment, Sampler, SamplerDescriptor, StoreOp,
+	SurfaceConfiguration, Texture, TextureDescriptor, TextureDimension, TextureFormat,
+	TextureUsages, TextureView, TextureViewDescriptor,
 };
 
 pub struct DepthTexture {
@@ -39,7 +39,7 @@ impl DepthTexture {
 			address_mode_w: AddressMode::ClampToEdge,
 			mag_filter: FilterMode::Linear,
 			min_filter: FilterMode::Linear,
-			mipmap_filter: FilterMode::Nearest,
+			mipmap_filter: MipmapFilterMode::Nearest,
 			compare: Some(CompareFunction::LessEqual),
 			lod_min_clamp: 0.0,
 			lod_max_clamp: 100.0,

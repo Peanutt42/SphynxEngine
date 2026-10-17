@@ -1,7 +1,11 @@
 [package]
 name = "sphynx_engine"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
+
+[dependencies]
+sphynx_core = { path = "crates/core" }
+anyhow = { workspace = true }
 
 [workspace]
 members = [
@@ -12,16 +16,10 @@ members = [
 	"crates/derive_vertex_attrib",
 ]
 
-[dependencies]
-sphynx_core = { path = "crates/core" }
-anyhow = { workspace = true }
-tokio = { workspace = true }
-
 [workspace.dependencies]
-anyhow = "1.0.81"
-winit = "0.29.15"
-wgpu = "0.19.3"
-tokio = { version = "1.39", default-features = false, features = ["macros", "rt", "rt-multi-thread"] }
+anyhow = "1.0.104" # TODO: remove this
+winit = "0.30.13"
+wgpu = "30.0.1"
 cgmath = "0.18"
-bytemuck = { version = "1.15", features = ["derive"] }
+bytemuck = { version = "1.25", features = ["derive"] }
 wavefront = { version = "0.2.3"}

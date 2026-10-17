@@ -13,10 +13,10 @@ use crate::{
 use sphynx_logging::info;
 use std::sync::Arc;
 use wgpu::{
-	Color, CommandEncoderDescriptor, Device, DeviceDescriptor, Features, Instance, Limits, LoadOp,
-	Operations, PowerPreference, PresentMode, Queue, RenderPassColorAttachment,
-	RenderPassDescriptor, RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration,
-	SurfaceError, TextureViewDescriptor,
+	Color, CommandEncoderDescriptor, CurrentSurfaceTexture, Device, DeviceDescriptor,
+	ExperimentalFeatures, Features, Instance, Limits, LoadOp, MemoryHints, Operations,
+	PowerPreference, PresentMode, Queue, RenderPassColorAttachment, RenderPassDescriptor,
+	RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration, TextureViewDescriptor, Trace,
 };
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
@@ -56,9 +56,10 @@ impl Renderer {
 				power_preference: PowerPreference::default(),
 				force_fallback_adapter: false,
 				compatible_surface: Some(&surface),
+				apply_limit_buckets: false,
 			})
 			.await
-			.ok_or(anyhow::anyhow!("Failed to find an appropriate adapter"))?;
+			.map_err(|e| anyhow::anyhow!("Failed to find an appropriate adapter: {e}"))?;
 
 		let adapter_info = adapter.get_info();
 		info!(
@@ -67,15 +68,15 @@ impl Renderer {
 		);
 
 		let (device, queue) = adapter
-			.request_device(
-				&DeviceDescriptor {
-					label: None,
-					required_features: Features::empty(),
-					required_limits: Limits::downlevel_webgl2_defaults()
-						.using_resolution(adapter.limits()),
-				},
-				None,
-			)
+			.request_device(&DeviceDescriptor {
+				label: None,
+				required_features: Features::empty(),
+				required_limits: Limits::downlevel_webgl2_defaults()
+					.using_resolution(adapter.limits()),
+				experimental_features: ExperimentalFeatures::default(),
+				memory_hints: MemoryHints::default(),
+				trace: Trace::default(),
+			})
 			.await?;
 
 		let swapchain_capabilities = surface.get_capabilities(&adapter);
@@ -122,8 +123,8 @@ impl Renderer {
 		let default_shader = include_shader!(
 			"../../../assets/shaders/default.wgsl",
 			&[
-				camera_uniform_buffer.get_binding(),
-				light_uniform_buffer.get_binding()
+				Some(camera_uniform_buffer.get_binding()),
+				Some(light_uniform_buffer.get_binding())
 			],
 			&device,
 			swapchain_format
@@ -163,16 +164,18 @@ impl Renderer {
 
 	pub fn update(&mut self) {
 		let frame = match self.surface.get_current_texture() {
-			Ok(frame) => frame,
+			CurrentSurfaceTexture::Success(frame) => frame,
 			// outdated surface texture -> recreate
-			Err(SurfaceError::Lost | SurfaceError::Outdated) => {
+			CurrentSurfaceTexture::Lost
+			| CurrentSurfaceTexture::Outdated
+			| CurrentSurfaceTexture::Suboptimal(_) => {
 				let size = self.window.inner_size();
 				self.reconfigure(size);
 				return;
 			}
-			Err(SurfaceError::Timeout) => return,
-			Err(SurfaceError::OutOfMemory) => {
-				panic!("Out of memory while acquiring the next swap chain texture");
+			CurrentSurfaceTexture::Timeout | CurrentSurfaceTexture::Occluded => return,
+			CurrentSurfaceTexture::Validation => {
+				panic!("Validation error on current surface texture");
 			}
 		};
 
@@ -197,6 +200,7 @@ impl Renderer {
 			.device
 			.create_command_encoder(&CommandEncoderDescriptor { label: None });
 
+		encoder.push_debug_group("3d scene renderer");
 		{
 			let mut rpass = encoder.begin_render_pass(&RenderPassDescriptor {
 				label: Some("Main Renderpass"),
@@ -207,10 +211,12 @@ impl Renderer {
 						load: LoadOp::Clear(Color::BLACK),
 						store: StoreOp::Store,
 					},
+					depth_slice: None,
 				})],
 				depth_stencil_attachment: Some(self.depth_texture.get_attachment()),
 				timestamp_writes: None,
 				occlusion_query_set: None,
+				multiview_mask: None,
 			});
 
 			self.camera_uniform_buffer
@@ -221,9 +227,9 @@ impl Renderer {
 			self.cube_mesh
 				.draw_instanced(&self.cube_instance_buffer, &mut rpass);
 		}
+		encoder.pop_debug_group();
 
 		self.queue.submit(Some(encoder.finish()));
-
-		frame.present();
+		self.queue.present(frame);
 	}
 }

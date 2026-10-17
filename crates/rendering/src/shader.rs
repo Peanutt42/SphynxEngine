@@ -4,9 +4,9 @@ use crate::vertex::Vertex;
 use std::borrow::Cow;
 use wgpu::{
 	BindGroupLayout, CompareFunction, DepthBiasState, DepthStencilState, Device, Face,
-	FragmentState, MultisampleState, PipelineLayoutDescriptor, PrimitiveState, RenderPass,
-	RenderPipeline, RenderPipelineDescriptor, ShaderModuleDescriptor, ShaderSource, StencilState,
-	TextureFormat, VertexBufferLayout, VertexState,
+	FragmentState, MultisampleState, PipelineCompilationOptions, PipelineLayoutDescriptor,
+	PrimitiveState, RenderPass, RenderPipeline, RenderPipelineDescriptor, ShaderModuleDescriptor,
+	ShaderSource, StencilState, TextureFormat, VertexBufferLayout, VertexState,
 };
 
 pub const VERTEX_BUFFER_BIND_SLOT: u32 = 0;
@@ -51,7 +51,7 @@ impl Shader {
 	pub fn from_str_instanced<V: Vertex, I: InstanceData>(
 		shader_code: &str,
 		label: Option<&str>,
-		bindings: &[&BindGroupLayout],
+		bindings: &[Option<&BindGroupLayout>],
 		device: &Device,
 		swapchain_format: TextureFormat,
 	) -> Self {
@@ -69,7 +69,7 @@ impl Shader {
 		shader_code: &str,
 		instance_layout: Option<VertexBufferLayout<'static>>,
 		label: Option<&str>,
-		bindings: &[&BindGroupLayout],
+		bindings: &[Option<&BindGroupLayout>],
 		device: &Device,
 		swapchain_format: TextureFormat,
 	) -> Self {
@@ -89,7 +89,7 @@ impl Shader {
 		vertex_layout: VertexBufferLayout<'static>,
 		instance_layout: Option<VertexBufferLayout<'static>>,
 		label: Option<&str>,
-		bindings: &[&BindGroupLayout],
+		bindings: &[Option<&BindGroupLayout>],
 		device: &Device,
 		swapchain_format: TextureFormat,
 	) -> Self {
@@ -98,12 +98,12 @@ impl Shader {
 		let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
 			label: None,
 			bind_group_layouts: bindings,
-			push_constant_ranges: &[],
+			immediate_size: 0,
 		});
 
-		let mut vertex_buffers = vec![vertex_layout];
+		let mut vertex_buffers = vec![Some(vertex_layout)];
 		if let Some(instance_layout) = instance_layout {
-			vertex_buffers.push(instance_layout);
+			vertex_buffers.push(Some(instance_layout));
 		}
 
 		let pipeline = device.create_render_pipeline(&RenderPipelineDescriptor {
@@ -111,13 +111,15 @@ impl Shader {
 			layout: Some(&pipeline_layout),
 			vertex: VertexState {
 				module: &shader_module,
-				entry_point: "vs_main",
+				entry_point: Some("vs_main"),
 				buffers: &vertex_buffers,
+				compilation_options: PipelineCompilationOptions::default(),
 			},
 			fragment: Some(FragmentState {
 				module: &shader_module,
-				entry_point: "fs_main",
+				entry_point: Some("fs_main"),
 				targets: &[Some(swapchain_format.into())],
+				compilation_options: PipelineCompilationOptions::default(),
 			}),
 			primitive: PrimitiveState {
 				cull_mode: Some(Face::Back),
@@ -125,13 +127,14 @@ impl Shader {
 			},
 			depth_stencil: Some(DepthStencilState {
 				format: DepthTexture::FORMAT,
-				depth_write_enabled: true,
-				depth_compare: CompareFunction::Less,
+				depth_write_enabled: Some(true),
+				depth_compare: Some(CompareFunction::Less),
 				stencil: StencilState::default(),
 				bias: DepthBiasState::default(),
 			}),
 			multisample: MultisampleState::default(),
-			multiview: None,
+			multiview_mask: None,
+			cache: None,
 		});
 
 		Self { pipeline }
