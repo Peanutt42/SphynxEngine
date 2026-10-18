@@ -12,7 +12,7 @@ use crate::{
 };
 #[cfg(feature = "egui")]
 use sphynx_egui::EguiRenderer;
-use sphynx_logging::info;
+use sphynx_logging::{error, info};
 use std::sync::Arc;
 use wgpu::{
 	Color, CommandEncoderDescriptor, CurrentSurfaceTexture, Device, DeviceDescriptor,
@@ -180,23 +180,31 @@ impl Renderer {
 	}
 
 	pub fn update(&mut self) {
-		let frame = match self.surface.get_current_texture() {
-			CurrentSurfaceTexture::Success(frame) => frame,
-			// outdated surface texture -> recreate
-			CurrentSurfaceTexture::Lost
-			| CurrentSurfaceTexture::Outdated
-			| CurrentSurfaceTexture::Suboptimal(_) => {
-				let size = self.window.inner_size();
-				self.reconfigure(size);
+		let surface_texture = match self.surface.get_current_texture() {
+			CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
+			CurrentSurfaceTexture::Lost | CurrentSurfaceTexture::Outdated => {
+				self.reconfigure(self.window.inner_size());
+				return;
+			}
+			CurrentSurfaceTexture::Suboptimal(surface_texture) => {
+				drop(surface_texture); // important! must be dropped before reconfiguring!
+				self.reconfigure(self.window.inner_size());
 				return;
 			}
 			CurrentSurfaceTexture::Timeout | CurrentSurfaceTexture::Occluded => return,
 			CurrentSurfaceTexture::Validation => {
-				panic!("Validation error on current surface texture");
+				error!(
+					Rendering,
+					"Validation error on surface.get_current_texture(), reconfiguring surface"
+				);
+				self.reconfigure(self.window.inner_size());
+				return;
 			}
 		};
 
-		let view = frame.texture.create_view(&TextureViewDescriptor::default());
+		let surface_texture_view = surface_texture
+			.texture
+			.create_view(&TextureViewDescriptor::default());
 
 		self.cube_instance_buffer.instances = self
 			.instances
@@ -222,7 +230,7 @@ impl Renderer {
 			let mut rpass = encoder.begin_render_pass(&RenderPassDescriptor {
 				label: Some("Main Renderpass"),
 				color_attachments: &[Some(RenderPassColorAttachment {
-					view: &view,
+					view: &surface_texture_view,
 					resolve_target: None,
 					ops: Operations {
 						load: LoadOp::Clear(Color::BLACK),
@@ -256,7 +264,7 @@ impl Renderer {
 					&self.device,
 					&self.queue,
 					&mut encoder,
-					&view,
+					&surface_texture_view,
 					&self.swapchain_config,
 				);
 			}
@@ -264,6 +272,6 @@ impl Renderer {
 		}
 
 		self.queue.submit(Some(encoder.finish()));
-		self.queue.present(frame);
+		self.queue.present(surface_texture);
 	}
 }
