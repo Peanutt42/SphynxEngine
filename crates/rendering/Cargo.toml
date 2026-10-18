@@ -6,9 +6,14 @@ edition = "2024"
 [dependencies]
 sphynx_logging = { path = "../logging" }
 sphynx_derive_vertex_attrib = { path = "../derive_vertex_attrib" }
+sphynx_egui = { path = "../egui", optional = true }
 winit = { workspace = true }
 wgpu = { workspace = true }
 anyhow = { workspace = true }
 cgmath = { workspace = true }
 bytemuck = { workspace = true }
 wavefront = { workspace = true }
+
+[features]
+default = []
+egui = ["dep:sphynx_egui"]

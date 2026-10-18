@@ -11,3 +11,7 @@ anyhow = { workspace = true }
 winit = { workspace = true }
 cgmath = { workspace = true }
 pollster = "1.0"
+
+[features]
+default = []
+egui = ["sphynx_rendering/egui"]

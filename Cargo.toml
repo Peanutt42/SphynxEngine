@@ -7,6 +7,10 @@ edition = "2024"
 sphynx_core = { path = "crates/core" }
 anyhow = { workspace = true }
 
+[features]
+default = []
+egui = ["sphynx_core/egui"]
+
 [workspace]
 members = [
 	"crates/core",
