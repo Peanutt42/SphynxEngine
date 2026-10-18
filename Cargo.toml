@@ -17,6 +17,7 @@ members = [
 	"crates/logging",
 	"crates/input",
 	"crates/rendering",
+	"crates/egui",
 	"crates/derive_vertex_attrib",
 ]
 
