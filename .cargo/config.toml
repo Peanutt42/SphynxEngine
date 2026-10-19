@@ -1,0 +1,18 @@
+[target.x86_64-unknown-linux-gnu]
+linker = "clang"
+# mold should be installed (already done if you use the flake.nix)
+rustflags = ["-C", "link-arg=-fuse-ld=mold", "-Zshare-generics=y"]
+
+[unstable]
+codegen-backend = true
+
+[profile.dev]
+codegen-backend = "cranelift"
+[profile.dev.package."sphynx_core"]
+codegen-backend = "cranelift"
+[profile.dev.package."sphynx_rendering"]
+codegen-backend = "cranelift"
+# add more sphynx_engine packages that could change fairly often and dont really need the llvm codegen-backend
+
+[profile.dev.package."*"]
+codegen-backend = "llvm"
