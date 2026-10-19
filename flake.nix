@@ -33,6 +33,7 @@
             extensions = [
               "rust-src"
               "rust-analyzer"
+              "rustc-codegen-cranelift-preview"
             ];
           }
         );
@@ -49,7 +50,10 @@
           libxi
         ];
       depsFor = pkgs: {
-        nativeBuildInputs = with pkgs; [ pkg-config ];
+        nativeBuildInputs = with pkgs; [
+          pkg-config
+          mold # for faster debug builds
+        ];
         buildInputs = runtimeLibsFor pkgs;
       };
     in
