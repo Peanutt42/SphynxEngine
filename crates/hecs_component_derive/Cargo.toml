@@ -1,0 +1,12 @@
+[package]
+name = "sphynx_hecs_component_derive"
+version = "0.1.0"
+edition = "2024"
+description = "Derive macro that registers a hecs component"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }
+syn = { workspace = true }

@@ -13,6 +13,7 @@ pub enum LogTopic {
 	Scripting,
 	Physics,
 	UI,
+	Game,
 }
 
 impl LogTopic {
@@ -25,6 +26,7 @@ impl LogTopic {
 			LogTopic::Scripting => "[SCRIPTING] ",
 			LogTopic::Physics => "[PHYSICS]   ",
 			LogTopic::UI => "[UI]        ",
+			LogTopic::Game => "[GAME]      ",
 		}
 	}
 }

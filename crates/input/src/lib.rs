@@ -66,11 +66,10 @@ impl Input {
 
 	/// only when mouse button goes from a pressed to a released state
 	pub fn was_mouse_button_released(&self, button: MouseButton) -> bool {
-		if let Some(last_state) = self.last_frame_mouse_button_states.get(&button) {
-			if let Some(state) = self.mouse_button_states.get(&button) {
+		if let Some(last_state) = self.last_frame_mouse_button_states.get(&button)
+			&& let Some(state) = self.mouse_button_states.get(&button) {
 				return *last_state && !*state;
 			}
-		}
 		false
 	}
 

@@ -4,10 +4,15 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sphynx_logging = { path = "../logging" }
-sphynx_input = { path = "../input" }
-sphynx_rendering = { path = "../rendering" }
+sphynx_logging = { workspace = true }
+sphynx_input = { workspace = true }
+sphynx_rendering = { workspace = true }
 anyhow = { workspace = true }
 winit = { workspace = true }
 cgmath = { workspace = true }
+hot-lib-reloader = { workspace = true, optional = true }
 pollster = "1.0"
+
+[features]
+default = []
+hot-reload = ["dep:hot-lib-reloader"]

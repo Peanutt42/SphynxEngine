@@ -4,22 +4,48 @@ version = "0.1.0"
 edition = "2024"
 
 [dependencies]
-sphynx_core = { path = "crates/core" }
+sphynx_core = { workspace = true }
+sphynx_logging = { workspace = true }
+sphynx_hecs_component = { workspace = true }
+sphynx_hecs_component_derive = { workspace = true }
+
 anyhow = { workspace = true }
+hecs = { workspace = true }
+hot-lib-reloader = { workspace = true, optional = true }
+game = { path = "game" }
+
+[features]
+default = []
+hot-reload = ["sphynx_core/hot-reload", "game/hot-reload", "dep:hot-lib-reloader"]
 
 [workspace]
 members = [
 	"crates/core",
-	"crates/logging",
-	"crates/input",
-	"crates/rendering",
 	"crates/derive_vertex_attrib",
+	"crates/hecs_component",
+	"crates/hecs_component_derive",
+	"crates/input",
+	"crates/logging",
+	"crates/rendering"
 ]
 
 [workspace.dependencies]
+sphynx_core = { path = "crates/core" }
+sphynx_derive_vertex_attrib = { path = "crates/derive_vertex_attrib" }
+sphynx_hecs_component = { path = "crates/hecs_component" }
+sphynx_hecs_component_derive = { path = "crates/hecs_component_derive" }
+sphynx_input = { path = "crates/input" }
+sphynx_logging = { path = "crates/logging" }
+sphynx_rendering = { path = "crates/rendering" }
 anyhow = "1.0.104" # TODO: remove this
 winit = "0.30.13"
 wgpu = "30.0.1"
 cgmath = "0.18"
 bytemuck = { version = "1.25", features = ["derive"] }
 wavefront = { version = "0.2.3"}
+hecs = "0.11"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+hot-lib-reloader = "0.8.2"
+quote = "1.0"
+syn = { version = "3", features = ["derive", "parsing"] }
