@@ -1,0 +1,11 @@
+[package]
+name = "sphynx_hecs_component"
+version = "0.1.0"
+edition = "2024"
+
+[dependencies]
+hecs = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+inventory = "0.3.25"
+sphynx_hecs_component_derive = { path = "../hecs_component_derive" }

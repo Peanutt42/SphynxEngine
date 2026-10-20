@@ -6,6 +6,6 @@ edition = "2021"
 [dependencies]
 winit = { workspace = true }
 wgpu = { workspace = true }
-egui = { version = "0.37.0", features = ["default_fonts"] } # "0.32.1"
-egui-wgpu = { version = "0.37.0", features = ["winit"] } # { version = "0.32.1", features = ["winit"] }
-egui-winit = "0.37.0" # "0.32.1"
+egui = { version = "0.37.0", features = ["default_fonts"] }
+egui-wgpu = { version = "0.37.0", features = ["winit"] }
+egui-winit = "0.37.0"

@@ -1,5 +1,39 @@
-use sphynx_core::EngineConfig;
+use sphynx_core::{EngineConfig, GameApi};
+
+use game::{Game, SerializedGame};
 
 fn main() -> anyhow::Result<()> {
-	EngineConfig::default().run()
+	#[cfg(feature = "hot-reload")]
+	let observer = game_lib::subscribe();
+
+	let game_api = GameApi::<Game, SerializedGame> {
+		create: game_lib::sphynx_engine_game_create,
+		destroy: game_lib::sphynx_engine_game_destroy,
+		update: game_lib::sphynx_engine_game_update,
+		serialize: game_lib::sphynx_engine_game_serialize,
+		deserialize: game_lib::sphynx_engine_game_deserialize,
+	};
+
+	EngineConfig::default().run(
+		game_api,
+		#[cfg(feature = "hot-reload")]
+		observer,
+	)
 }
+
+/// either this hot-reloadable implementation is "game_lib"
+#[cfg(feature = "hot-reload")]
+#[hot_lib_reloader::hot_module(dylib = "game", file_watch_debounce = 50)]
+mod game_lib {
+	// needed for the proc-macro magic
+	use game::{Game, SerializedGame};
+
+	hot_functions_from_file!("game/src/hot_reload_api.rs");
+
+	#[lib_change_subscription]
+	pub fn subscribe() -> hot_lib_reloader::LibReloadObserver {}
+}
+
+/// or this statically linked implementation is "game_lib"
+#[cfg(not(feature = "hot-reload"))]
+use game::hot_reload_api as game_lib;

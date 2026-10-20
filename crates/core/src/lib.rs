@@ -16,36 +16,48 @@ use winit::{
 
 mod camera_controller;
 
+mod game;
+pub use game::GameApi;
+
+#[derive(Debug, Default)]
 pub struct EngineConfig {
 	pub fullscreen: bool,
 	pub vsync: bool,
 }
-
 impl EngineConfig {
 	pub fn new(fullscreen: bool, vsync: bool) -> Self {
 		Self { fullscreen, vsync }
 	}
 
-	pub fn run(self) -> anyhow::Result<()> {
-		let engine = Engine::new(self)?;
+	pub fn run<G, S>(
+		self,
+		game_api: GameApi<G, S>,
+		#[cfg(feature = "hot-reload")] hot_reload_observer: hot_lib_reloader::LibReloadObserver,
+	) -> anyhow::Result<()> {
+		let engine = Engine::<G, S>::new(
+			self,
+			game_api,
+			#[cfg(feature = "hot-reload")]
+			hot_reload_observer,
+		)?;
 		let event_loop = EventLoop::new()?;
 		engine.run(event_loop)
 	}
 }
 
-impl Default for EngineConfig {
-	fn default() -> Self {
-		Self::new(false, false)
-	}
-}
-
-struct Engine {
+struct Engine<G, S> {
 	config: EngineConfig,
 	window_and_renderer: Option<(Arc<Window>, Renderer)>,
 	input: Input,
 	last_update_time: Instant,
+	frame_counter: u64,
 	camera_controller: CameraController,
 	restore_cursor_position: PhysicalPosition<f64>, // where should the captures cursor be restore to
+	game_api: GameApi<G, S>,
+	/// this is a mut ptr since it should support hot-reloading the game code -> memory layout shifts
+	game_ptr: *mut G,
+	#[cfg(feature = "hot-reload")]
+	hot_reload_observer: hot_lib_reloader::LibReloadObserver,
 }
 
 #[cfg(debug_assertions)]
@@ -54,17 +66,28 @@ const BUILD_CONFIG: &str = "Debug";
 #[cfg(not(debug_assertions))]
 const BUILD_CONFIG: &str = "Release";
 
-impl Engine {
-	fn new(config: EngineConfig) -> anyhow::Result<Self> {
+impl<G, S> Engine<G, S> {
+	fn new(
+		config: EngineConfig,
+		game_api: GameApi<G, S>,
+		#[cfg(feature = "hot-reload")] hot_reload_observer: hot_lib_reloader::LibReloadObserver,
+	) -> anyhow::Result<Self> {
 		info!(General, "=== INITIALIZING ===");
+
+		let game_ptr = (game_api.create)();
 
 		Ok(Self {
 			config,
 			window_and_renderer: None,
 			input: Input::new(),
 			last_update_time: Instant::now(),
+			frame_counter: 0,
 			camera_controller: CameraController::new(4.0, 3.0),
 			restore_cursor_position: PhysicalPosition::new(0.0, 0.0),
+			game_ptr,
+			game_api,
+			#[cfg(feature = "hot-reload")]
+			hot_reload_observer,
 		})
 	}
 
@@ -123,13 +146,24 @@ impl Engine {
 			Vector3::new(0.1, 0.1, 0.1),
 		);
 
+		#[cfg(feature = "hot-reload")]
+		game::try_reload_game(
+			&self.hot_reload_observer,
+			&self.game_api,
+			&mut self.game_ptr,
+		);
+
+		unsafe { (self.game_api.update)(self.game_ptr, delta_time, self.frame_counter) };
+
 		renderer.update();
 
 		self.input.clear_frame();
+
+		self.frame_counter += 1;
 	}
 }
 
-impl ApplicationHandler for Engine {
+impl<G, S> ApplicationHandler for Engine<G, S> {
 	fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
 		let window = Arc::new(
 			event_loop
@@ -199,5 +233,11 @@ impl ApplicationHandler for Engine {
 		if let DeviceEvent::MouseMotion { delta } = event {
 			self.input.handle_mouse_movement(delta);
 		}
+	}
+}
+impl<G, S> Drop for Engine<G, S> {
+	fn drop(&mut self) {
+		unsafe { (self.game_api.destroy)(self.game_ptr) };
+		self.game_ptr = std::ptr::null_mut();
 	}
 }
