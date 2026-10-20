@@ -13,13 +13,18 @@ use std::sync::Arc;
 use winit::event::WindowEvent;
 use winit::window::Window;
 
+/// reexport
+pub use egui;
+
+mod debug_window;
+pub use debug_window::debug_window;
+
 pub struct EguiRenderer {
 	state: State,
 	renderer: Renderer,
 	window: Arc<Window>,
 	frame_started: bool,
 	scale_factor: f32,
-	last_update: std::time::Instant,
 }
 
 impl EguiRenderer {
@@ -62,7 +67,6 @@ impl EguiRenderer {
 			window,
 			frame_started: false,
 			scale_factor,
-			last_update: std::time::Instant::now(),
 		}
 	}
 
@@ -75,43 +79,9 @@ impl EguiRenderer {
 	}
 
 	pub fn begin_frame(&mut self) {
-		let dt = self.last_update.elapsed().as_secs_f32();
-		self.last_update = std::time::Instant::now();
-
 		let raw_input = self.state.take_egui_input(self.window.as_ref());
 		self.state.egui_ctx().begin_pass(raw_input);
 		self.frame_started = true;
-
-		// TODO: move out!!!
-		egui::Window::new("egui is working!")
-			.resizable(true)
-			.vscroll(true)
-			.default_open(true)
-			.show(self.state.egui_ctx(), |ui| {
-				ui.label(format!(
-					"FPS: {} ({:.2} ms)",
-					(1.0 / dt).round(),
-					dt * 1000.0
-				));
-
-				ui.separator();
-
-				if ui.button("Button!").clicked() {
-					println!("Button clicked!")
-				}
-
-				ui.separator();
-
-				ui.horizontal(|ui| {
-					ui.label(format!("Pixels per point: {}", ui.pixels_per_point()));
-					if ui.button("-").clicked() {
-						self.scale_factor = (self.scale_factor - 0.1).max(0.3);
-					}
-					if ui.button("+").clicked() {
-						self.scale_factor = (self.scale_factor + 0.1).min(3.0);
-					}
-				});
-			});
 	}
 
 	pub fn end_frame_and_draw(

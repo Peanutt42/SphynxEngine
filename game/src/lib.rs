@@ -6,7 +6,7 @@ use hecs::Entity;
 use sphynx_hecs_component::hecs_component;
 
 /// Just to verify if hot-reload actually happend
-pub const VERSION: u32 = 1;
+pub const VERSION: u64 = 1;
 
 pub struct Game {
 	pub world: hecs::World,

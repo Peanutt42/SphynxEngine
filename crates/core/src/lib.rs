@@ -155,7 +155,10 @@ impl<G, S> Engine<G, S> {
 
 		unsafe { (self.game_api.update)(self.game_ptr, delta_time, self.frame_counter) };
 
-		renderer.update();
+		renderer.update(
+			#[cfg(feature = "egui")]
+			|ctx| sphynx_egui::debug_window(ctx, delta_time, (self.game_api.version)()),
+		);
 
 		self.input.clear_frame();
 

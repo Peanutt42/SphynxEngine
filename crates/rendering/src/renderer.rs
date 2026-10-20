@@ -179,7 +179,10 @@ impl Renderer {
 		self.depth_texture = DepthTexture::new(&self.device, &self.swapchain_config);
 	}
 
-	pub fn update(&mut self) {
+	pub fn update(
+		&mut self,
+		#[cfg(feature = "egui")] egui_callback: impl FnOnce(&sphynx_egui::egui::Context),
+	) {
 		let surface_texture = match self.surface.get_current_texture() {
 			CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
 			CurrentSurfaceTexture::Lost | CurrentSurfaceTexture::Outdated => {
@@ -259,6 +262,8 @@ impl Renderer {
 			encoder.push_debug_group("egui renderer");
 			{
 				self.egui_renderer.begin_frame();
+
+				egui_callback(self.egui_renderer.context());
 
 				self.egui_renderer.end_frame_and_draw(
 					&self.device,
