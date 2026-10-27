@@ -5,9 +5,11 @@ pub use hecs;
 pub use inventory;
 pub use serde;
 pub use serde_json;
-pub use sphynx_hecs_component_derive::{HECSComponent, hecs_component};
+pub use sphynx_hecs_component_derive::{HECSComponent, Reflect, hecs_component};
 
 pub mod serialization;
+
+pub mod reflection;
 
 /// One registered component type for the column-major snapshot format.
 ///
@@ -27,6 +29,8 @@ pub struct ComponentType {
 	/// deserialize a JSON array of values and append them to `batch`.
 	pub deserialize:
 		fn(json: &str, batch_builder: &mut hecs::ColumnBatchBuilder) -> serde_json::Result<()>,
+	pub visit: fn(hecs::EntityRef<'_>, &mut dyn reflection::Visitor) -> bool,
+	pub visit_mut: fn(&hecs::World, hecs::Entity, &mut dyn reflection::VisitorMut) -> bool,
 }
 
 inventory::collect!(ComponentType);

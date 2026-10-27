@@ -1,7 +1,7 @@
 [target.x86_64-unknown-linux-gnu]
 linker = "clang"
 # mold should be installed (already done if you use the flake.nix)
-rustflags = ["-C", "link-arg=-fuse-ld=mold", "-Zshare-generics=y"]
+rustflags = ["-C", "link-arg=-fuse-ld=mold", "-Zshare-generics=y", "-Zmacro-backtrace=y"]
 
 [unstable]
 codegen-backend = true
