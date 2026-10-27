@@ -10,6 +10,8 @@ use crate::{
 	shader::{CAMERA_UNIFORM_BIND_GROUP, LIGHT_UNIFORM_BIND_GROUP},
 	uniform_buffer::UniformBuffer,
 };
+#[cfg(feature = "egui")]
+use sphynx_egui::EguiRenderer;
 use sphynx_logging::{error, info};
 use std::sync::Arc;
 use wgpu::{
@@ -38,6 +40,9 @@ pub struct Renderer {
 
 	pub camera: Camera,
 	camera_uniform_buffer: UniformBuffer<CameraUniform>,
+
+	#[cfg(feature = "egui")]
+	pub egui_renderer: EguiRenderer,
 }
 
 impl Renderer {
@@ -130,6 +135,16 @@ impl Renderer {
 			swapchain_format
 		);
 
+		#[cfg(feature = "egui")]
+		let egui_renderer = EguiRenderer::new(
+			&device,
+			swapchain_config.format,
+			None,
+			1,
+			window.clone(),
+			1.0,
+		);
+
 		Ok(Self {
 			surface,
 			window,
@@ -144,6 +159,8 @@ impl Renderer {
 			camera_uniform_buffer,
 			light_uniform_buffer,
 			instances,
+			#[cfg(feature = "egui")]
+			egui_renderer,
 		})
 	}
 
@@ -162,7 +179,10 @@ impl Renderer {
 		self.depth_texture = DepthTexture::new(&self.device, &self.swapchain_config);
 	}
 
-	pub fn update(&mut self) {
+	pub fn update(
+		&mut self,
+		#[cfg(feature = "egui")] egui_callback: impl FnOnce(&sphynx_egui::egui::Context),
+	) {
 		let surface_texture = match self.surface.get_current_texture() {
 			CurrentSurfaceTexture::Success(surface_texture) => surface_texture,
 			CurrentSurfaceTexture::Lost | CurrentSurfaceTexture::Outdated => {
@@ -236,6 +256,25 @@ impl Renderer {
 				.draw_instanced(&self.cube_instance_buffer, &mut rpass);
 		}
 		encoder.pop_debug_group();
+
+		#[cfg(feature = "egui")]
+		{
+			encoder.push_debug_group("egui renderer");
+			{
+				self.egui_renderer.begin_frame();
+
+				egui_callback(self.egui_renderer.context());
+
+				self.egui_renderer.end_frame_and_draw(
+					&self.device,
+					&self.queue,
+					&mut encoder,
+					&surface_texture_view,
+					&self.swapchain_config,
+				);
+			}
+			encoder.pop_debug_group();
+		}
 
 		self.queue.submit(Some(encoder.finish()));
 		self.queue.present(surface_texture);

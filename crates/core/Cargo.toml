@@ -7,6 +7,7 @@ edition = "2024"
 sphynx_logging = { workspace = true }
 sphynx_input = { workspace = true }
 sphynx_rendering = { workspace = true }
+sphynx_egui = { workspace = true, optional = true }
 anyhow = { workspace = true }
 winit = { workspace = true }
 cgmath = { workspace = true }
@@ -15,4 +16,5 @@ pollster = "1.0"
 
 [features]
 default = []
+egui = ["sphynx_rendering/egui", "dep:sphynx_egui"]
 hot-reload = ["dep:hot-lib-reloader"]

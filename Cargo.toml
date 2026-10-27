@@ -17,10 +17,15 @@ game = { path = "game" }
 [features]
 default = []
 hot-reload = ["sphynx_core/hot-reload", "game/hot-reload", "dep:hot-lib-reloader"]
+egui = ["sphynx_core/egui"]
 
 [workspace]
 members = [
 	"crates/core",
+	"crates/logging",
+	"crates/input",
+	"crates/rendering",
+	"crates/egui",
 	"crates/derive_vertex_attrib",
 	"crates/hecs_component",
 	"crates/hecs_component_derive",
@@ -32,6 +37,7 @@ members = [
 [workspace.dependencies]
 sphynx_core = { path = "crates/core" }
 sphynx_derive_vertex_attrib = { path = "crates/derive_vertex_attrib" }
+sphynx_egui = { path = "crates/egui" }
 sphynx_hecs_component = { path = "crates/hecs_component" }
 sphynx_hecs_component_derive = { path = "crates/hecs_component_derive" }
 sphynx_input = { path = "crates/input" }

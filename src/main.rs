@@ -12,9 +12,14 @@ fn main() -> anyhow::Result<()> {
 		update: game_lib::sphynx_engine_game_update,
 		serialize: game_lib::sphynx_engine_game_serialize,
 		deserialize: game_lib::sphynx_engine_game_deserialize,
+		version: game_lib::sphynx_engine_game_version,
 	};
 
-	EngineConfig::default().run(
+	let fullscreen = false;
+	// so that my laptop does not burn while debugging, maybe should add fps-limiter next
+	let vsync = cfg!(debug_assertions);
+
+	EngineConfig::new(fullscreen, vsync).run(
 		game_api,
 		#[cfg(feature = "hot-reload")]
 		observer,

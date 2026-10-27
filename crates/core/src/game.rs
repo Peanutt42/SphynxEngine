@@ -6,6 +6,7 @@ pub struct GameApi<Game, SerializedGame> {
 	pub update: unsafe fn(game: *mut Game, dt: f32, frame: u64),
 	pub serialize: unsafe fn(game: *const Game) -> SerializedGame,
 	pub deserialize: fn(serialized_game: SerializedGame) -> *mut Game,
+	pub version: fn() -> u64,
 }
 
 #[cfg(feature = "hot-reload")]

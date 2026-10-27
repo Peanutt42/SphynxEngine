@@ -155,7 +155,10 @@ impl<G, S> Engine<G, S> {
 
 		unsafe { (self.game_api.update)(self.game_ptr, delta_time, self.frame_counter) };
 
-		renderer.update();
+		renderer.update(
+			#[cfg(feature = "egui")]
+			|ctx| sphynx_egui::debug_window(ctx, delta_time, (self.game_api.version)()),
+		);
 
 		self.input.clear_frame();
 
@@ -198,10 +201,16 @@ impl<G, S> ApplicationHandler for Engine<G, S> {
 		_window_id: winit::window::WindowId,
 		event: WindowEvent,
 	) {
-		let (_window, renderer) = self
+		let (window, renderer) = self
 			.window_and_renderer
 			.as_mut()
 			.expect("Window and Renderer should have been created by now");
+
+		#[cfg(feature = "egui")]
+		renderer.egui_renderer.handle_input(window.as_ref(), &event);
+
+		#[cfg(not(feature = "egui"))]
+		let _ = window;
 
 		match event {
 			WindowEvent::Resized(new_size) => renderer.resize(new_size),
