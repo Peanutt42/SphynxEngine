@@ -1,7 +1,7 @@
 use std::hash::{Hash, Hasher};
 
 use sphynx_derive_vertex_attrib::Vertex;
-use wgpu::{vertex_attr_array, VertexAttribute, VertexBufferLayout};
+use wgpu::{VertexAttribute, VertexBufferLayout, vertex_attr_array};
 
 pub trait Vertex: bytemuck::Pod + bytemuck::Zeroable {
 	fn desc() -> VertexBufferLayout<'static>;
