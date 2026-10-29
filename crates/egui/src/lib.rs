@@ -3,6 +3,7 @@
 //! the TexturesDelta uploading/painting was copied from
 //! <https://github.com/emilk/egui/blob/86099aca1276fe786921992c8d5a68914ee79bec/crates/egui-wgpu/src/winit.rs#L568-L578>
 
+use egui::text_selection::LabelSelectionState;
 use egui::Context;
 use egui_wgpu::wgpu::{
 	CommandEncoder, Device, Queue, StoreOp, SurfaceConfiguration, TextureFormat, TextureView,
@@ -18,6 +19,22 @@ pub use egui;
 
 mod debug_window;
 pub use debug_window::debug_window;
+
+mod entity_inspector;
+pub use entity_inspector::{entity_inspector, InspectorState};
+
+/// Clears egui's multi-widget label text selection.
+///
+/// egui only ends a label-selection drag when it observes a pointer release. If
+/// that release is missed (for example when the window loses focus or the
+/// pointer leaves the window mid-drag), the selection keeps following the
+/// pointer and clicking on other text does not reliably stop it. Dropping the
+/// selection also resets the internal "is dragging" flag that causes this.
+fn clear_label_selection(ctx: &Context) {
+	if let Some(state) = ctx.plugin_opt::<LabelSelectionState>() {
+		state.lock().clear_selection();
+	}
+}
 
 pub struct EguiRenderer {
 	state: State,
@@ -72,6 +89,21 @@ impl EguiRenderer {
 
 	pub fn handle_input(&mut self, window: &Window, event: &WindowEvent) {
 		let _ = self.state.on_window_event(window, event);
+
+		// A drag that is aborted by the window losing focus or the pointer
+		// leaving the window will never receive its release event. Clear the
+		// label selection so it cannot get stuck and follow the pointer.
+		let aborted = matches!(
+			event,
+			WindowEvent::Focused(false) | WindowEvent::CursorLeft { .. }
+		);
+		let pointer_down = self
+			.state
+			.egui_ctx()
+			.input(|input| input.pointer.any_down());
+		if aborted && pointer_down {
+			clear_label_selection(self.state.egui_ctx());
+		}
 	}
 
 	pub fn ppp(&mut self, v: f32) {
@@ -80,7 +112,16 @@ impl EguiRenderer {
 
 	pub fn begin_frame(&mut self) {
 		let raw_input = self.state.take_egui_input(self.window.as_ref());
-		self.state.egui_ctx().begin_pass(raw_input);
+		let ctx = self.state.egui_ctx();
+		ctx.begin_pass(raw_input);
+
+		// A new press always begins a fresh selection gesture. Clearing here
+		// (rather than waiting for egui's own bookkeeping) makes the previous
+		// highlight disappear immediately and recovers from a missed release.
+		if ctx.input(|input| input.pointer.any_pressed() && !input.modifiers.shift) {
+			clear_label_selection(ctx);
+		}
+
 		self.frame_started = true;
 	}
 

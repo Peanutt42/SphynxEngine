@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [dependencies]
+hecs = { workspace = true }
+sphynx_hecs_component = { workspace = true }
 winit = { workspace = true }
 wgpu = { workspace = true }
 egui = { version = "0.37.0", features = ["default_fonts"] }

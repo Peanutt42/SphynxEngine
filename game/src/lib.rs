@@ -3,7 +3,8 @@
 pub mod hot_reload_api;
 
 use hecs::Entity;
-use sphynx_hecs_component::hecs_component;
+use serde::{Deserialize, Serialize};
+use sphynx_hecs_component::{Reflect, hecs_component};
 
 /// Just to verify if hot-reload actually happend
 pub const VERSION: u64 = 1;
@@ -16,6 +17,29 @@ pub struct Game {
 pub struct SerializedGame {
 	pub spawn_counter: u32,
 	pub world_snapshot: sphynx_hecs_component::serialization::Snapshot,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Reflect)]
+pub struct Complex {
+	field0: u64,
+	string: String,
+	tuple: (i32, f32, u64),
+	fixed_array: [i32; 3],
+	dynamic_array: Vec<String>,
+	optional: Option<i32>,
+	my_enum: MyEnum,
+}
+
+#[derive(Debug, Default, Clone, Serialize, Deserialize, Reflect)]
+pub enum MyEnum {
+	#[default]
+	Variant1,
+	Variant2,
+}
+
+#[hecs_component]
+pub struct ComplexComponent {
+	complex: Complex,
 }
 
 #[hecs_component]
@@ -47,6 +71,25 @@ pub struct Mana {
 
 pub fn game_create() -> Game {
 	let mut world = hecs::World::new();
+
+	world.spawn((
+		Name {
+			name: "Sample entity to test out entity inspector".to_string(),
+		},
+		Position { x: 0.0, y: 0.0 },
+		Mana { amount: 10 },
+		ComplexComponent {
+			complex: Complex {
+				field0: 0,
+				string: "This is a string".to_string(),
+				tuple: (0, 0.0, 0),
+				fixed_array: [0, 0, 0],
+				dynamic_array: vec!["test".to_string()],
+				optional: None,
+				my_enum: MyEnum::Variant1,
+			},
+		},
+	));
 
 	for i in 0..1_000 {
 		world.spawn((

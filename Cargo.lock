@@ -833,6 +833,7 @@ name = "game"
 version = "0.1.0"
 dependencies = [
  "hecs",
+ "serde",
  "sphynx_hecs_component",
  "sphynx_logging",
 ]
@@ -2559,9 +2560,11 @@ version = "0.1.0"
 dependencies = [
  "anyhow",
  "cgmath",
+ "hecs",
  "hot-lib-reloader",
  "pollster",
  "sphynx_egui",
+ "sphynx_hecs_component",
  "sphynx_input",
  "sphynx_logging",
  "sphynx_rendering",
@@ -2583,6 +2586,8 @@ dependencies = [
  "egui",
  "egui-wgpu",
  "egui-winit",
+ "hecs",
+ "sphynx_hecs_component",
  "wgpu",
  "winit",
 ]

@@ -10,6 +10,7 @@ crate-type = ["rlib", "dylib"]
 hecs = { workspace = true }
 sphynx_logging = { workspace = true }
 sphynx_hecs_component = { workspace = true }
+serde = { workspace = true }
 
 [features]
 default = []

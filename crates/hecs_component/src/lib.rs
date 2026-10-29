@@ -22,6 +22,8 @@ pub struct ComponentType {
 	pub type_name: fn() -> &'static str,
 	/// whether [`hecs::Archetype`] stores this component type.
 	pub has: fn(archetype: &hecs::Archetype) -> bool,
+	/// whether an entity currently has this component.
+	pub has_entity: fn(&hecs::World, hecs::Entity) -> bool,
 	/// add this component type to a column batch under construction.
 	pub add_to_batch_type: fn(batch_type: &mut hecs::ColumnBatchType),
 	/// serialize every value of this component column into a JSON array string.
@@ -31,6 +33,10 @@ pub struct ComponentType {
 		fn(json: &str, batch_builder: &mut hecs::ColumnBatchBuilder) -> serde_json::Result<()>,
 	pub visit: fn(hecs::EntityRef<'_>, &mut dyn reflection::Visitor) -> bool,
 	pub visit_mut: fn(&hecs::World, hecs::Entity, &mut dyn reflection::VisitorMut) -> bool,
+	/// Insert a default-constructed component into the entity.
+	pub insert_default: fn(&mut hecs::World, hecs::Entity),
+	/// Remove this component from the entity. Returns true if it was present.
+	pub remove: fn(&mut hecs::World, hecs::Entity) -> bool,
 }
 
 inventory::collect!(ComponentType);

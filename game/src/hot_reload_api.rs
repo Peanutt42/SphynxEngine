@@ -70,3 +70,20 @@ pub fn sphynx_engine_game_deserialize(serialized_game: SerializedGame) -> *mut G
 pub fn sphynx_engine_game_version() -> u64 {
 	crate::VERSION
 }
+
+#[cfg_attr(feature = "hot-reload", unsafe(no_mangle))]
+pub unsafe fn sphynx_engine_game_get_hecs_world(game: *mut Game) -> *mut hecs::World {
+	if game.is_null() {
+		panic!("game is null");
+	}
+	let game = unsafe { &mut *game };
+	&mut game.world
+}
+
+#[cfg_attr(feature = "hot-reload", unsafe(no_mangle))]
+pub fn sphynx_engine_game_get_component_types() -> Vec<&'static sphynx_hecs_component::ComponentType>
+{
+	sphynx_hecs_component::registered_component_types()
+		.into_iter()
+		.collect()
+}

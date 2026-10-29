@@ -42,6 +42,11 @@ pub fn derive_hecs_component(input: TokenStream) -> TokenStream {
 		.into();
 	}
 
+	let field_count = match &input.data {
+		syn::Data::Struct(data) => data.fields.len(),
+		_ => 0,
+	};
+
 	quote! {
 		const _: () = {
 			use ::sphynx_hecs_component::{hecs, serde, serde_json, reflection::Reflect};
@@ -87,27 +92,52 @@ pub fn derive_hecs_component(input: TokenStream) -> TokenStream {
 
 			fn visit(e: ::hecs::EntityRef<'_>, v: &mut dyn ::sphynx_hecs_component::reflection::Visitor) -> bool {
 				match e.get::<&#name>() {
-					Some(c) => { c.accept(v); true }
+					Some(c) => {
+						v.begin_component(type_name(), #field_count);
+						::sphynx_hecs_component::reflection::Reflect::accept_fields(&*c, v);
+						v.end_component(type_name());
+						true
+					}
 					None => false,
 				}
 			}
 
+			fn has_entity(world: &hecs::World, e: hecs::Entity) -> bool {
+				world.get::<&#name>(e).is_ok()
+			}
+
 			fn visit_mut(w: &::hecs::World, e: ::hecs::Entity, v: &mut dyn ::sphynx_hecs_component::reflection::VisitorMut) -> bool {
 				match w.get::<&mut #name>(e) {
-					Ok(mut c) => { c.accept_mut(v); true }
+					Ok(mut c) => {
+						v.begin_component(type_name(), #field_count);
+						::sphynx_hecs_component::reflection::Reflect::accept_fields_mut(&mut *c, v);
+						v.end_component(type_name());
+						true
+					}
 					Err(_) => false,
 				}
+			}
+
+			fn insert_default(world: &mut hecs::World, e: hecs::Entity) {
+				let _ = world.insert_one(e, #name::default());
+			}
+
+			fn remove(world: &mut hecs::World, e: hecs::Entity) -> bool {
+				world.remove_one::<#name>(e).is_ok()
 			}
 
 			::sphynx_hecs_component::inventory::submit! {
 				::sphynx_hecs_component::ComponentType {
 					type_name,
 					has,
+					has_entity,
 					add_to_batch_type,
 					serialize: serialize_column,
 					deserialize: deserialize_column,
 					visit,
 					visit_mut,
+					insert_default,
+					remove,
 				}
 			}
 		};
@@ -131,10 +161,11 @@ pub fn derive_reflect(input: TokenStream) -> TokenStream {
 
 	let data = match &input.data {
 		syn::Data::Struct(s) => s,
-		_ => {
+		syn::Data::Enum(e) => return derive_reflect_enum(name, e),
+		syn::Data::Union(_) => {
 			return syn::Error::new_spanned(
 				&input,
-				"#[derive(Reflect)] only supports structs for now",
+				"#[derive(Reflect)] only supports structs and C-style enums",
 			)
 			.into_compile_error()
 			.into();
@@ -175,15 +206,88 @@ pub fn derive_reflect(input: TokenStream) -> TokenStream {
 		impl ::sphynx_hecs_component::reflection::Reflect for #name {
 			fn accept(&self, v: &mut dyn ::sphynx_hecs_component::reflection::Visitor) {
 				let type_name = ::std::any::type_name::<#name>();
-				v.begin_component(type_name, #field_count);
+				v.begin_struct(type_name, #field_count);
+				::sphynx_hecs_component::reflection::Reflect::accept_fields(self, v);
+				v.end_struct(type_name);
+			}
+			fn accept_fields(&self, v: &mut dyn ::sphynx_hecs_component::reflection::Visitor) {
 				#(#ref_fields)*
-				v.end_component(type_name);
 			}
 			fn accept_mut(&mut self, v: &mut dyn ::sphynx_hecs_component::reflection::VisitorMut) {
 				let type_name = ::std::any::type_name::<#name>();
-				v.begin_component(type_name, #field_count);
+				v.begin_struct(type_name, #field_count);
+				::sphynx_hecs_component::reflection::Reflect::accept_fields_mut(self, v);
+				v.end_struct(type_name);
+			}
+			fn accept_fields_mut(&mut self, v: &mut dyn ::sphynx_hecs_component::reflection::VisitorMut) {
 				#(#mut_fields)*
-				v.end_component(type_name);
+			}
+		}
+	}
+	.into()
+}
+
+fn derive_reflect_enum(name: &syn::Ident, data: &syn::DataEnum) -> TokenStream {
+	let mut variant_names = Vec::new();
+	let mut selected_arms = Vec::new();
+	let mut set_arms = Vec::new();
+
+	for (index, variant) in data.variants.iter().enumerate() {
+		if !matches!(variant.fields, syn::Fields::Unit) {
+			return syn::Error::new_spanned(
+				variant,
+				"#[derive(Reflect)] only supports C-style enums without variant fields",
+			)
+			.into_compile_error()
+			.into();
+		}
+
+		let variant_name = variant.ident.unraw().to_string();
+		let ident = &variant.ident;
+		variant_names.push(variant_name);
+		selected_arms.push(quote! { Self::#ident => #index });
+		set_arms.push(quote! { #index => *self = Self::#ident });
+	}
+
+	let selected = if selected_arms.is_empty() {
+		quote! { let selected = 0; }
+	} else {
+		quote! {
+			let selected = match self {
+				#(#selected_arms),*
+			};
+		}
+	};
+
+	quote! {
+		impl ::sphynx_hecs_component::reflection::Reflect for #name {
+			fn accept(&self, v: &mut dyn ::sphynx_hecs_component::reflection::Visitor) {
+				#selected
+				v.visit_value(::sphynx_hecs_component::reflection::Value::Enum(
+					::sphynx_hecs_component::reflection::EnumValue {
+						type_name: ::std::any::type_name::<#name>(),
+						variants: &[#(#variant_names),*],
+						selected,
+					},
+				));
+			}
+
+			fn accept_mut(&mut self, v: &mut dyn ::sphynx_hecs_component::reflection::VisitorMut) {
+				#selected
+				let mut set = |index: usize| {
+					match index {
+						#(#set_arms,)*
+						_ => {}
+					}
+				};
+				v.visit_value(::sphynx_hecs_component::reflection::ValueMut::Enum(
+					::sphynx_hecs_component::reflection::EnumValueMut::new(
+						::std::any::type_name::<#name>(),
+						&[#(#variant_names),*],
+						selected,
+						&mut set,
+					),
+				));
 			}
 		}
 	}

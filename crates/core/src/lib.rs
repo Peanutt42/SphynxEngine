@@ -58,6 +58,10 @@ struct Engine<G, S> {
 	game_ptr: *mut G,
 	#[cfg(feature = "hot-reload")]
 	hot_reload_observer: hot_lib_reloader::LibReloadObserver,
+	#[cfg(feature = "egui")]
+	inspector_state: sphynx_egui::InspectorState,
+	#[cfg(feature = "egui")]
+	show_inspector: bool,
 }
 
 #[cfg(debug_assertions)]
@@ -88,6 +92,10 @@ impl<G, S> Engine<G, S> {
 			game_api,
 			#[cfg(feature = "hot-reload")]
 			hot_reload_observer,
+			#[cfg(feature = "egui")]
+			inspector_state: sphynx_egui::InspectorState::default(),
+			#[cfg(feature = "egui")]
+			show_inspector: false,
 		})
 	}
 
@@ -155,9 +163,33 @@ impl<G, S> Engine<G, S> {
 
 		unsafe { (self.game_api.update)(self.game_ptr, delta_time, self.frame_counter) };
 
+		#[cfg(feature = "egui")]
+		let (world_ptr, component_types) = unsafe {
+			(
+				(self.game_api.get_hecs_world)(self.game_ptr),
+				(self.game_api.get_component_types)(),
+			)
+		};
+
 		renderer.update(
 			#[cfg(feature = "egui")]
-			|ctx| sphynx_egui::debug_window(ctx, delta_time, (self.game_api.version)()),
+			|ctx| {
+				sphynx_egui::debug_window(
+					ctx,
+					delta_time,
+					(self.game_api.version)(),
+					&mut self.show_inspector,
+				);
+
+				if self.show_inspector && !world_ptr.is_null() {
+					sphynx_egui::entity_inspector(
+						ctx,
+						unsafe { &mut *world_ptr },
+						&component_types,
+						&mut self.inspector_state,
+					);
+				}
+			},
 		);
 
 		self.input.clear_frame();

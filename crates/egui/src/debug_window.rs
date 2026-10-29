@@ -1,8 +1,7 @@
-pub fn debug_window(ctx: &egui::Context, dt: f32, game_version: u64) {
-	egui::Window::new("egui is working!")
-		.resizable(true)
-		.vscroll(true)
-		.default_open(true)
+pub fn debug_window(ctx: &egui::Context, dt: f32, game_version: u64, show_inspector: &mut bool) {
+	egui::Window::new(egui::RichText::new("[DEBUG]").strong())
+		.resizable(false)
+		.default_open(false)
 		.show(ctx, |ui| {
 			ui.label(format!(
 				"FPS: {} ({:.2} ms) Game Version: {game_version}",
@@ -12,22 +11,15 @@ pub fn debug_window(ctx: &egui::Context, dt: f32, game_version: u64) {
 
 			ui.separator();
 
-			if ui.button("Button!").clicked() {
-				println!("Button clicked!")
+			if ui
+				.button(if *show_inspector {
+					"Hide inspector"
+				} else {
+					"Show inspector"
+				})
+				.clicked()
+			{
+				*show_inspector = !*show_inspector;
 			}
-
-			/*
-			ui.separator();
-
-			ui.horizontal(|ui| {
-			ui.label(format!("Pixels per point: {}", ui.pixels_per_point()));
-			if ui.button("-").clicked() {
-			egui_renderer.scale_factor = (egui_renderer.scale_factor - 0.1).max(0.3);
-			}
-			if ui.button("+").clicked() {
-			egui_renderer.scale_factor = (egui_renderer.scale_factor + 0.1).min(3.0);
-			}
-			});
-			*/
 		});
 }

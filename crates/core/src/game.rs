@@ -7,6 +7,9 @@ pub struct GameApi<Game, SerializedGame> {
 	pub serialize: unsafe fn(game: *const Game) -> SerializedGame,
 	pub deserialize: fn(serialized_game: SerializedGame) -> *mut Game,
 	pub version: fn() -> u64,
+	/// readonly for debugging using egui entity inspector
+	pub get_hecs_world: unsafe fn(game: *mut Game) -> *mut hecs::World,
+	pub get_component_types: fn() -> Vec<&'static sphynx_hecs_component::ComponentType>,
 }
 
 #[cfg(feature = "hot-reload")]

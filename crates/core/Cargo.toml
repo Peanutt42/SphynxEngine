@@ -8,6 +8,8 @@ sphynx_logging = { workspace = true }
 sphynx_input = { workspace = true }
 sphynx_rendering = { workspace = true }
 sphynx_egui = { workspace = true, optional = true }
+sphynx_hecs_component = { workspace = true }
+hecs = { workspace = true }
 anyhow = { workspace = true }
 winit = { workspace = true }
 cgmath = { workspace = true }

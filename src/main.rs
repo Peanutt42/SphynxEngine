@@ -13,6 +13,8 @@ fn main() -> anyhow::Result<()> {
 		serialize: game_lib::sphynx_engine_game_serialize,
 		deserialize: game_lib::sphynx_engine_game_deserialize,
 		version: game_lib::sphynx_engine_game_version,
+		get_hecs_world: game_lib::sphynx_engine_game_get_hecs_world,
+		get_component_types: game_lib::sphynx_engine_game_get_component_types,
 	};
 
 	let fullscreen = false;
