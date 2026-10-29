@@ -1,13 +1,11 @@
-use crate::{vertex::PCN_Vertex, Mesh};
+use crate::{Mesh, vertex::PCN_Vertex};
 use std::io::BufRead;
 use wavefront::{Obj, Vertex};
 use wgpu::Device;
 
 #[macro_export]
 macro_rules! include_model {
-	($filepath:expr, $device:expr) => {{
-		load_obj_model(include_bytes!($filepath) as &[u8], $device)
-	}};
+	($filepath:expr, $device:expr) => {{ load_obj_model(include_bytes!($filepath) as &[u8], $device) }};
 }
 
 pub fn load_obj_model<B>(buf_reader: B, device: &Device) -> anyhow::Result<Mesh>

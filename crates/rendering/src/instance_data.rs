@@ -1,6 +1,6 @@
 use cgmath::{Matrix3, Matrix4};
 use sphynx_derive_vertex_attrib::InstanceData;
-use wgpu::{vertex_attr_array, VertexAttribute, VertexBufferLayout};
+use wgpu::{VertexAttribute, VertexBufferLayout, vertex_attr_array};
 
 pub trait InstanceData: bytemuck::Pod + bytemuck::Zeroable {
 	fn desc() -> VertexBufferLayout<'static>;

@@ -3,8 +3,8 @@ use crate::instance_data::InstanceData;
 use crate::shader::VERTEX_BUFFER_BIND_SLOT;
 use crate::vertex::Vertex;
 use wgpu::{
-	util::{BufferInitDescriptor, DeviceExt},
 	Buffer, BufferUsages, Device, IndexFormat, RenderPass,
+	util::{BufferInitDescriptor, DeviceExt},
 };
 
 pub struct Mesh {

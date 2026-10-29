@@ -1,9 +1,9 @@
 use std::marker::PhantomData;
 use wgpu::{
-	util::{BufferInitDescriptor, DeviceExt},
 	BindGroup, BindGroupDescriptor, BindGroupEntry, BindGroupLayout, BindGroupLayoutDescriptor,
 	BindGroupLayoutEntry, BindingType, Buffer, BufferBindingType, BufferUsages, Device, Queue,
 	RenderPass, ShaderStages,
+	util::{BufferInitDescriptor, DeviceExt},
 };
 
 pub struct UniformBuffer<T: bytemuck::Pod + bytemuck::Zeroable> {

@@ -1,8 +1,8 @@
 use crate::instance_data::InstanceData;
 use crate::shader::INSTANCE_BUFFER_BIND_SLOT;
 use wgpu::{
-	util::{BufferInitDescriptor, DeviceExt},
 	Buffer, BufferUsages, Device, Queue, RenderPass,
+	util::{BufferInitDescriptor, DeviceExt},
 };
 
 pub struct InstanceBuffer<I: InstanceData> {

@@ -1,4 +1,4 @@
-use cgmath::{perspective, Angle, Deg, InnerSpace, Matrix4, Point3, Rad, Vector3};
+use cgmath::{Angle, Deg, InnerSpace, Matrix4, Point3, Rad, Vector3, perspective};
 use wgpu::SurfaceConfiguration;
 
 pub struct Camera {
