@@ -1,7 +1,11 @@
 use colored::{ColoredString, Colorize};
+#[cfg(not(target_arch = "wasm32"))]
 use once_cell::sync::Lazy;
+#[cfg(not(target_arch = "wasm32"))]
 use std::fs::File;
+#[cfg(not(target_arch = "wasm32"))]
 use std::io::Write;
+#[cfg(not(target_arch = "wasm32"))]
 use std::sync::{Arc, Mutex};
 
 #[derive(Debug, Copy, Clone)]
@@ -56,31 +60,42 @@ impl LogVerbosity {
 	}
 }
 
+#[cfg(not(target_arch = "wasm32"))]
 pub static LOG_FILE: Lazy<Arc<Mutex<Option<File>>>> = Lazy::new(|| Arc::new(Mutex::new(None)));
 
 pub fn log(verbosity: LogVerbosity, topic: LogTopic, formatted: String) {
 	let msg = format!("{} {}", topic.to_string(), formatted);
-	println!(
-		"{} {}",
-		topic.to_string().bright_black(),
-		verbosity.colorize(formatted)
-	);
 
-	let log_file_msg = format!("{} {}\n", verbosity.to_string(), msg);
-
-	// log file already created, just write to it
-	if let Some(log_file) = &mut *LOG_FILE.lock().unwrap() {
-		let _ = log_file.write(log_file_msg.as_bytes());
-		return;
+	#[cfg(target_arch = "wasm32")]
+	{
+		let console_msg = format!("{} {}", verbosity.to_string(), msg);
+		web_sys::console::log_1(&console_msg.into());
 	}
 
-	// create new log file, then write to it
-	match File::create("Engine.log") {
-		Ok(mut log_file) => {
-			let _ = log_file.write_all(log_file_msg.as_bytes());
-			*LOG_FILE.lock().unwrap() = Some(log_file)
+	#[cfg(not(target_arch = "wasm32"))]
+	{
+		println!(
+			"{} {}",
+			topic.to_string().bright_black(),
+			verbosity.colorize(formatted)
+		);
+
+		let log_file_msg = format!("{} {}\n", verbosity.to_string(), msg);
+
+		// log file already created, just write to it
+		if let Some(log_file) = &mut *LOG_FILE.lock().unwrap() {
+			let _ = log_file.write(log_file_msg.as_bytes());
+			return;
 		}
-		Err(e) => eprintln!("failed to create engine log (Engine.log): {e}"),
+
+		// create new log file, then write to it
+		match File::create("Engine.log") {
+			Ok(mut log_file) => {
+				let _ = log_file.write_all(log_file_msg.as_bytes());
+				*LOG_FILE.lock().unwrap() = Some(log_file)
+			}
+			Err(e) => eprintln!("failed to create engine log (Engine.log): {e}"),
+		}
 	}
 }
 

@@ -12,13 +12,16 @@ use crate::{
 };
 #[cfg(feature = "egui")]
 use sphynx_egui::EguiRenderer;
+#[cfg(target_arch = "wasm32")]
+use sphynx_logging::warning;
 use sphynx_logging::{error, info};
 use std::sync::Arc;
 use wgpu::{
-	Color, CommandEncoderDescriptor, CurrentSurfaceTexture, Device, DeviceDescriptor,
-	ExperimentalFeatures, Features, Instance, Limits, LoadOp, MemoryHints, Operations,
-	PowerPreference, PresentMode, Queue, RenderPassColorAttachment, RenderPassDescriptor,
-	RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration, TextureViewDescriptor, Trace,
+	Backends, Color, CommandEncoderDescriptor, CurrentSurfaceTexture, Device, DeviceDescriptor,
+	ExperimentalFeatures, Features, Instance, InstanceDescriptor, Limits, LoadOp, MemoryHints,
+	Operations, PowerPreference, PresentMode, Queue, RenderPassColorAttachment,
+	RenderPassDescriptor, RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration,
+	TextureViewDescriptor, Trace,
 };
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
@@ -49,18 +52,73 @@ impl Renderer {
 	pub const MAX_INSTANCES: usize = 100;
 
 	pub async fn new(window: Arc<Window>, vsync: bool) -> anyhow::Result<Self> {
+		#[cfg(target_arch = "wasm32")]
+		{
+			if wgpu::util::is_browser_webgpu_supported().await {
+				match Self::new_with_backend(window.clone(), vsync, Some(Backends::BROWSER_WEBGPU))
+					.await
+				{
+					Ok(renderer) => return Ok(renderer),
+					Err(webgpu_error) => {
+						warning!(
+							Rendering,
+							"WebGPU is available but initialization failed ({webgpu_error:#}), \
+							 falling back to WebGL2"
+						);
+					}
+				}
+			} else {
+				info!(Rendering, "WebGPU is not available, using WebGL2");
+			}
+
+			Self::new_with_backend(window, vsync, Some(Backends::GL))
+				.await
+				.map_err(|webgl_error| {
+					anyhow::anyhow!(
+						"failed to initialize WebGPU or the WebGL2 fallback: {webgl_error:#}"
+					)
+				})
+		}
+
+		#[cfg(not(target_arch = "wasm32"))]
+		{
+			Self::new_with_backend(window, vsync, None).await
+		}
+	}
+
+	async fn new_with_backend(
+		window: Arc<Window>,
+		vsync: bool,
+		backends: Option<Backends>,
+	) -> anyhow::Result<Self> {
 		let mut size = window.inner_size();
 		size.width = size.width.max(1);
 		size.height = size.height.max(1);
 
-		let instance = Instance::default();
+		let instance = match backends {
+			Some(backends) => {
+				let mut descriptor = InstanceDescriptor::new_without_display_handle();
+				descriptor.backends = backends;
+				Instance::new(descriptor)
+			}
+			None => Instance::default(),
+		};
 
-		let surface = instance.create_surface(window.clone())?;
+		// On the WebGPU backend the surface is not needed to request an adapter.
+		// Delaying its creation avoids creating a WebGPU canvas context until the
+		// device has been acquired, which keeps the WebGL fallback possible if the
+		// adapter/device request fails.
+		let pending_surface = match backends {
+			#[cfg(target_arch = "wasm32")]
+			Some(Backends::BROWSER_WEBGPU) => None,
+			_ => Some(instance.create_surface(window.clone())?),
+		};
+
 		let adapter = instance
 			.request_adapter(&RequestAdapterOptions {
 				power_preference: PowerPreference::default(),
 				force_fallback_adapter: false,
-				compatible_surface: Some(&surface),
+				compatible_surface: pending_surface.as_ref(),
 				apply_limit_buckets: false,
 			})
 			.await
@@ -84,16 +142,42 @@ impl Renderer {
 			})
 			.await?;
 
+		let surface = match pending_surface {
+			Some(surface) => surface,
+			None => instance.create_surface(window.clone())?,
+		};
+
 		let swapchain_capabilities = surface.get_capabilities(&adapter);
+		// The shader applies gamma correction itself, so prefer a non-sRGB
+		// surface. WebGPU reports one by default, but the WebGL2 fallback can
+		// otherwise pick an sRGB format and gamma-correct the output twice.
+		#[cfg(target_arch = "wasm32")]
+		let swapchain_format = swapchain_capabilities
+			.formats
+			.iter()
+			.copied()
+			.find(|format| !format.is_srgb())
+			.unwrap_or(swapchain_capabilities.formats[0]);
+		#[cfg(not(target_arch = "wasm32"))]
 		let swapchain_format = swapchain_capabilities.formats[0];
 		let mut swapchain_config = surface
 			.get_default_config(&adapter, size.width, size.height)
 			.ok_or(anyhow::anyhow!("Failed to get surface config"))?;
-		swapchain_config.present_mode = if vsync {
-			PresentMode::AutoVsync
-		} else {
-			PresentMode::AutoNoVsync
-		};
+		swapchain_config.format = swapchain_format;
+		// WebGL2 only supports vsync-controlled presentation.
+		#[cfg(target_arch = "wasm32")]
+		{
+			let _ = vsync;
+			swapchain_config.present_mode = PresentMode::Fifo;
+		}
+		#[cfg(not(target_arch = "wasm32"))]
+		{
+			swapchain_config.present_mode = if vsync {
+				PresentMode::AutoVsync
+			} else {
+				PresentMode::AutoNoVsync
+			};
+		}
 		surface.configure(&device, &swapchain_config);
 
 		let depth_texture = DepthTexture::new(&device, &swapchain_config);

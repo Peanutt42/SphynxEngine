@@ -1,3 +1,12 @@
 [toolchain]
-# not necessary, just nice to have for faster builds and better optimizations
+# while nightly is not required, its nice to have for faster builds and better optimizations
+# using the ./.cargo/fast_dev_config.toml cargo config
 channel = "nightly"
+components = [
+	"clippy",
+	"rustfmt",
+	"rust-src",
+	"rust-analyzer",
+	"rustc-codegen-cranelift-preview"
+]
+targets = ["wasm32-unknown-unknown"]

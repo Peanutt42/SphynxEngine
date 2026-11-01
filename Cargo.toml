@@ -31,7 +31,8 @@ members = [
 	"crates/hecs_component_derive",
 	"crates/input",
 	"crates/logging",
-	"crates/rendering"
+	"crates/rendering",
+	"crates/web"
 ]
 
 [workspace.dependencies]

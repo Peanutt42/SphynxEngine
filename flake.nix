@@ -31,9 +31,14 @@
           toolchain:
           toolchain.default.override {
             extensions = [
+              "clippy"
+              "rustfmt"
               "rust-src"
               "rust-analyzer"
               "rustc-codegen-cranelift-preview"
+            ];
+            targets = [
+              "wasm32-unknown-unknown"
             ];
           }
         );
@@ -53,6 +58,7 @@
         nativeBuildInputs = with pkgs; [
           pkg-config
           mold # for faster debug builds
+          parallel # for running the game and rebuilding game lib in parallel
         ];
         buildInputs = runtimeLibsFor pkgs;
       };
@@ -78,12 +84,15 @@
                   ./Cargo.toml
                   ./Cargo.lock
                   ./src
+                  ./game
                   ./crates
+                  ./web
                   ./assets
                 ];
               };
               cargoLock.lockFile = ./Cargo.lock;
               strictDeps = true;
+              buildFeatures = [ "egui" ];
               postFixup = lib.optionalString final.stdenv.hostPlatform.isLinux ''
                 patchelf --add-rpath ${lib.makeLibraryPath (runtimeLibsFor final)} $out/bin/${pname}
               '';
@@ -115,7 +124,11 @@
 
         devShells.default = pkgs.mkShell {
           inherit (depsFor pkgs) nativeBuildInputs buildInputs;
-          packages = [ (devToolchainFor pkgs) ];
+          packages = [
+            (devToolchainFor pkgs)
+            pkgs.trunk
+            pkgs.binaryen
+          ];
           env.RUST_BACKTRACE = "1";
           shellHook = ''
             export LD_LIBRARY_PATH="${lib.makeLibraryPath (runtimeLibsFor pkgs)}''${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"

@@ -4,20 +4,22 @@ use sphynx_input::Input;
 use sphynx_logging::*;
 use sphynx_rendering::{Renderer, Transform};
 use std::sync::Arc;
-use std::time::Instant;
+use web_time::Instant;
 use winit::{
 	application::ApplicationHandler,
 	dpi::{PhysicalPosition, PhysicalSize},
 	event::{DeviceEvent, MouseButton, WindowEvent},
 	event_loop::{ActiveEventLoop, EventLoop},
 	keyboard::KeyCode,
-	window::{Fullscreen, Window},
+	window::{CursorGrabMode, Fullscreen, Window, WindowAttributes},
 };
 
 mod camera_controller;
 
 mod game;
 pub use game::GameApi;
+
+mod platform;
 
 #[derive(Debug, Default)]
 pub struct EngineConfig {
@@ -29,7 +31,7 @@ impl EngineConfig {
 		Self { fullscreen, vsync }
 	}
 
-	pub fn run<G, S>(
+	pub fn run<G: 'static, S: 'static>(
 		self,
 		game_api: GameApi<G, S>,
 		#[cfg(feature = "hot-reload")] hot_reload_observer: hot_lib_reloader::LibReloadObserver,
@@ -45,9 +47,15 @@ impl EngineConfig {
 	}
 }
 
-struct Engine<G, S> {
+pub(crate) struct Engine<G, S> {
 	config: EngineConfig,
-	window_and_renderer: Option<(Arc<Window>, Renderer)>,
+	/// None while the window has not yet been created
+	window: Option<Arc<Window>>,
+	/// None until the renderer has finished initializing
+	renderer: Option<Renderer>,
+	/// Renderer creation can be asynchronous (web); the event loop collects it
+	/// here and moves it into `renderer` once ready.
+	renderer_init: Option<platform::RendererInit>,
 	input: Input,
 	last_update_time: Instant,
 	frame_counter: u64,
@@ -70,7 +78,7 @@ const BUILD_CONFIG: &str = "Debug";
 #[cfg(not(debug_assertions))]
 const BUILD_CONFIG: &str = "Release";
 
-impl<G, S> Engine<G, S> {
+impl<G: 'static, S: 'static> Engine<G, S> {
 	fn new(
 		config: EngineConfig,
 		game_api: GameApi<G, S>,
@@ -82,11 +90,13 @@ impl<G, S> Engine<G, S> {
 
 		Ok(Self {
 			config,
-			window_and_renderer: None,
+			window: None,
+			renderer: None,
+			renderer_init: None,
 			input: Input::new(),
 			last_update_time: Instant::now(),
 			frame_counter: 0,
-			camera_controller: CameraController::new(4.0, 3.0),
+			camera_controller: CameraController::new(4.0, 0.005),
 			restore_cursor_position: PhysicalPosition::new(0.0, 0.0),
 			game_ptr,
 			game_api,
@@ -99,19 +109,52 @@ impl<G, S> Engine<G, S> {
 		})
 	}
 
-	pub fn run(mut self, event_loop: EventLoop<()>) -> anyhow::Result<()> {
-		event_loop.run_app(&mut self)?;
+	pub fn run(self, event_loop: EventLoop<()>) -> anyhow::Result<()> {
+		platform::run(self, event_loop)
+	}
 
-		info!(General, "=== SHUTDOWN ===");
+	fn poll_renderer_init(&mut self) {
+		let Some(renderer_init) = self.renderer_init.as_mut() else {
+			return;
+		};
 
-		Ok(())
+		let Some(result) = renderer_init.poll() else {
+			return;
+		};
+
+		self.renderer_init = None;
+
+		match result {
+			Ok(renderer) => {
+				info!(Rendering, "=== RENDERER READY ===");
+				self.last_update_time = Instant::now();
+				self.renderer = Some(renderer);
+			}
+			Err(error) => {
+				error!(Rendering, "failed to initialize the renderer: {error:#}");
+				std::process::exit(1);
+			}
+		}
+	}
+
+	fn window_attributes(&self) -> WindowAttributes {
+		platform::configure_window(
+			Window::default_attributes()
+				.with_title(format!("SphynxEngine [{}]", BUILD_CONFIG))
+				.with_inner_size(PhysicalSize::new(1920.0, 1080.0)),
+			self.config.fullscreen,
+		)
 	}
 
 	fn update(&mut self, event_loop: &ActiveEventLoop) {
-		let (window, renderer) = self
-			.window_and_renderer
+		let window = self
+			.window
 			.as_mut()
-			.expect("Window and Renderer should have been created by now");
+			.expect("Window should have been created by now");
+		let renderer = self
+			.renderer
+			.as_mut()
+			.expect("Renderer should have been created by now");
 
 		let now = Instant::now();
 		let delta_time = (now - self.last_update_time).as_secs_f32();
@@ -127,17 +170,23 @@ impl<G, S> Engine<G, S> {
 			}
 		}
 
+		#[cfg(target_arch = "wasm32")]
+		let _ = event_loop;
+
+		#[cfg(not(target_arch = "wasm32"))]
 		if self.input.was_key_pressed(KeyCode::Escape) {
 			event_loop.exit();
 		}
 
 		// captured cursor
-		window.set_cursor_visible(!self.input.is_mouse_button_down(MouseButton::Right));
 		if self.input.was_mouse_button_pressed(MouseButton::Right) {
 			self.restore_cursor_position = self.input.cursor_position;
+			let _ = window.set_cursor_grab(CursorGrabMode::Locked);
 		} else if self.input.was_mouse_button_released(MouseButton::Right) {
+			let _ = window.set_cursor_grab(CursorGrabMode::None);
 			let _ = window.set_cursor_position(self.restore_cursor_position);
 		}
+		window.set_cursor_visible(!self.input.is_mouse_button_down(MouseButton::Right));
 
 		self.camera_controller
 			.update(&self.input, &mut renderer.camera, delta_time);
@@ -198,31 +247,25 @@ impl<G, S> Engine<G, S> {
 	}
 }
 
-impl<G, S> ApplicationHandler for Engine<G, S> {
+impl<G: 'static, S: 'static> ApplicationHandler for Engine<G, S> {
 	fn resumed(&mut self, event_loop: &winit::event_loop::ActiveEventLoop) {
 		let window = Arc::new(
 			event_loop
-				.create_window(
-					Window::default_attributes()
-						.with_title(format!("SphynxEngine [{}]", BUILD_CONFIG))
-						.with_inner_size(PhysicalSize::new(1920.0, 1080.0))
-						.with_fullscreen(if self.config.fullscreen {
-							Some(Fullscreen::Borderless(None))
-						} else {
-							None
-						}),
-				)
+				.create_window(self.window_attributes())
 				.expect("failed to create window"),
 		);
 
-		let renderer = pollster::block_on(Renderer::new(window.clone(), self.config.vsync))
-			.expect("failed to create renderer");
+		self.window = Some(Arc::clone(&window));
+		self.renderer_init = Some(platform::RendererInit::start(window, self.config.vsync));
 
-		self.window_and_renderer = Some((window, renderer));
+		// on native, this runs blocking, on web, this starts a async task
+		self.poll_renderer_init();
 	}
 
 	fn about_to_wait(&mut self, _event_loop: &ActiveEventLoop) {
-		if let Some((window, _renderer)) = self.window_and_renderer.as_ref() {
+		self.poll_renderer_init();
+
+		if let Some(window) = self.window.as_ref() {
 			window.request_redraw();
 		}
 	}
@@ -233,20 +276,24 @@ impl<G, S> ApplicationHandler for Engine<G, S> {
 		_window_id: winit::window::WindowId,
 		event: WindowEvent,
 	) {
-		let (window, renderer) = self
-			.window_and_renderer
-			.as_mut()
-			.expect("Window and Renderer should have been created by now");
+		#[allow(unused)]
+		let Some(window) = self.window.as_ref() else {
+			return;
+		};
+		let Some(renderer) = self.renderer.as_mut() else {
+			return;
+		};
 
 		#[cfg(feature = "egui")]
 		renderer.egui_renderer.handle_input(window.as_ref(), &event);
 
-		#[cfg(not(feature = "egui"))]
-		let _ = window;
-
 		match event {
-			WindowEvent::Resized(new_size) => renderer.resize(new_size),
-			WindowEvent::RedrawRequested => self.update(event_loop),
+			WindowEvent::Resized(new_size) => {
+				renderer.resize(new_size);
+			}
+			WindowEvent::RedrawRequested => {
+				self.update(event_loop);
+			}
 			WindowEvent::CloseRequested => event_loop.exit(),
 
 			// INPUT

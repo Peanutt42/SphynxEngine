@@ -392,6 +392,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "console_error_panic_hook"
+version = "0.1.7"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "a06aeb73f470f66dcdbf7223caeebb85984942f22f1adb2a088cf9668146bbbc"
+dependencies = [
+ "cfg-if",
+ "wasm-bindgen",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2568,6 +2578,8 @@ dependencies = [
  "sphynx_input",
  "sphynx_logging",
  "sphynx_rendering",
+ "wasm-bindgen-futures",
+ "web-time",
  "winit",
 ]
 
@@ -2607,6 +2619,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "sphynx_engine_web"
+version = "0.1.0"
+dependencies = [
+ "console_error_panic_hook",
+ "game",
+ "sphynx_core",
+ "wasm-bindgen",
+ "web-sys",
+]
+
+[[package]]
 name = "sphynx_hecs_component"
 version = "0.1.0"
 dependencies = [
@@ -2640,6 +2663,7 @@ version = "0.1.0"
 dependencies = [
  "colored",
  "once_cell",
+ "web-sys",
 ]
 
 [[package]]

@@ -4,7 +4,9 @@ version = "0.1.0"
 edition = "2024"
 
 [lib]
-crate-type = ["rlib", "dylib"]
+# was rlib and dylib, but since wasm does not support dylib and we only have a c abi api,
+# we use cdylib instead of dylib, still works the same
+crate-type = ["rlib", "cdylib"]
 
 [dependencies]
 hecs = { workspace = true }

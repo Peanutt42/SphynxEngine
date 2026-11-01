@@ -1,8 +1,8 @@
 use crate::egui;
 use egui::{Align2, AtomExt, Atoms};
 use hecs::{Entity, World};
-use sphynx_hecs_component::reflection::{ValueMut, VisitorMut};
 use sphynx_hecs_component::ComponentType;
+use sphynx_hecs_component::reflection::{ValueMut, VisitorMut};
 use std::collections::HashSet;
 
 /// Persistent UI state for [`entity_inspector`].

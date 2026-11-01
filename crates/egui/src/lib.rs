@@ -3,12 +3,12 @@
 //! the TexturesDelta uploading/painting was copied from
 //! <https://github.com/emilk/egui/blob/86099aca1276fe786921992c8d5a68914ee79bec/crates/egui-wgpu/src/winit.rs#L568-L578>
 
-use egui::text_selection::LabelSelectionState;
 use egui::Context;
+use egui::text_selection::LabelSelectionState;
 use egui_wgpu::wgpu::{
 	CommandEncoder, Device, Queue, StoreOp, SurfaceConfiguration, TextureFormat, TextureView,
 };
-use egui_wgpu::{wgpu, Renderer, RendererOptions, ScreenDescriptor};
+use egui_wgpu::{Renderer, RendererOptions, ScreenDescriptor, wgpu};
 use egui_winit::State;
 use std::sync::Arc;
 use winit::event::WindowEvent;
@@ -21,7 +21,7 @@ mod debug_window;
 pub use debug_window::debug_window;
 
 mod entity_inspector;
-pub use entity_inspector::{entity_inspector, InspectorState};
+pub use entity_inspector::{InspectorState, entity_inspector};
 
 /// Clears egui's multi-widget label text selection.
 ///

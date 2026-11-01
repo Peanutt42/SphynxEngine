@@ -14,6 +14,9 @@ target/
 
 /target
 
+# Trunk output
+dist
+
 # log file
 Engine.log
 

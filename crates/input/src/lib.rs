@@ -98,9 +98,9 @@ impl Input {
 		}
 	}
 
-	pub fn handle_mouse_movement(&mut self, delta: (f64, f64)) {
-		self.mouse_delta.x = delta.0 as f32;
-		self.mouse_delta.y = delta.1 as f32;
+	pub fn handle_mouse_movement(&mut self, (delta_x, delta_y): (f64, f64)) {
+		self.mouse_delta.x += delta_x as f32;
+		self.mouse_delta.y += delta_y as f32;
 	}
 
 	pub fn handle_cursor_movement(&mut self, new_position: PhysicalPosition<f64>) {

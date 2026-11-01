@@ -14,6 +14,9 @@ cgmath = { workspace = true }
 bytemuck = { workspace = true }
 wavefront = { workspace = true }
 
+[target.'cfg(target_arch = "wasm32")'.dependencies]
+wgpu = { workspace = true, features = ["webgpu", "webgl"] }
+
 [features]
 default = []
 egui = ["dep:sphynx_egui"]
