@@ -53,7 +53,7 @@ impl Shader {
 		label: Option<&str>,
 		bindings: &[Option<&BindGroupLayout>],
 		device: &Device,
-		swapchain_format: TextureFormat,
+		swapchain_texture_view_format: TextureFormat,
 	) -> Self {
 		Self::from_str::<V>(
 			shader_code,
@@ -61,7 +61,7 @@ impl Shader {
 			label,
 			bindings,
 			device,
-			swapchain_format,
+			swapchain_texture_view_format,
 		)
 	}
 
@@ -71,7 +71,7 @@ impl Shader {
 		label: Option<&str>,
 		bindings: &[Option<&BindGroupLayout>],
 		device: &Device,
-		swapchain_format: TextureFormat,
+		swapchain_texture_view_format: TextureFormat,
 	) -> Self {
 		Self::new(
 			ShaderSource::Wgsl(Cow::Borrowed(shader_code)),
@@ -80,7 +80,7 @@ impl Shader {
 			label,
 			bindings,
 			device,
-			swapchain_format,
+			swapchain_texture_view_format,
 		)
 	}
 
@@ -91,8 +91,13 @@ impl Shader {
 		label: Option<&str>,
 		bindings: &[Option<&BindGroupLayout>],
 		device: &Device,
-		swapchain_format: TextureFormat,
+		swapchain_texture_view_format: TextureFormat,
 	) -> Self {
+		assert!(
+			swapchain_texture_view_format.is_srgb(),
+			"the texture view of the swapchain texture should always be srgb, we dont apply gamma correction ourselfs"
+		);
+
 		let shader_module = device.create_shader_module(ShaderModuleDescriptor { label, source });
 
 		let pipeline_layout = device.create_pipeline_layout(&PipelineLayoutDescriptor {
@@ -118,7 +123,7 @@ impl Shader {
 			fragment: Some(FragmentState {
 				module: &shader_module,
 				entry_point: Some("fs_main"),
-				targets: &[Some(swapchain_format.into())],
+				targets: &[Some(swapchain_texture_view_format.into())],
 				compilation_options: PipelineCompilationOptions::default(),
 			}),
 			primitive: PrimitiveState {

@@ -21,7 +21,7 @@ use wgpu::{
 	ExperimentalFeatures, Features, Instance, InstanceDescriptor, Limits, LoadOp, MemoryHints,
 	Operations, PowerPreference, PresentMode, Queue, RenderPassColorAttachment,
 	RenderPassDescriptor, RequestAdapterOptions, StoreOp, Surface, SurfaceConfiguration,
-	TextureViewDescriptor, Trace,
+	TextureFormat, TextureViewDescriptor, Trace,
 };
 use winit::dpi::PhysicalSize;
 use winit::window::Window;
@@ -32,6 +32,9 @@ pub struct Renderer {
 	device: Device,
 	queue: Queue,
 	swapchain_config: SurfaceConfiguration,
+	/// the TextureFormat that we view the swapchain texture with (should always be sRGB, even when
+	/// the underlying swapchain texture is not sRGB!)
+	swapchain_texture_view_format: TextureFormat,
 	depth_texture: DepthTexture,
 	default_shader: Shader,
 	cube_mesh: Mesh,
@@ -147,23 +150,13 @@ impl Renderer {
 			None => instance.create_surface(window.clone())?,
 		};
 
-		let swapchain_capabilities = surface.get_capabilities(&adapter);
-		// The shader applies gamma correction itself, so prefer a non-sRGB
-		// surface. WebGPU reports one by default, but the WebGL2 fallback can
-		// otherwise pick an sRGB format and gamma-correct the output twice.
-		#[cfg(target_arch = "wasm32")]
-		let swapchain_format = swapchain_capabilities
-			.formats
-			.iter()
-			.copied()
-			.find(|format| !format.is_srgb())
-			.unwrap_or(swapchain_capabilities.formats[0]);
-		#[cfg(not(target_arch = "wasm32"))]
-		let swapchain_format = swapchain_capabilities.formats[0];
 		let mut swapchain_config = surface
 			.get_default_config(&adapter, size.width, size.height)
 			.ok_or(anyhow::anyhow!("Failed to get surface config"))?;
-		swapchain_config.format = swapchain_format;
+		let swapchain_capabilities = surface.get_capabilities(&adapter);
+		swapchain_config.format = swapchain_capabilities.formats[0];
+		let swapchain_texture_view_format = swapchain_config.format.add_srgb_suffix();
+		swapchain_config.view_formats = vec![swapchain_texture_view_format];
 		// WebGL2 only supports vsync-controlled presentation.
 		#[cfg(target_arch = "wasm32")]
 		{
@@ -217,13 +210,13 @@ impl Renderer {
 				Some(light_uniform_buffer.get_binding())
 			],
 			&device,
-			swapchain_format
+			swapchain_texture_view_format
 		);
 
 		#[cfg(feature = "egui")]
 		let egui_renderer = EguiRenderer::new(
 			&device,
-			swapchain_config.format,
+			swapchain_texture_view_format,
 			None,
 			1,
 			window.clone(),
@@ -236,6 +229,7 @@ impl Renderer {
 			device,
 			queue,
 			swapchain_config,
+			swapchain_texture_view_format,
 			depth_texture,
 			default_shader,
 			cube_mesh,
@@ -290,9 +284,12 @@ impl Renderer {
 			}
 		};
 
-		let surface_texture_view = surface_texture
-			.texture
-			.create_view(&TextureViewDescriptor::default());
+		let surface_texture_view = surface_texture.texture.create_view(&TextureViewDescriptor {
+			// use a srgb view on the swapchain texture to ensure we render sRGB even if the
+			// swapchain texture is not sRGB itself
+			format: Some(self.swapchain_texture_view_format),
+			..Default::default()
+		});
 
 		self.cube_instance_buffer.instances = self
 			.instances
