@@ -210,7 +210,8 @@ impl Renderer {
 			UniformBuffer::for_fragment(light_uniform, Some("LightUniformBuffer"), &device);
 
 		let default_shader = include_shader!(
-			"../../../assets/shaders/default.wgsl",
+			"../../assets/shaders",
+			"default",
 			&[
 				Some(camera_uniform_buffer.get_binding()),
 				Some(light_uniform_buffer.get_binding())

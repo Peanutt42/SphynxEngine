@@ -1,0 +1,13 @@
+[package]
+name = "sphynx_wesl_include"
+version = "0.1.0"
+edition = "2024"
+
+[lib]
+proc-macro = true
+
+[dependencies]
+quote = { workspace = true }
+syn = { workspace = true }
+wesl = "0.6"
+proc-macro2 = "1.0"

@@ -6,6 +6,7 @@ edition = "2024"
 [dependencies]
 sphynx_logging = { workspace = true }
 sphynx_derive_vertex_attrib = { workspace = true }
+sphynx_wesl_include = { workspace = true }
 sphynx_egui = { workspace = true, optional = true }
 winit = { workspace = true }
 wgpu = { workspace = true }

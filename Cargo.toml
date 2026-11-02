@@ -32,6 +32,7 @@ members = [
 	"crates/input",
 	"crates/logging",
 	"crates/rendering",
+	"crates/wesl_include",
 	"crates/web"
 ]
 
@@ -44,6 +45,7 @@ sphynx_hecs_component_derive = { path = "crates/hecs_component_derive" }
 sphynx_input = { path = "crates/input" }
 sphynx_logging = { path = "crates/logging" }
 sphynx_rendering = { path = "crates/rendering" }
+sphynx_wesl_include = { path = "crates/wesl_include" }
 anyhow = "1.0.104" # TODO: remove this
 winit = "0.30.13"
 wgpu = "30.0.1"

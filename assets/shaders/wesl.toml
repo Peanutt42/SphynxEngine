@@ -1,0 +1,5 @@
+edition = "2026_pre"
+root = "."
+
+[dependencies]
+sphynx_engine = { path = "../../crates/rendering/shaders" }

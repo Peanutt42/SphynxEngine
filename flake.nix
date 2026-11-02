@@ -59,6 +59,7 @@
           pkg-config
           mold # for faster debug builds
           parallel # for running the game and rebuilding game lib in parallel
+          wgsl-analyzer # for wgsl-analyzer, but also for wgslfmt
         ];
         buildInputs = runtimeLibsFor pkgs;
       };

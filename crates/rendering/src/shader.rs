@@ -16,13 +16,13 @@ pub const LIGHT_UNIFORM_BIND_GROUP: u32 = 1;
 
 #[macro_export]
 macro_rules! include_shader {
-	($filepath:expr, $bindings:expr, $device:expr, $swapchain_format:expr) => {{
+	($shader_root_dir:literal, $shader_module_name:literal, $bindings:expr, $device:expr, $swapchain_format:expr) => {{
 		Shader::from_str_instanced::<
 			$crate::vertex::PCN_Vertex,
 			$crate::instance_data::Model_InstanceData,
 		>(
-			include_str!($filepath),
-			Some($filepath),
+			::sphynx_wesl_include::include_wesl!($shader_root_dir, $shader_module_name),
+			Some($shader_module_name),
 			$bindings,
 			$device,
 			$swapchain_format,
@@ -32,10 +32,10 @@ macro_rules! include_shader {
 
 #[macro_export]
 macro_rules! include_custom_shader {
-	($vertex:expr, $instance:expr, $filepath:expr, $bindings:expr, $device:expr, $swapchain_format:expr) => {{
+	($vertex:expr, $instance:expr, $shader_root_dir:expr, $shader_module_name:expr, $bindings:expr, $device:expr, $swapchain_format:expr) => {{
 		Shader::from_str_instanced::<$vertex, $instance>(
-			include_str!($filepath),
-			Some($filepath),
+			::sphynx_wesl_include::include_wesl!($shader_root_dir, $shader_module_name),
+			Some($shader_module_name),
 			$bindings,
 			$device,
 			$swapchain_format,
